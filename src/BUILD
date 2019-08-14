@@ -7,6 +7,7 @@ cc_library(
         "bark_mamcts_state.hpp",
         "behavior_uct_single_agent.hpp",
     ],
+    copts = ["-Iexternal/bark_project"],
     deps= [
         "@bark_project//modules/models/behavior:behavior",
         "@mamcts_project//mcts:mcts",

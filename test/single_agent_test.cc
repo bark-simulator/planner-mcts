@@ -6,7 +6,7 @@
 
 #include "gtest/gtest.h"
 #include "src/behavior_uct_single_agent.hpp"
-#include "external/bark_project/modules/commons/params/default_params.hpp"
+#include "modules/commons/params/default_params.hpp"
 
 #define UNIT_TESTING
 #define DEBUG

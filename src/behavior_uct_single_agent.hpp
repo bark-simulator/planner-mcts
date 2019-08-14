@@ -7,7 +7,7 @@
 #ifndef MODULES_MODELS_BEHAVIOR_SINGLE_AGENT_MCTS_HPP_
 #define MODULES_MODELS_BEHAVIOR_SINGLE_AGENT_MCTS_HPP_
 
-#include "external/bark_project/modules/models/behavior/behavior_model.hpp"
+#include "modules/models/behavior/behavior_model.hpp"
 
 namespace modules {
 namespace world {
