@@ -43,7 +43,8 @@ TEST(single_agent_mcts_state, execute) {
   
   std::vector<mcts::Reward> rewards;
   auto next_mcts_state = mcts_state.execute(JointAction({0}), rewards);
-
+  EXPECT_TRUE(next_mcts_state->is_terminal());
+  EXPECT_NEAR(rewards[0], -1000 , 0.00001);
 }
 
 
