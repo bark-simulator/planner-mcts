@@ -55,10 +55,10 @@ dynamic::Trajectory BehaviorUCTSingleAgent::Plan(
     mcts_observed_world->SetupPrediction(prediction_settings_);
 
     mcts::RandomGenerator::random_generator_ = std::mt19937(random_seed_);
-    mcts::Mcts<SingleAgentMCTSState, mcts::UctStatistic, mcts::UctStatistic, mcts::RandomHeuristic> mcts;
+    mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic, mcts::RandomHeuristic> mcts;
 
     auto ego_model = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(prediction_settings_.ego_prediction_model_);
-    SingleAgentMCTSState mcts_state(mcts_observed_world, false, ego_model->GetNumMotionPrimitives(), delta_time);
+    MctsStateSingleAgent mcts_state(mcts_observed_world, false, ego_model->GetNumMotionPrimitives(), delta_time);
     mcts.search(mcts_state, max_search_time_, max_num_iterations_);
     mcts::ActionIdx best_action = mcts.returnBestAction();
 

@@ -6,6 +6,8 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         "//src:planner_uct_single_agent",
+        "@bark_project//modules/world:world",
+        "@bark_project//modules/models/tests:make_test_world",
         "@gtest//:main",
     ],
 )

@@ -18,16 +18,16 @@ namespace behavior {
 
 
 // A simple environment with a 1D state, only if both agents select different actions, they get nearer to the terminal state
-class SingleAgentMCTSState : public mcts::StateInterface<SingleAgentMCTSState> {
+class MctsStateSingleAgent : public mcts::StateInterface<MctsStateSingleAgent> {
   public:
-    SingleAgentMCTSState(const modules::world::ObservedWorldPtr& observed_world, bool is_terminal_state,
+    MctsStateSingleAgent(const modules::world::ObservedWorldPtr& observed_world, bool is_terminal_state,
                                            const mcts::ActionIdx& num_ego_actions,
                                            const float& prediction_time_span);
-    ~SingleAgentMCTSState() {}
+    ~MctsStateSingleAgent() {}
 
-    std::shared_ptr<SingleAgentMCTSState> clone() const;
+    std::shared_ptr<MctsStateSingleAgent> clone() const;
 
-    std::shared_ptr<SingleAgentMCTSState> execute(const mcts::JointAction& joint_action, std::vector< mcts::Reward>& rewards ) const;
+    std::shared_ptr<MctsStateSingleAgent> execute(const mcts::JointAction& joint_action, std::vector< mcts::Reward>& rewards ) const;
 
     mcts::ActionIdx get_num_actions( mcts::AgentIdx agent_idx) const;
 

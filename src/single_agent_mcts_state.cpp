@@ -19,7 +19,7 @@ using modules::world::evaluation::EvaluatorGoalReached;
 using modules::world::evaluation::EvaluatorCollisionEgoAgent;
 using modules::world::ObservedWorldPtr;
 
-SingleAgentMCTSState::SingleAgentMCTSState(const ObservedWorldPtr& observed_world, bool is_terminal_state,
+MctsStateSingleAgent::MctsStateSingleAgent(const ObservedWorldPtr& observed_world, bool is_terminal_state,
                                            const mcts::ActionIdx& num_ego_actions,
                                            const float& prediction_time_span) : 
                                         observed_world_(observed_world),
@@ -27,17 +27,17 @@ SingleAgentMCTSState::SingleAgentMCTSState(const ObservedWorldPtr& observed_worl
                                         num_ego_actions_(num_ego_actions),
                                         prediction_time_span_(prediction_time_span) {}
 
-std::shared_ptr<SingleAgentMCTSState> SingleAgentMCTSState::clone() const {
-    return std::make_shared<SingleAgentMCTSState>(ObservedWorldPtr(observed_world_->Clone()),
+std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::clone() const {
+    return std::make_shared<MctsStateSingleAgent>(ObservedWorldPtr(observed_world_->Clone()),
                              is_terminal_state_, num_ego_actions_, prediction_time_span_);
 }
 
-std::shared_ptr<SingleAgentMCTSState> SingleAgentMCTSState::execute(const mcts::JointAction& joint_action,
+std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::execute(const mcts::JointAction& joint_action,
                                                                     std::vector< mcts::Reward>& rewards ) const {
 
     // TODO: parameter for prediction time span
     auto predicted_world = observed_world_->Predict(prediction_time_span_,
-                                 DiscreteAction(joint_action[SingleAgentMCTSState::ego_agent_idx]));
+                                 DiscreteAction(joint_action[MctsStateSingleAgent::ego_agent_idx]));
 
     // TODO: allow for separate configuration options ------
     auto evaluator_collision_corridor = EvaluatorCollisionDrivingCorridor();
@@ -54,22 +54,22 @@ std::shared_ptr<SingleAgentMCTSState> SingleAgentMCTSState::execute(const mcts::
 
     bool is_terminal = (collision_corridor || collision_ego || goal_reached);
 
-    return std::make_shared<SingleAgentMCTSState>(predicted_world, is_terminal, num_ego_actions_, prediction_time_span_);
+    return std::make_shared<MctsStateSingleAgent>(predicted_world, is_terminal, num_ego_actions_, prediction_time_span_);
 }
 
-mcts::ActionIdx SingleAgentMCTSState::get_num_actions( mcts::AgentIdx agent_idx) const {
+mcts::ActionIdx MctsStateSingleAgent::get_num_actions( mcts::AgentIdx agent_idx) const {
     return num_ego_actions_;
 }
 
-bool SingleAgentMCTSState::is_terminal() const {
+bool MctsStateSingleAgent::is_terminal() const {
     return is_terminal_state_;
 }
 
-const std::vector< mcts::AgentIdx> SingleAgentMCTSState::get_agent_idx() const {
+const std::vector< mcts::AgentIdx> MctsStateSingleAgent::get_agent_idx() const {
     return std::vector< mcts::AgentIdx>{0};
 }
 
-std::string SingleAgentMCTSState::sprintf() const {
+std::string MctsStateSingleAgent::sprintf() const {
     return std::string();
 }
 
