@@ -13,9 +13,13 @@
 
 #include <cstdio>
 
+
+TEST(bark_mamcts_state, search) {
+
+}
+
 TEST(test_single_agent_mcts, temp )
 {
-
 
     modules::commons::DefaultParams params;
     modules::models::behavior::BehaviorUCTSingleAgent behavior(&params);
