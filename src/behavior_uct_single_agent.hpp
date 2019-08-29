@@ -34,6 +34,18 @@ class BehaviorUCTSingleAgent : public BehaviorModel {
     unsigned int max_num_iterations_;
     unsigned int max_search_time_;
     unsigned int random_seed_;
+    bool dump_tree_;
+
+    // MCTS PARAMETERS
+    void update_mcts_parameters(); 
+    double discount_factor_;
+    double uct_exploration_constant_;
+
+    double max_search_time_random_heuristic_;
+    double max_number_iterations_random_heuristic_;
+
+    double return_lower_bound_;
+    double return_upper_bound_;
 };
 
 inline BehaviorModel *BehaviorUCTSingleAgent::Clone() const {

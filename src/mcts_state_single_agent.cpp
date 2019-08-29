@@ -57,9 +57,6 @@ std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::execute(const mcts::
         collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*predicted_world));
         goal_reached = boost::get<bool>(evaluator_goal_reached.Evaluate(*predicted_world));
         out_of_map = false;
-
-        Eigen::IOFormat fmt(4, 0, ", ", ";", "", "", "[", "]");
-        std::cout << "ego_state" <<  predicted_world->current_ego_state().format(fmt) << std::endl;
          // -------------------------------------------
     } else {
         out_of_map = true;

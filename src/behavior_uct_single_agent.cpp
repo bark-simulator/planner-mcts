@@ -26,9 +26,18 @@ using modules::world::ObservedWorldPtr;
 BehaviorUCTSingleAgent::BehaviorUCTSingleAgent(commons::Params *params) :
     BehaviorModel(params),
     prediction_settings_(),
-    max_num_iterations_(params->get_int("BehaviorUCTSingleAgent::MaxNumIterations", "Maximum number of mcts search iterations", 5000)),
-    max_search_time_(params->get_int("BehaviorUCTSingleAgent::MaxSearchTime", "Maximum search time in milliseconds", 1000)),
-    random_seed_(params->get_int("BehaviorUCTSingleAgent::RandomSeed", "Random seed applied used during search process", 1000)) {
+    max_num_iterations_(params->get_int("BehaviorUCTSingleAgent::MaxNumIterations", "Maximum number of mcts search iterations", 2000)),
+    max_search_time_(params->get_int("BehaviorUCTSingleAgent::MaxSearchTime", "Maximum search time in milliseconds", 2000)),
+    random_seed_(params->get_int("BehaviorUCTSingleAgent::RandomSeed", "Random seed applied used during search process", 1000)),
+    dump_tree_(params->get_bool("BehaviorUCTSingleAgent::DumpTree", "If true, tree is dumped to dot file after planning", false)),
+    discount_factor_(params->get_real("BehaviorUCTSingleAgent::DiscountFactor", "Discount factor used in MDP problem", 0.9)),
+    uct_exploration_constant_(params->get_real("BehaviorUCTSingleAgent::UCTExplorationConstant", "Exploration constant of UCT", 0.7)),
+    max_search_time_random_heuristic_(params->get_real("BehaviorUCTSingleAgent::MaxSearchTimeRandomHeuristic",
+                                                         "Maximum time available for random rollout in milliseconds", 1)),
+    max_number_iterations_random_heuristic_(params->get_real("BehaviorUCTSingleAgent::MaxNumIterationsRandomHeuristic",
+                                                         "Maximum number of environment steps performed by random heuristic", 0.9)),
+    return_lower_bound_(params->get_real("BehaviorUCTSingleAgent::ReturnLowerBound", "Lower return bound used for normalization in UCT Statistic", -1000)),
+    return_upper_bound_(params->get_real("BehaviorUCTSingleAgent::ReturnUpperBound", "Upper return bound used for normalization in UCT Statistic", 100)) {
 
     // Setup prediction models for ego agent and other agents
     DynamicModelPtr dyn_model(new SingleTrackModel());
@@ -36,7 +45,7 @@ BehaviorUCTSingleAgent::BehaviorUCTSingleAgent(commons::Params *params) :
 
     auto input_list = params->get_listlist_float("BehaviorUCTSingleAgent::MotionPrimitiveInputs", "A list of pairs with "
                                                  "acceleration and steering angle to define the motion primitives",
-                                                 {{0,0}, {5,0}, {0,-1}, {0, 1}});
+                                                 {{0,0}, {5,0}, {0,-1}, {0, 1}, {-3,0}});
     for(const auto& input : input_list) {
         BARK_EXPECT_TRUE(input.size() == 2);
         Input u(2);  u << input[0], input[1];
@@ -61,9 +70,28 @@ dynamic::Trajectory BehaviorUCTSingleAgent::Plan(
     MctsStateSingleAgent mcts_state(mcts_observed_world, false, ego_model->GetNumMotionPrimitives(), delta_time);
     mcts.search(mcts_state, max_search_time_, max_num_iterations_);
     mcts::ActionIdx best_action = mcts.returnBestAction();
+    set_last_action(DiscreteAction(best_action));
+
+    if(dump_tree_) {
+        std::stringstream filename;
+        filename << "tree_dot_file_" << delta_time;
+        mcts.printTreeToDotFile(filename.str());
+    }
 
     ego_model->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
-    return ego_model->Plan(delta_time, observed_world);
+    auto traj = ego_model->Plan(delta_time, observed_world);
+    set_last_trajectory(traj);
+    return traj;
+}
+
+void BehaviorUCTSingleAgent::update_mcts_parameters() {
+    // Todo: Change static to instance-based parameters in MCTS (otherwise problems if more than one agent uses mcts with different parameters)
+    mcts::MctsParameters::DISCOUNT_FACTOR = discount_factor_;
+    mcts::MctsParameters::EXPLORATION_CONSTANT = uct_exploration_constant_;
+    mcts::MctsParameters::MAX_SEARCH_TIME_RANDOM_HEURISTIC = max_search_time_random_heuristic_;
+    mcts::MctsParameters::MAX_NUMBER_OF_ITERATIONS_RANDOM_HEURISTIC = max_number_iterations_random_heuristic_;
+    mcts::MctsParameters::LOWER_BOUND = return_lower_bound_;
+    mcts::MctsParameters::UPPER_BOUND = return_upper_bound_;
 }
 
 }  // namespace behavior
