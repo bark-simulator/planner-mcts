@@ -2,10 +2,10 @@ cc_library(
     name = "planner_uct_single_agent",
     srcs = [
         "behavior_uct_single_agent.cpp",
-        "single_agent_mcts_state.cpp"
+        "mcts_state_single_agent.cpp"
     ],
     hdrs = [
-        "single_agent_mcts_state.hpp",
+        "mcts_state_single_agent.hpp",
         "behavior_uct_single_agent.hpp",
     ],
     copts = ["-Iexternal/bark_project"],

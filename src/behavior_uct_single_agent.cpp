@@ -4,7 +4,7 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
 #include "src/behavior_uct_single_agent.hpp"
-#include "src/single_agent_mcts_state.hpp"
+#include "src/mcts_state_single_agent.hpp"
 #include "mcts/mcts.h"
 #include "mcts/heuristics/random_heuristic.h"
 #include "mcts/statistics/uct_statistic.h"
