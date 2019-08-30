@@ -8,11 +8,14 @@
 
 #include <iostream>
 
-#include "modules/world/observed_world.hpp"
 #include "mcts/state.h"
 
 
 namespace modules {
+  namespace world {
+    class ObservedWorld;
+    typedef std::shared_ptr<ObservedWorld> ObservedWorldPtr;
+  }
 namespace models {
 namespace behavior {
 

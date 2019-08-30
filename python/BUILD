@@ -21,7 +21,14 @@ cc_binary(
   srcs = ["python_test_module.cpp"],
   deps = [
     ":planner_uct",
-    "@bark_project//python:behavior"
+    "@bark_project//python:behavior",
+    "@bark_project//modules/models/behavior:behavior",
+    "@bark_project//modules/models/behavior/motion_primitives:motion_primitives",
+    "@bark_project//modules/models/behavior/constant_velocity:constant_velocity",
+    "@bark_project//modules/world:world",
+    "@bark_project//modules/world/evaluation:evaluator_goal_reached",
+    "@bark_project//modules/world/evaluation:evaluator_collision_ego_agent",
+    "@bark_project//modules/world/evaluation:evaluator_collision_driving_corridor",
   ],
   linkshared = 1,
   linkstatic = 1

@@ -8,6 +8,12 @@ cc_test(
         "//src:planner_uct_single_agent",
         "@bark_project//modules/world:world",
         "@bark_project//modules/models/tests:make_test_world",
+        "@bark_project//modules/models/behavior:behavior",
+        "@bark_project//modules/models/behavior/motion_primitives:motion_primitives",
+        "@bark_project//modules/models/behavior/constant_velocity:constant_velocity",
+        "@bark_project//modules/world/evaluation:evaluator_goal_reached",
+        "@bark_project//modules/world/evaluation:evaluator_collision_ego_agent",
+        "@bark_project//modules/world/evaluation:evaluator_collision_driving_corridor",
         "@gtest//:main",
     ],
 )

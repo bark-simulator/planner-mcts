@@ -4,15 +4,16 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
 #include "src/behavior_uct_single_agent.hpp"
+#define MCTS_EXPECT_TRUE(cond) BARK_EXPECT_TRUE(cond)
 #include "src/mcts_state_single_agent.hpp"
 #include "mcts/mcts.h"
 #include "mcts/heuristics/random_heuristic.h"
 #include "mcts/statistics/uct_statistic.h"
 
+#include "modules/world/observed_world.hpp"
 #include "modules/models/behavior/motion_primitives/motion_primitives.hpp"
 #include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
 #include "modules/models/dynamic/single_track.hpp"
-
 
 namespace modules {
 namespace models {

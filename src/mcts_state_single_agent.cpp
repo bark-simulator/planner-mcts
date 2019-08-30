@@ -4,6 +4,8 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
 #include "src/mcts_state_single_agent.hpp"
+
+#include "modules/world/observed_world.hpp"
 #include "modules/world/evaluation/evaluator_collision_driving_corridor.hpp"
 #include "modules/world/evaluation/evaluator_collision_ego_agent.hpp"
 #include "modules/world/evaluation/evaluator_goal_reached.hpp"
