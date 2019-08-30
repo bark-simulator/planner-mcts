@@ -150,3 +150,6 @@ web/node_modules
 
 .DS_Store
 .gitkeep
+
+*.vscode*
+*dot_file*
