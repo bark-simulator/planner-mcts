@@ -14,6 +14,7 @@ cc_test(
         "@bark_project//modules/world/evaluation:evaluator_goal_reached",
         "@bark_project//modules/world/evaluation:evaluator_collision_ego_agent",
         "@bark_project//modules/world/evaluation:evaluator_collision_driving_corridor",
+        "@bark_project//modules/world/goal_definition:goal_definition",
         "@gtest//:main",
     ],
 )
