@@ -61,6 +61,8 @@ dynamic::Trajectory BehaviorUCTSingleAgent::Plan(
     float delta_time,
     const world::ObservedWorld& observed_world) {
 
+    update_mcts_parameters();
+
     ObservedWorldPtr mcts_observed_world(observed_world.Clone());
     mcts_observed_world->SetupPrediction(prediction_settings_);
 

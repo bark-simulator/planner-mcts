@@ -50,7 +50,7 @@ TEST(single_agent_mcts_state, execute) {
   BehaviorModelPtr ego_prediction_model(new BehaviorMotionPrimitives(dyn_model, &params));
   float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.2f;
   Input u1(2);  u1 << 0, 0;
-  Input u2(2);  u2 << 50, 2; //  < crazy action to drive out of the corridors
+  Input u2(2);  u2 << 50, 3; //  < crazy action to drive out of the corridors
   Input u3(2);  u3 << (rel_distance+4)*2/(prediction_time_span*prediction_time_span), 0; //  < action to drive into other agent with a single step
                                                                                         //   (4m vehicle length assumed)
   std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->AddMotionPrimitive(u1);
@@ -61,7 +61,7 @@ TEST(single_agent_mcts_state, execute) {
 
   // Create an observed world with specific goal definition and the corresponding mcts state
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(0, 0), Point2d(0, 2), Point2d(2, 2), Point2d(2, 0), Point2d(0, 0)});
-  std::shared_ptr<Polygon> goal_polygon(dynamic_cast<Polygon*>(polygon.translate(Point2d(200,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.translate(Point2d(200,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
 
   auto observed_world = ObservedWorldPtr(make_test_observed_world(1,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
@@ -79,6 +79,8 @@ TEST(single_agent_mcts_state, execute) {
   EXPECT_NEAR(rewards[0], 0 , 0.00001);
 
   // Checking collision with corridor
+  next_mcts_state = next_mcts_state->execute(JointAction({1}), rewards);
+  next_mcts_state = next_mcts_state->execute(JointAction({1}), rewards);
   next_mcts_state = next_mcts_state->execute(JointAction({1}), rewards);
   EXPECT_TRUE(next_mcts_state->is_terminal()); // < crazy action should lead to a collision with driving corridor
   EXPECT_NEAR(rewards[0], -1000 , 0.00001);
@@ -121,7 +123,7 @@ TEST(behavior_uct_single_agent, no_agent_in_front_accelerate) {
 
   float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.2f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(0, 0), Point2d(0, 2), Point2d(2, 2), Point2d(2, 0), Point2d(0, 0)});
-  std::shared_ptr<Polygon> goal_polygon(dynamic_cast<Polygon*>(polygon.translate(Point2d(10,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.translate(Point2d(10,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
   auto observed_world = make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
@@ -151,7 +153,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(0, 0), Point2d(0, 2), Point2d(2, 2), Point2d(2, 0), Point2d(0, 0)});
-  std::shared_ptr<Polygon> goal_polygon(dynamic_cast<Polygon*>(polygon.translate(Point2d(10,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.translate(Point2d(10,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
   auto observed_world = make_test_observed_world(1,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
@@ -181,7 +183,7 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(0, 0), Point2d(0, 2), Point2d(2, 2), Point2d(2, 0), Point2d(0, 0)});
-  std::shared_ptr<Polygon> goal_polygon(dynamic_cast<Polygon*>(polygon.translate(Point2d(10,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.translate(Point2d(10,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
   auto world = make_test_world(1,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
