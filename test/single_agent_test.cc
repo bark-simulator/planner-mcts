@@ -48,7 +48,7 @@ std::mt19937  mcts::RandomGenerator::random_generator_;
 TEST(single_agent_mcts_state, execute) {
   // Setup prediction models for ego agent and other agents   
   DefaultParams params;
-  DynamicModelPtr dyn_model(new SingleTrackModel());
+  DynamicModelPtr dyn_model(new SingleTrackModel(&params));
   BehaviorModelPtr ego_prediction_model(new BehaviorMotionPrimitives(dyn_model, &params));
   float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.2f;
   Input u1(2);  u1 << 0, 0;
@@ -112,7 +112,7 @@ TEST(single_agent_mcts_state, execute) {
 TEST(single_agent_mcts_state, execute_goal_reached_state_limits) {
   // Setup prediction models for ego agent and other agents   
   DefaultParams params;
-  DynamicModelPtr dyn_model(new SingleTrackModel());
+  DynamicModelPtr dyn_model(new SingleTrackModel(&params));
   BehaviorModelPtr ego_prediction_model(new BehaviorMotionPrimitives(dyn_model, &params));
   float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.2f;
   Input u1(2);  u1 << 0, 0;
