@@ -18,6 +18,7 @@
 #include "modules/world/evaluation/evaluator_collision_ego_agent.hpp"
 #include "modules/world/evaluation/evaluator_goal_reached.hpp"
 #include "modules/world/goal_definition/goal_definition_polygon.hpp"
+#include "modules/world/goal_definition/goal_definition_state_limits.hpp"
 
 
 
@@ -36,6 +37,7 @@ using modules::geometry::Point2d;
 using modules::geometry::Pose;
 using modules::world::goal_definition::GoalDefinitionPtr;
 using modules::world::goal_definition::GoalDefinitionPolygon;
+using modules::world::goal_definition::GoalDefinitionStateLimits;
 using modules::models::dynamic::Trajectory;
 using modules::world::evaluation::EvaluatorCollisionDrivingCorridor;
 using modules::world::evaluation::EvaluatorGoalReached;
@@ -94,6 +96,49 @@ TEST(single_agent_mcts_state, execute) {
   // Checking goal reached: Do multiple steps and expect that goal is reached
   bool reached = false;
   next_mcts_state = mcts_state.execute(JointAction({0}), rewards);
+  reached = next_mcts_state->is_terminal();
+  for (int i = 0; i < 10000; ++i) {
+    if(next_mcts_state->is_terminal()) {
+      reached = true;
+      break;
+    }
+    next_mcts_state = next_mcts_state->execute(JointAction({0}), rewards);
+  }
+  EXPECT_TRUE(reached);
+  EXPECT_NEAR(rewards[0], 1 , 0.00001); // < reward should be one when reaching the goal
+}
+
+
+TEST(single_agent_mcts_state, execute_goal_reached_state_limits) {
+  // Setup prediction models for ego agent and other agents   
+  DefaultParams params;
+  DynamicModelPtr dyn_model(new SingleTrackModel());
+  BehaviorModelPtr ego_prediction_model(new BehaviorMotionPrimitives(dyn_model, &params));
+  float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.2f;
+  Input u1(2);  u1 << 0, 0;
+  Input u2(2);  u2 << 50, 3; //  < crazy action to drive out of the corridors
+  Input u3(2);  u3 << (rel_distance+4)*2/(prediction_time_span*prediction_time_span), 0; //  < action to drive into other agent with a single step
+                                                                                        //   (4m vehicle length assumed)
+  std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->AddMotionPrimitive(u1);
+  std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->AddMotionPrimitive(u2);
+  std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->AddMotionPrimitive(u3);
+  BehaviorModelPtr others_prediction_model(new BehaviorConstantVelocity(&params));
+  PredictionSettings prediction_settings(ego_prediction_model, others_prediction_model);
+
+  // Create an observed world with specific goal definition and the corresponding mcts state
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(0, 0), Point2d(0, 2), Point2d(5, 2), Point2d(5, 0), Point2d(0, 0)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.translate(Point2d(10,-1)))); // < move the state limit region to the front of the ego vehicle
+  auto goal_definition_ptr = std::make_shared<GoalDefinitionStateLimits>(*goal_polygon, std::make_pair<float, float>(-0.2f,0.2f));
+
+  auto observed_world = ObservedWorldPtr(make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
+  observed_world->SetupPrediction(prediction_settings);
+  const auto num_ego_actions = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->GetNumMotionPrimitives();
+  MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span);
+  
+  // Checking goal reached: Do multiple steps and expect that goal is reached
+  std::vector<mcts::Reward> rewards;
+  bool reached = false;
+  auto next_mcts_state = mcts_state.execute(JointAction({0}), rewards);
   reached = next_mcts_state->is_terminal();
   for (int i = 0; i < 10000; ++i) {
     if(next_mcts_state->is_terminal()) {
@@ -170,7 +215,7 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
   SetterParams params;
   params.set_int("BehaviorUCTSingleAgent::MaxNumIterations", 10000);
-  params.set_int("BehaviorUCTSingleAgent::MaxSearchTime", 20000);
+  params.set_int("BehaviorUCTSingleAgent::MaxSearchTime", 2000);
   params.set_int("BehaviorUCTSingleAgent::RandomSeed", 1000);
   params.set_bool("BehaviorUCTSingleAgent::DumpTree", true);
   params.set_listlist_float("BehaviorUCTSingleAgent::MotionPrimitiveInputs", {{0,0}, {5,0}, {0,-1}, {0, 1}, {-3,0}}); 
@@ -187,6 +232,51 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
   auto world = make_test_world(1,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
+
+  BehaviorModelPtr behavior_uct(new BehaviorUCTSingleAgent(&params));
+  world->get_agents().begin()->second->set_behavior_model(behavior_uct);
+
+  auto evaluator_collision_corridor = EvaluatorCollisionDrivingCorridor();
+  auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->get_agents().begin()->second->get_agent_id());
+        
+
+  bool goal_reached = false;
+  for(int i =0; i<100; ++i) {
+    world->Step(prediction_time_span);
+    bool collision_corridor = boost::get<bool>(evaluator_collision_corridor.Evaluate(*world));
+    bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));
+    EXPECT_FALSE(collision_corridor);
+    EXPECT_FALSE(collision_ego);
+    if(world->get_agents().begin()->second->AtGoal()) {
+      goal_reached = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(goal_reached);
+
+}
+
+TEST(behavior_uct_single_agent, change_lane) {
+  // Test if the planner reaches the goal at some point when agent is slower and in front
+  SetterParams params;
+  params.set_int("BehaviorUCTSingleAgent::MaxNumIterations", 10000);
+  params.set_int("BehaviorUCTSingleAgent::MaxSearchTime", 200);
+  params.set_int("BehaviorUCTSingleAgent::RandomSeed", 1000);
+  params.set_bool("BehaviorUCTSingleAgent::DumpTree", true);
+  params.set_listlist_float("BehaviorUCTSingleAgent::MotionPrimitiveInputs", {{0,0}, {1,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
+  params.set_real("BehaviorUCTSingleAgent::DiscountFactor", 0.9);
+  params.set_real("BehaviorUCTSingleAgent::UCTExplorationConstant", 0.7);
+  params.set_real("BehaviorUCTSingleAgent::MaxSearchTimeRandomHeuristic",1);
+  params.set_real("BehaviorUCTSingleAgent::MaxNumIterationsRandomHeuristic", 100);
+  params.set_real("BehaviorUCTSingleAgent::ReturnLowerBound", -1000);
+  params.set_real("BehaviorUCTSingleAgent::ReturnUpperBound", 100);
+
+  float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(0, 0), Point2d(0, 2), Point2d(5, 2), Point2d(5, 0), Point2d(0, 0)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.translate(Point2d(10,-3)))); // < move the goal polygon into the driving corridor to the side of the ego vehicle
+  auto goal_definition_ptr = std::make_shared<GoalDefinitionStateLimits>(*goal_polygon, std::make_pair<float, float>(-0.2f, 0.2f));
+  
+  auto world = make_test_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
 
   BehaviorModelPtr behavior_uct(new BehaviorUCTSingleAgent(&params));
   world->get_agents().begin()->second->set_behavior_model(behavior_uct);
