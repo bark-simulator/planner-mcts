@@ -81,6 +81,8 @@ dynamic::Trajectory BehaviorUCTSingleAgent::Plan(
         mcts.printTreeToDotFile(filename.str());
     }
 
+    LOG(INFO) << "BehaviorUCTSingleAgent, iterations: " << mcts.numIterations() << ", best action: " << best_action;
+
     ego_model->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
     auto traj = ego_model->Plan(delta_time, observed_world);
     set_last_trajectory(traj);
