@@ -41,7 +41,7 @@ BehaviorUCTSingleAgent::BehaviorUCTSingleAgent(commons::Params *params) :
     return_upper_bound_(params->get_real("BehaviorUCTSingleAgent::ReturnUpperBound", "Upper return bound used for normalization in UCT Statistic", 100)) {
 
     // Setup prediction models for ego agent and other agents
-    DynamicModelPtr dyn_model(new SingleTrackModel());
+    DynamicModelPtr dyn_model(new SingleTrackModel(params));
     BehaviorModelPtr ego_prediction_model(new BehaviorMotionPrimitives(dyn_model, params));
 
     auto input_list = params->get_listlist_float("BehaviorUCTSingleAgent::MotionPrimitiveInputs", "A list of pairs with "
