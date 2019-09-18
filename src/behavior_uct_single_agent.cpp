@@ -13,6 +13,7 @@
 #include "modules/world/observed_world.hpp"
 #include "modules/models/behavior/motion_primitives/motion_primitives.hpp"
 #include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
+#include "modules/models/behavior/idm/idm_classic.hpp"
 #include "modules/models/dynamic/single_track.hpp"
 
 namespace modules {
@@ -53,7 +54,7 @@ BehaviorUCTSingleAgent::BehaviorUCTSingleAgent(commons::Params *params) :
         BehaviorMotionPrimitives::MotionIdx idx = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->AddMotionPrimitive(u);
     }
     
-    BehaviorModelPtr others_prediction_model(new BehaviorConstantVelocity(params));
+    BehaviorModelPtr others_prediction_model(new BehaviorIDMClassic(params));
     prediction_settings_ = PredictionSettings(ego_prediction_model, others_prediction_model);
 }
 
