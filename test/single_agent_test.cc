@@ -52,7 +52,7 @@ TEST(single_agent_mcts_state, execute) {
   BehaviorModelPtr ego_prediction_model(new BehaviorMotionPrimitives(dyn_model, &params));
   float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.2f;
   Input u1(2);  u1 << 0, 0;
-  Input u2(2);  u2 << 50, 3; //  < crazy action to drive out of the corridors
+  Input u2(2);  u2 << 50, 1; //  < crazy action to drive out of the corridors
   Input u3(2);  u3 << (rel_distance+4)*2/(prediction_time_span*prediction_time_span), 0; //  < action to drive into other agent with a single step
                                                                                         //   (4m vehicle length assumed)
   std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->AddMotionPrimitive(u1);
@@ -81,6 +81,10 @@ TEST(single_agent_mcts_state, execute) {
   EXPECT_NEAR(rewards[0], 0 , 0.00001);
 
   // Checking collision with corridor
+  next_mcts_state = next_mcts_state->execute(JointAction({1}), rewards);
+  next_mcts_state = next_mcts_state->execute(JointAction({1}), rewards);
+  next_mcts_state = next_mcts_state->execute(JointAction({1}), rewards);
+  next_mcts_state = next_mcts_state->execute(JointAction({1}), rewards);
   next_mcts_state = next_mcts_state->execute(JointAction({1}), rewards);
   next_mcts_state = next_mcts_state->execute(JointAction({1}), rewards);
   next_mcts_state = next_mcts_state->execute(JointAction({1}), rewards);
@@ -260,7 +264,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
   SetterParams params;
   params.set_int("BehaviorUCTSingleAgent::MaxNumIterations", 10000);
-  params.set_int("BehaviorUCTSingleAgent::MaxSearchTime", 200);
+  params.set_int("BehaviorUCTSingleAgent::MaxSearchTime", 2000);
   params.set_int("BehaviorUCTSingleAgent::RandomSeed", 1000);
   params.set_bool("BehaviorUCTSingleAgent::DumpTree", true);
   params.set_listlist_float("BehaviorUCTSingleAgent::MotionPrimitiveInputs", {{0,0}, {1,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
@@ -273,7 +277,7 @@ TEST(behavior_uct_single_agent, change_lane) {
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(0, 0), Point2d(0, 2), Point2d(5, 2), Point2d(5, 0), Point2d(0, 0)});
-  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.translate(Point2d(10,-3)))); // < move the goal polygon into the driving corridor to the side of the ego vehicle
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.translate(Point2d(10,-2)))); // < move the goal polygon into the driving corridor to the side of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionStateLimits>(*goal_polygon, std::make_pair<float, float>(-0.2f, 0.2f));
   
   auto world = make_test_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);

@@ -64,7 +64,8 @@ std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::execute(const mcts::
         out_of_map = true;
     }
     // HACK for testing
-    collision_corridor = false;
+    // should be solved with https://github.com/bark-simulator/bark/issues/118
+    //collision_corridor = false;
 
     rewards.resize(1);
     rewards[0] = (collision_corridor || collision_ego || out_of_map) * -1000.0f + goal_reached * 1.0f;
