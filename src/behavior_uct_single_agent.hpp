@@ -27,7 +27,7 @@ class BehaviorUCTSingleAgent : public BehaviorModel {
 
     virtual ~BehaviorUCTSingleAgent() {}
 
-    virtual std::shared_ptr<modules::models::behavior::BehaviorModel> Clone() const;
+    virtual std::shared_ptr<BehaviorModel> Clone() const;
 
   private:
     modules::world::prediction::PredictionSettings prediction_settings_;
@@ -48,8 +48,8 @@ class BehaviorUCTSingleAgent : public BehaviorModel {
     double return_upper_bound_;
 };
 
-inline std::shared_ptr<modules::models::behavior::BehaviorModel> BehaviorUCTSingleAgent::Clone() const {
-  return std::make_shared<BehaviorUCTSingleAgent>(*this);
+inline std::shared_ptr<BehaviorModel> BehaviorUCTSingleAgent::Clone() const {
+  return std::dynamic_pointer_cast<BehaviorModel>(std::make_shared<BehaviorUCTSingleAgent>(*this));
 }
 
 }  // namespace behavior
