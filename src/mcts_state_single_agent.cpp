@@ -30,7 +30,7 @@ MctsStateSingleAgent::MctsStateSingleAgent(const ObservedWorldPtr& observed_worl
                                         prediction_time_span_(prediction_time_span) {}
 
 std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::clone() const {
-    return std::make_shared<MctsStateSingleAgent>(ObservedWorldPtr(observed_world_->Clone()),
+    return std::make_shared<MctsStateSingleAgent>(std::dynamic_pointer_cast<world::ObservedWorld>(observed_world_->Clone()),
                              is_terminal_state_, num_ego_actions_, prediction_time_span_);
 }
 
@@ -39,8 +39,8 @@ std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::execute(const mcts::
     BARK_EXPECT_TRUE(!is_terminal());
 
     // TODO: parameter for prediction time span
-    auto predicted_world = observed_world_->Predict(prediction_time_span_,
-                                 DiscreteAction(joint_action[MctsStateSingleAgent::ego_agent_idx]));
+    auto predicted_world = std::dynamic_pointer_cast<world::ObservedWorld>(observed_world_->Predict(prediction_time_span_,
+                                 DiscreteAction(joint_action[MctsStateSingleAgent::ego_agent_idx])));
 
     bool collision_corridor = false;
     bool collision_ego = false;

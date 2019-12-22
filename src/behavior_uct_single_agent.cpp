@@ -63,7 +63,7 @@ dynamic::Trajectory BehaviorUCTSingleAgent::Plan(
 
     update_mcts_parameters();
 
-    ObservedWorldPtr mcts_observed_world(observed_world.Clone());
+    ObservedWorldPtr mcts_observed_world = std::dynamic_pointer_cast<world::ObservedWorld>(observed_world.Clone());
     mcts_observed_world->SetupPrediction(prediction_settings_);
 
     mcts::RandomGenerator::random_generator_ = std::mt19937(random_seed_);

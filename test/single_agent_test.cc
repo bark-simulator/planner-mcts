@@ -66,7 +66,7 @@ TEST(single_agent_mcts_state, execute) {
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.translate(Point2d(200,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
 
-  auto observed_world = ObservedWorldPtr(make_test_observed_world(1,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
+  auto observed_world = std::dynamic_pointer_cast<ObservedWorld>(make_test_observed_world(1,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
   observed_world->SetupPrediction(prediction_settings);
   const auto num_ego_actions = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->GetNumMotionPrimitives();
   MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span);
@@ -134,7 +134,7 @@ TEST(single_agent_mcts_state, execute_goal_reached_state_limits) {
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.translate(Point2d(10,-1)))); // < move the state limit region to the front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionStateLimits>(*goal_polygon, std::make_pair<float, float>(-0.2f,0.2f));
 
-  auto observed_world = ObservedWorldPtr(make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
+  auto observed_world = std::dynamic_pointer_cast<ObservedWorld>(make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
   observed_world->SetupPrediction(prediction_settings);
   const auto num_ego_actions = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->GetNumMotionPrimitives();
   MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span);
