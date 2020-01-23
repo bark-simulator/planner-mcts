@@ -14,7 +14,7 @@
 #include "modules/models/dynamic/single_track.hpp"
 #include "modules/commons/params/default_params.hpp"
 #include "modules/commons/params/setter_params.hpp"
-#include "modules/world/evaluation/evaluator_collision_driving_corridor.hpp"
+#include "modules/world/evaluation/evaluator_drivable_area.hpp"
 #include "modules/world/evaluation/evaluator_collision_ego_agent.hpp"
 #include "modules/world/evaluation/evaluator_goal_reached.hpp"
 #include "modules/world/goal_definition/goal_definition_polygon.hpp"
@@ -39,7 +39,7 @@ using modules::world::goal_definition::GoalDefinitionPtr;
 using modules::world::goal_definition::GoalDefinitionPolygon;
 using modules::world::goal_definition::GoalDefinitionStateLimits;
 using modules::models::dynamic::Trajectory;
-using modules::world::evaluation::EvaluatorCollisionDrivingCorridor;
+using modules::world::evaluation::EvaluatorDrivableArea;
 using modules::world::evaluation::EvaluatorGoalReached;
 using modules::world::evaluation::EvaluatorCollisionEgoAgent;
 
@@ -240,16 +240,16 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
   BehaviorModelPtr behavior_uct(new BehaviorUCTSingleAgent(&params));
   world->get_agents().begin()->second->set_behavior_model(behavior_uct);
 
-  auto evaluator_collision_corridor = EvaluatorCollisionDrivingCorridor();
+  auto evaluator_drivable_area = EvaluatorDrivableArea();
   auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->get_agents().begin()->second->get_agent_id());
         
 
   bool goal_reached = false;
   for(int i =0; i<100; ++i) {
     world->Step(prediction_time_span);
-    bool collision_corridor = boost::get<bool>(evaluator_collision_corridor.Evaluate(*world));
+    bool outside_drivable_area = boost::get<bool>(evaluator_drivable_area.Evaluate(*world));
     bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));
-    EXPECT_FALSE(collision_corridor);
+    EXPECT_FALSE(outside_drivable_area);
     EXPECT_FALSE(collision_ego);
     if(world->get_agents().begin()->second->AtGoal()) {
       goal_reached = true;
@@ -285,16 +285,16 @@ TEST(behavior_uct_single_agent, change_lane) {
   BehaviorModelPtr behavior_uct(new BehaviorUCTSingleAgent(&params));
   world->get_agents().begin()->second->set_behavior_model(behavior_uct);
 
-  auto evaluator_collision_corridor = EvaluatorCollisionDrivingCorridor();
+  auto evaluator_drivable_area = EvaluatorDrivableArea();
   auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->get_agents().begin()->second->get_agent_id());
         
 
   bool goal_reached = false;
   for(int i =0; i<100; ++i) {
     world->Step(prediction_time_span);
-    bool collision_corridor = boost::get<bool>(evaluator_collision_corridor.Evaluate(*world));
+    bool outside_drivable_area = boost::get<bool>(evaluator_drivable_area.Evaluate(*world));
     bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));
-    EXPECT_FALSE(collision_corridor);
+    EXPECT_FALSE(outside_drivable_area);
     EXPECT_FALSE(collision_ego);
     if(world->get_agents().begin()->second->AtGoal()) {
       goal_reached = true;

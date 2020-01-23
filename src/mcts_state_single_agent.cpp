@@ -6,7 +6,7 @@
 #include "src/mcts_state_single_agent.hpp"
 
 #include "modules/world/observed_world.hpp"
-#include "modules/world/evaluation/evaluator_collision_driving_corridor.hpp"
+#include "modules/world/evaluation/evaluator_drivable_area.hpp"
 #include "modules/world/evaluation/evaluator_collision_ego_agent.hpp"
 #include "modules/world/evaluation/evaluator_goal_reached.hpp"
 
@@ -16,7 +16,7 @@ namespace modules {
 namespace models {
 namespace behavior {
 
-using modules::world::evaluation::EvaluatorCollisionDrivingCorridor;
+using modules::world::evaluation::EvaluatorDrivableArea;
 using modules::world::evaluation::EvaluatorGoalReached;
 using modules::world::evaluation::EvaluatorCollisionEgoAgent;
 using modules::world::ObservedWorldPtr;
@@ -42,7 +42,7 @@ std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::execute(const mcts::
     auto predicted_world = std::dynamic_pointer_cast<world::ObservedWorld>(observed_world_->Predict(prediction_time_span_,
                                  DiscreteAction(joint_action[MctsStateSingleAgent::ego_agent_idx])));
 
-    bool collision_corridor = false;
+    bool outside_drivable_area = false;
     bool collision_ego = false;
     bool goal_reached = false;
     bool out_of_map = false;
@@ -51,11 +51,11 @@ std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::execute(const mcts::
         auto ego_state_x = predicted_world->current_ego_state()[dynamic::StateDefinition::X_POSITION];
 
         // TODO: allow for separate configuration options ------
-        auto evaluator_collision_corridor = EvaluatorCollisionDrivingCorridor();
+        auto evaluator_drivable_area = EvaluatorDrivableArea();
         auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(predicted_world->get_ego_agent()->get_agent_id());
         auto evaluator_goal_reached = EvaluatorGoalReached(predicted_world->get_ego_agent()->get_agent_id());
         
-        collision_corridor = boost::get<bool>(evaluator_collision_corridor.Evaluate(*predicted_world));
+        outside_drivable_area = boost::get<bool>(evaluator_drivable_area.Evaluate(*predicted_world));
         collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*predicted_world));
         goal_reached = boost::get<bool>(evaluator_goal_reached.Evaluate(*predicted_world));
         out_of_map = false;
@@ -68,10 +68,10 @@ std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::execute(const mcts::
     //collision_corridor = false;
 
     rewards.resize(1);
-    rewards[0] = (collision_corridor || collision_ego || out_of_map) * -1000.0f + goal_reached * 1.0f;
+    rewards[0] = (outside_drivable_area || collision_ego || out_of_map) * -1000.0f + goal_reached * 1.0f;
    
 
-    bool is_terminal = (collision_corridor || collision_ego || goal_reached || out_of_map);
+    bool is_terminal = (outside_drivable_area || collision_ego || goal_reached || out_of_map);
 
     return std::make_shared<MctsStateSingleAgent>(predicted_world, is_terminal, num_ego_actions_, prediction_time_span_);
 }
