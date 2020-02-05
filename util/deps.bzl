@@ -2,7 +2,7 @@ load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 def planner_uct_rules_dependencies():
     _maybe(
-    native.local_repository,
+    git_repository,
     name = "bark_project",
     commit="042ed605f5631cfd59cc8dc9bc68325de4412d19",
     remote = "https://github.com/bark-simulator/bark",

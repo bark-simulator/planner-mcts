@@ -237,7 +237,7 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
   BehaviorModelPtr behavior_uct(new BehaviorUCTSingleAgent(&params));
   world->GetAgents().begin()->second->SetBehaviorModel(behavior_uct);
 
-  auto evaluator_collision_corridor = EvaluatorDrivableArea();
+  auto evaluator_drivable_area = EvaluatorDrivableArea();
   auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->GetAgents().begin()->second->GetAgentId());
         
 
@@ -283,7 +283,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   BehaviorModelPtr behavior_uct(new BehaviorUCTSingleAgent(&params));
   world->GetAgents().begin()->second->SetBehaviorModel(behavior_uct);
 
-  auto evaluator_collision_corridor = EvaluatorDrivableArea();
+  auto evaluator_drivable_area = EvaluatorDrivableArea();
   auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->GetAgents().begin()->second->GetAgentId());
 
   bool goal_reached = false;
