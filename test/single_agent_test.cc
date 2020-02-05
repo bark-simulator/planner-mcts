@@ -244,9 +244,9 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
   bool goal_reached = false;
   for(int i =0; i<100; ++i) {
     world->Step(prediction_time_span);
-    bool collision_corridor = boost::get<bool>(evaluator_collision_corridor.Evaluate(*world));
+    bool outside_drivable_area = boost::get<bool>(evaluator_drivable_area.Evaluate(*world));
     bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));
-    EXPECT_FALSE(collision_corridor);
+    EXPECT_FALSE(outside_drivable_area);
     EXPECT_FALSE(collision_ego);
     if(world->GetAgents().begin()->second->AtGoal()) {
       goal_reached = true;
@@ -289,9 +289,9 @@ TEST(behavior_uct_single_agent, change_lane) {
   bool goal_reached = false;
   for(int i =0; i<100; ++i) {
     world->Step(prediction_time_span);
-    bool collision_corridor = boost::get<bool>(evaluator_collision_corridor.Evaluate(*world));
+    bool outside_drivable_area = boost::get<bool>(evaluator_drivable_area.Evaluate(*world));
     bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));
-    EXPECT_FALSE(collision_corridor);
+    EXPECT_FALSE(outside_drivable_area);
     EXPECT_FALSE(collision_ego);
     LOG(INFO) << world->GetAgents().begin()->second->GetCurrentState();
     if(world->GetAgents().begin()->second->AtGoal()) {

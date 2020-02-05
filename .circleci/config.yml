@@ -1,0 +1,15 @@
+# CircleCI 2.0 configuration file
+
+version: 2
+jobs:
+  build:
+    docker:
+      - image: barksim/bark:latest
+    steps:
+      - checkout
+      - run:
+          name: install dependencies
+          command: |
+            virtualenv -p python3 ./python/venv  --system-site-packages
+            source ./python/venv/bin/activate
+            bazel --host_jvm_args=-Xmx4g --host_jvm_args=-Xms512m test --jobs=1 //...
