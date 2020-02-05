@@ -7,6 +7,8 @@
 #ifndef MODULES_MODELS_BEHAVIOR_SINGLE_AGENT_MCTS_HPP_
 #define MODULES_MODELS_BEHAVIOR_SINGLE_AGENT_MCTS_HPP_
 
+#include "mcts/mcts_parameters.h"
+
 #include "modules/models/behavior/behavior_model.hpp"
 #include "modules/world/prediction/prediction_settings.hpp"
 
@@ -27,29 +29,20 @@ class BehaviorUCTSingleAgent : public BehaviorModel {
 
     virtual ~BehaviorUCTSingleAgent() {}
 
-    virtual BehaviorModel *Clone() const;
+    virtual modules::models::behavior::BehaviorModelPtr Clone() const;
 
   private:
     modules::world::prediction::PredictionSettings prediction_settings_;
-    unsigned int max_num_iterations_;
-    unsigned int max_search_time_;
-    unsigned int random_seed_;
     bool dump_tree_;
 
     // MCTS PARAMETERS
-    void update_mcts_parameters(); 
-    double discount_factor_;
-    double uct_exploration_constant_;
+    mcts::MctsParameters mcts_parameters_;
 
-    double max_search_time_random_heuristic_;
-    double max_number_iterations_random_heuristic_;
 
-    double return_lower_bound_;
-    double return_upper_bound_;
 };
 
-inline BehaviorModel *BehaviorUCTSingleAgent::Clone() const {
-  return new BehaviorUCTSingleAgent(*this);
+inline modules::models::behavior::BehaviorModelPtr BehaviorUCTSingleAgent::Clone() const {
+  return std::make_shared<BehaviorUCTSingleAgent>(*this);
 }
 
 }  // namespace behavior
