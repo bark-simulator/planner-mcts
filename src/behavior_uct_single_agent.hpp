@@ -22,14 +22,14 @@ namespace behavior {
 
 class BehaviorUCTSingleAgent : public BehaviorModel {
  public:
-   explicit BehaviorUCTSingleAgent(commons::Params *params);
+   explicit BehaviorUCTSingleAgent(const commons::ParamsPtr& params);
 
     virtual Trajectory Plan(float delta_time,
                  const world::ObservedWorld& observed_world);
 
     virtual ~BehaviorUCTSingleAgent() {}
 
-    virtual modules::models::behavior::BehaviorModelPtr Clone() const;
+    virtual std::shared_ptr<BehaviorModel> Clone() const;
 
   private:
     modules::world::prediction::PredictionSettings prediction_settings_;
@@ -41,8 +41,10 @@ class BehaviorUCTSingleAgent : public BehaviorModel {
 
 };
 
-inline modules::models::behavior::BehaviorModelPtr BehaviorUCTSingleAgent::Clone() const {
-  return std::make_shared<BehaviorUCTSingleAgent>(*this);
+inline std::shared_ptr<BehaviorModel> BehaviorUCTSingleAgent::Clone() const {
+  std::shared_ptr<BehaviorUCTSingleAgent> model_ptr =
+      std::make_shared<BehaviorUCTSingleAgent>(*this);
+  return model_ptr;
 }
 
 }  // namespace behavior

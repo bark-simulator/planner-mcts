@@ -10,14 +10,14 @@
 namespace py = pybind11;
 using modules::models::behavior::BehaviorUCTSingleAgent;
 using modules::models::behavior::BehaviorModel;
-using modules::commons::Params;
+using modules::commons::ParamsPtr;
 
 void python_planner_uct(py::module m)
 {
     py::class_<BehaviorUCTSingleAgent,
              BehaviorModel,
              std::shared_ptr<BehaviorUCTSingleAgent>>(m, "BehaviorUCTSingleAgent")
-      .def(py::init<modules::commons::Params *>())
+      .def(py::init<const modules::commons::ParamsPtr&>())
       .def("__repr__", [](const BehaviorUCTSingleAgent &m) {
         return "bark.behavior.BehaviorUCTSingleAgent";
       });

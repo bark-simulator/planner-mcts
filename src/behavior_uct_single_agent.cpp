@@ -12,7 +12,7 @@
 #include "mcts/statistics/uct_statistic.h"
 
 #include "modules/world/observed_world.hpp"
-#include "modules/models/behavior/motion_primitives/motion_primitives.hpp"
+#include "modules/models/behavior/motion_primitives/continuous_actions.hpp"
 #include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
 #include "modules/models/behavior/idm/idm_classic.hpp"
 #include "modules/models/dynamic/single_track.hpp"
@@ -26,7 +26,7 @@ using modules::models::dynamic::SingleTrackModel;
 using modules::models::dynamic::Input;
 using modules::world::ObservedWorldPtr;
 
-BehaviorUCTSingleAgent::BehaviorUCTSingleAgent(commons::Params *params) :
+BehaviorUCTSingleAgent::BehaviorUCTSingleAgent(const commons::ParamsPtr& params) :
     BehaviorModel(params),
     prediction_settings_(),
     mcts_parameters_(models::behavior::MctsParametersFromParamServer(params->AddChild("BehaviorUctSingleAgent"))),
@@ -34,7 +34,7 @@ BehaviorUCTSingleAgent::BehaviorUCTSingleAgent(commons::Params *params) :
 
     // Setup prediction models for ego agent and other agents
     DynamicModelPtr dyn_model(new SingleTrackModel(params));
-    BehaviorModelPtr ego_prediction_model(new BehaviorMotionPrimitives(dyn_model, params));
+    BehaviorModelPtr ego_prediction_model(new BehaviorMPContinuousActions(dyn_model, params));
 
     auto input_list = params->GetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", "A list of pairs with "
                                                  "acceleration and steering angle to define the motion primitives",
@@ -42,7 +42,7 @@ BehaviorUCTSingleAgent::BehaviorUCTSingleAgent(commons::Params *params) :
     for(const auto& input : input_list) {
         BARK_EXPECT_TRUE(input.size() == 2);
         Input u(2);  u << input[0], input[1];
-        BehaviorMotionPrimitives::MotionIdx idx = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->AddMotionPrimitive(u);
+        BehaviorMotionPrimitives::MotionIdx idx = std::dynamic_pointer_cast<BehaviorMPContinuousActions>(ego_prediction_model)->AddMotionPrimitive(u);
     }
     
     BehaviorModelPtr others_prediction_model(new BehaviorIDMClassic(params));
@@ -58,8 +58,11 @@ dynamic::Trajectory BehaviorUCTSingleAgent::Plan(
 
     mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic, mcts::RandomHeuristic> mcts(mcts_parameters_);
 
-    auto ego_model = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(prediction_settings_.ego_prediction_model_);
-    MctsStateSingleAgent mcts_state(mcts_observed_world, false, ego_model->GetNumMotionPrimitives(), delta_time);
+    std::shared_ptr<BehaviorMotionPrimitives> ego_model = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(prediction_settings_.ego_prediction_model_);
+    
+    const ObservedWorldPtr const_mcts_observed_world = std::const_pointer_cast<ObservedWorld>(mcts_observed_world);
+    BehaviorMotionPrimitives::MotionIdx num = ego_model->GetNumMotionPrimitives(const_mcts_observed_world);
+    MctsStateSingleAgent mcts_state(mcts_observed_world, false, num, delta_time);
     mcts.search(mcts_state);
     mcts::ActionIdx best_action = mcts.returnBestAction();
     SetLastAction(DiscreteAction(best_action));

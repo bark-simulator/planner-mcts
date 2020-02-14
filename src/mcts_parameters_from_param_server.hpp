@@ -14,7 +14,7 @@ namespace models {
 namespace behavior {
 
 
-mcts::MctsParameters MctsParametersFromParamServer(modules::commons::Params *params) {
+mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsPtr& params) {
     mcts::MctsParameters parameters;
     parameters.DISCOUNT_FACTOR = params->GetReal("Mcts::DiscountFactor", "Discount factor used in MDP problem", 0.9);
     parameters.RANDOM_SEED = params->GetInt("Mcts::RandomSeed", "Random seed applied used during search process", 1000);
