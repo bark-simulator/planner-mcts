@@ -26,6 +26,9 @@ class BehaviorUCTSingleAgent : public BehaviorModel {
   virtual Trajectory Plan(float delta_time,
                           const world::ObservedWorld& observed_world);
 
+  modules::world::prediction::PredictionSettings SetupPredictionSettings(
+      const commons::ParamsPtr& params);
+
   virtual ~BehaviorUCTSingleAgent() {}
 
   virtual std::shared_ptr<BehaviorModel> Clone() const;

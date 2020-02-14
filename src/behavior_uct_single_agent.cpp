@@ -34,6 +34,11 @@ BehaviorUCTSingleAgent::BehaviorUCTSingleAgent(const commons::ParamsPtr& params)
       dump_tree_(params->GetBool(
           "BehaviorUctSingleAgent::DumpTree",
           "If true, tree is dumped to dot file after planning", false)) {
+  prediction_settings_ = SetupPredictionSettings(params);
+}
+
+PredictionSettings BehaviorUCTSingleAgent::SetupPredictionSettings(
+    const commons::ParamsPtr& params) {
   // Setup prediction models for ego agent and other agents
   DynamicModelPtr dyn_model(new SingleTrackModel(params));
   BehaviorModelPtr ego_prediction_model(
@@ -54,8 +59,7 @@ BehaviorUCTSingleAgent::BehaviorUCTSingleAgent(const commons::ParamsPtr& params)
   }
 
   BehaviorModelPtr others_prediction_model(new BehaviorIDMClassic(params));
-  prediction_settings_ =
-      PredictionSettings(ego_prediction_model, others_prediction_model);
+  return PredictionSettings(ego_prediction_model, others_prediction_model);
 }
 
 dynamic::Trajectory BehaviorUCTSingleAgent::Plan(
