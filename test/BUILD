@@ -27,7 +27,7 @@ cc_test(
     ],
     copts = ["-Iexternal/gtest/include"],
     deps = [
-        "//src:planner_uct_single_agent",
+        "//src:planner_uct_single_agent_macro_actions",
         "@bark_project//modules/world:world",
         "@bark_project//modules/world/tests:make_test_world",
         "@bark_project//modules/models/behavior:behavior",
