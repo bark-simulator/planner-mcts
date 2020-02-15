@@ -6,4 +6,4 @@
 import sys
 print(sys.path)
 
-from planner_uct import BehaviorUCTSingleAgent
+from planner_uct import BehaviorUCTSingleAgent, BehaviorUCTSingleAgentMacroActions

@@ -6,9 +6,9 @@
 #ifndef MODULES_MODELS_BEHAVIOR_SINGLE_AGENT_MCTS_BASE_HPP_
 #define MODULES_MODELS_BEHAVIOR_SINGLE_AGENT_MCTS_BASE_HPP_
 
+#include <memory>
 #include "mcts/mcts_parameters.h"
 
-#include <memory>
 #include "modules/models/behavior/behavior_model.hpp"
 #include "modules/world/prediction/prediction_settings.hpp"
 
