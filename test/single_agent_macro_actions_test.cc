@@ -188,7 +188,6 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
   params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {5,0}, {0,-1}, {0, 1}, {-3,0}}); 
   params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.9);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 10);
@@ -215,7 +214,6 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
   params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 2000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
   params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {5,0}, {0,-1}, {0, 1}, {-3,0}}); 
   params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.9);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime",1);
