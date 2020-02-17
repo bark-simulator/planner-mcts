@@ -24,9 +24,10 @@ using modules::world::prediction::PredictionSettings;
 PredictionSettings BehaviorUCTSingleAgentMacroActions::SetupPredictionSettings(
     const commons::ParamsPtr& params) {
   // Setup prediction models for ego agent and other agents
-  DynamicModelPtr dyn_model(new SingleTrackModel(params));
+  auto prediction_params_ego = params->AddChild("EgoVehicle");
+  DynamicModelPtr dyn_model(new SingleTrackModel(prediction_params_ego));
   BehaviorModelPtr ego_prediction_model(
-      new BehaviorMPMacroActions(dyn_model, params));
+      new BehaviorMPMacroActions(dyn_model, prediction_params_ego));
 
   std::vector<std::shared_ptr<Primitive>> prim_vec;
 
@@ -36,16 +37,16 @@ PredictionSettings BehaviorUCTSingleAgentMacroActions::SetupPredictionSettings(
 
   for (auto& acc : acc_vec) {
     auto primitive =
-        std::make_shared<PrimitiveConstAcceleration>(params, dyn_model, acc, cte);
+        std::make_shared<PrimitiveConstAcceleration>(prediction_params_ego, dyn_model, acc, cte);
     prim_vec.push_back(primitive);
   }
 
   auto primitive_left =
-      std::make_shared<PrimitiveChangeToLeft>(params, dyn_model, cte);
+      std::make_shared<PrimitiveChangeToLeft>(prediction_params_ego, dyn_model, cte);
   prim_vec.push_back(primitive_left);
 
   auto primitive_right =
-      std::make_shared<PrimitiveChangeToRight>(params, dyn_model, cte);
+      std::make_shared<PrimitiveChangeToRight>(prediction_params_ego, dyn_model, cte);
   prim_vec.push_back(primitive_right);
 
   for (auto& p : prim_vec) {
@@ -53,7 +54,8 @@ PredictionSettings BehaviorUCTSingleAgentMacroActions::SetupPredictionSettings(
         std::dynamic_pointer_cast<BehaviorMPMacroActions>(ego_prediction_model)
             ->AddMotionPrimitive(p);
   }
-  BehaviorModelPtr others_prediction_model(new BehaviorIDMClassic(params));
+  auto prediction_params_other = params->AddChild("OtherVehicles");
+  BehaviorModelPtr others_prediction_model(new BehaviorIDMClassic(prediction_params_other));
   return PredictionSettings(ego_prediction_model, others_prediction_model);
 }
 

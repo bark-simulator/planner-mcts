@@ -17,7 +17,8 @@ class BehaviorUCTSingleAgentMacroActions : public BehaviorUCTSingleAgentBase {
  public:
   BehaviorUCTSingleAgentMacroActions(const commons::ParamsPtr& params)
       : BehaviorUCTSingleAgentBase(params) {
-    prediction_settings_ = SetupPredictionSettings(params);
+    prediction_settings_ = SetupPredictionSettings(
+        GetParams()->AddChild("PredictionSettings"));
   }
 
   virtual ~BehaviorUCTSingleAgentMacroActions() {}

@@ -28,11 +28,11 @@ using modules::world::prediction::PredictionSettings;
 
 BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
     const commons::ParamsPtr& params)
-    : BehaviorModel(params),
+    : BehaviorModel(params->AddChild("BehaviorUctSingleAgent")),
       prediction_settings_(),
       mcts_parameters_(models::behavior::MctsParametersFromParamServer(
-          params->AddChild("BehaviorUctSingleAgent"))),
-      dump_tree_(params->GetBool(
+          GetParams())),
+      dump_tree_(GetParams()->GetBool(
           "BehaviorUctSingleAgent::DumpTree",
           "If true, tree is dumped to dot file after planning", false)) {}
 
