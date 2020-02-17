@@ -33,7 +33,7 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
       mcts_parameters_(models::behavior::MctsParametersFromParamServer(
           GetParams())),
       dump_tree_(GetParams()->GetBool(
-          "BehaviorUctSingleAgent::DumpTree",
+          "DumpTree",
           "If true, tree is dumped to dot file after planning", false)) {}
 
 dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
