@@ -263,11 +263,11 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
 TEST(behavior_uct_single_agent, change_lane) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
   auto params = std::make_shared<SetterParams>();
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 400);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 4000);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 2000);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 40000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
   params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {1,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
+  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0},{3,0}, {5,0}, {0,-0.27}, {0,-0.17}, {-5,0}}); 
   params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.9);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 20000);
@@ -290,7 +290,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->GetAgents().begin()->second->GetAgentId());
 
   bool goal_reached = false;
-  for(int i =0; i<100; ++i) {
+  for(int i =0; i<30; ++i) {
     world->Step(prediction_time_span);
     bool outside_drivable_area = boost::get<bool>(evaluator_drivable_area.Evaluate(*world));
     bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));
