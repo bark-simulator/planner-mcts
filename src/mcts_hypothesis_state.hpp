@@ -68,6 +68,9 @@ public:
 typedef BarkAction ActionType; // required for template-mechanism to compile
 
  private:
+  std::shared_ptr<const modules::world::ObservedWorld> PredictObservedWorld(
+                    const mcts::JointAction &joint_action,
+                    std::shared_ptr<const modules::world::ObservedWorld> observed_world);
   const std::shared_ptr<const modules::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
   const mcts::ActionIdx num_ego_actions_;
@@ -76,7 +79,9 @@ typedef BarkAction ActionType; // required for template-mechanism to compile
 
   // ---------------- Hypothesis specific ----------------------
   // available hypothesis
-  std::map<AgentId, std::vector<mcts::HypothesisId, BehaviorModelHypothesisPtr>> behavior_hypothesis_;
+  std::vector<mcts::HypothesisId, BehaviorHypothesisPtr>> behavior_hypothesis_;
+  std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
+  BehaviorMotionPrimitivesPtr ego_behavior_model_;
 
 };
 

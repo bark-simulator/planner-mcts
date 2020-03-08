@@ -97,7 +97,7 @@ mcts::ActionIdx MctsStateHypothesis:plan_action_current_hypothesis(const mcts::A
     const HypothesisId agt_hyp_id = this->current_agents_hypothesis_.at(agent_idx);
     const auto& trajectory = behavior_hypothesis_[agent_idx][agt_hyp_id]->Plan(*observed_world_);
     const BarkAction bark_action = behavior_hypothesis_[agent_idx]->GetLastAction();
-    const mcts::ActionIdx mcts_action = behavior_hypothesis_[agt_hyp_id]->StoreTrajectory(trajectory, bark_action):
+    const mcts::ActionIdx mcts_action = behaviors_stored_[agent_idx]->Store(bark_action, trajectory):
     return mcts_action;
 }
 
