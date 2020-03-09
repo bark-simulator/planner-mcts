@@ -24,14 +24,26 @@ using modules::world::evaluation::EvaluatorDrivableArea;
 using modules::world::evaluation::EvaluatorGoalReached;
 
 MctsStateHypothesis::MctsStateHypothesis(
-    const ObservedWorldPtr& observed_world, bool is_terminal_state,
-    const mcts::ActionIdx& num_ego_actions, const float& prediction_time_span,
-    const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis)
+                       const modules::world::ObservedWorldPtr& observed_world,
+                       bool is_terminal_state,
+                       const mcts::ActionIdx& num_ego_actions,
+                       const float& prediction_time_span,
+                       const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
+                       const std::vector<BehaviorHypothesisPtr>>& behavior_hypothesis,
+                       const BehaviorMotionPrimitivesPtr& ego_behavior_model)
     : HypothesisStateInterface<MctsStateHypothesis>(current_agents_hypothesis),
       observed_world_(observed_world),
       is_terminal_state_(is_terminal_state),
       num_ego_actions_(num_ego_actions),
-      prediction_time_span_(prediction_time_span) {}
+      prediction_time_span_(prediction_time_span),
+      behavior_hypothesis_(behavior_hypothesis),
+      ego_behavior_model(ego_behavior_model) {
+          auto agent_ids = get_agent_idx();
+          // start at index 1 since first agent is ego agent
+          for(size_t ai=1; ai < agent_ids.size(); ++ai) {
+              behaviors_stored[ai] = std::make_shared<BehaviorActionStore>(nullptr);
+          }
+      }
 
 std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::clone() const {
   auto worldptr =
@@ -47,8 +59,9 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
 
   // pass next actions to behavior models for prediction
   ego_behavior_model->ActionToBehavior(DiscreteAction(joint_action[this->ego_agent_idx]));
-  for (const auto& agents_store : behaviors_stored_) {
-      agents_store.second->MakeBehaviorActive(static_cast<ActionHash>(joint_action[]))
+  auto agent_ids = get_agent_idx();
+  for (size_t i = 1; i < agent_ids.size(); ++i) {
+      behaviors_stored_[agent_ids[i]]->MakeBehaviorActive(static_cast<ActionHash>(joint_action[i]));
   }
   const auto predicted_world = 
             observed_world_->Predict(time_span_, ego_behavior_model_, behaviors_stored_);
@@ -96,9 +109,10 @@ const std::vector<mcts::AgentIdx> MctsStateHypothesis::get_agent_idx() const {
 
 mcts::ActionIdx MctsStateHypothesis:plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const {
     const HypothesisId agt_hyp_id = this->current_agents_hypothesis_.at(agent_idx);
-    const auto& trajectory = behavior_hypothesis_[agent_idx][agt_hyp_id]->Plan(*observed_world_);
-    const BarkAction bark_action = behavior_hypothesis_[agent_idx]->GetLastAction();
-    const mcts::ActionIdx mcts_action = behaviors_stored_[agent_idx]->Store(bark_action, trajectory):
+    const auto& trajectory = behavior_hypothesis_[agt_hyp_id]->Plan(*observed_world_);
+    const BarkAction bark_action = behavior_hypothesis_[agt_hyp_id]->GetLastAction();
+    auto agent_ids = get_agent_idx();
+    const mcts::ActionIdx mcts_action = behaviors_stored_[agent_ids(agent_idx)]->Store(bark_action, trajectory):
     return mcts_action;
 }
 
