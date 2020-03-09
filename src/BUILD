@@ -26,8 +26,15 @@ cc_library(
 
 cc_library(
     name = "planner_uct_hypothesis",
-    srcs = ["behavior_uct_hypothesis.cpp"],
-    hdrs = ["behavior_uct_hypothesis.hpp"],
+    srcs = [
+        "behavior_uct_hypothesis.cpp",
+        "mcts_state_hypothesis.cpp"
+    ],
+    hdrs = [
+            "behavior_uct_hypothesis.hpp",
+            "mcts_state_hypothesis.hpp",
+            "mcts_parameters_from_param_server.hpp"
+    ],
     copts = ["-Iexternal/bark_project"],
     deps= [
         "@bark_project//modules:include",
@@ -36,6 +43,7 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
 )
+
 
 
 
