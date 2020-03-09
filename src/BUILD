@@ -24,6 +24,20 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
+cc_library(
+    name = "planner_uct_hypothesis",
+    srcs = ["behavior_uct_hypothesis.cpp"],
+    hdrs = ["behavior_uct_hypothesis.hpp"],
+    copts = ["-Iexternal/bark_project"],
+    deps= [
+        "@bark_project//modules:include",
+        "@mamcts_project//mcts:mamcts",
+        ":planner_uct_single_agent_base",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+
 
 cc_library(
     name = "planner_uct_single_agent_base",

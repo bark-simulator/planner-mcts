@@ -8,6 +8,7 @@ cc_library(
     "@bark_project//python:common",
     "//src:planner_uct_single_agent",
     "//src:planner_uct_single_agent_macro_actions",
+    "//src:planner_uct_hypothesis",
     "@python_linux//:python-lib",
     "@pybind11//:pybind11",
     "@com_github_eigen_eigen//:eigen", 
