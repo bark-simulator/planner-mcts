@@ -45,12 +45,13 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
     mcts::Cost& ego_cost) const {
   BARK_EXPECT_TRUE(!is_terminal());
 
-  
-
-  observed_world_->Predict(time_span_, DiscreteAction(joint_action[MctsStateSingleAgent::ego_agent_idx],
-                                       mcts_action_to_bark_action())
-
-
+  // pass next actions to behavior models for prediction
+  ego_behavior_model->ActionToBehavior(DiscreteAction(joint_action[this->ego_agent_idx]));
+  for (const auto& agents_store : behaviors_stored_) {
+      agents_store.second->MakeBehaviorActive(static_cast<ActionHash>(joint_action[]))
+  }
+  const auto predicted_world = 
+            observed_world_->Predict(time_span_, ego_behavior_model_, behaviors_stored_);
 
   bool collision_drivable_area = false;
   bool collision_ego = false;
@@ -84,12 +85,12 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
   bool is_terminal =
       (collision_drivable_area || collision_ego || goal_reached || out_of_map);
 
-  return std::make_shared<MctsStateSingleAgent>(
+  return std::make_shared<MctsStateHypothesis>(
       predicted_world, is_terminal, num_ego_actions_, prediction_time_span_);
 }
 
 const std::vector<mcts::AgentIdx> MctsStateHypothesis::get_agent_idx() const {
-  return std::vector<mcts::AgentIdx>{0};
+  return agent_id_map_;
 }
 
 
@@ -107,14 +108,15 @@ mcts::Probability MctsStateHypothesis:get_probability(const mcts::HypothesisId& 
     if (agent_idx == this->ego_agent_idx) {
         return 0.0f;
     } else {
-        return static_cast<mcts::Probability>(
-                behavior_hypothesis_[hypothesis]->get_probability(*observed_world, action));
+        //return static_cast<mcts::Probability>(
+         //       behavior_hypothesis_[hypothesis]->get_probability(*observed_world, action));
     }
 }
 
 mcts::Probability MctsStateHypothesis::get_prior(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx) const { return 0.5f;};
 
 mcts::HypothesisId MctsStateHypothesis::get_num_hypothesis(const mcts::AgentIdx& agent_idx) const {return hypothesis_.size();};
+
 
 
 }  // namespace behavior
