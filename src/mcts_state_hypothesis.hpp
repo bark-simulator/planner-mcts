@@ -10,6 +10,7 @@
 // BARK
 #include "modules/models/behavior/behavior_model.hpp"
 #include "modules/models/behavior/action_store/behavior_action_store.hpp"
+#include "modules/models/behavior/hypothesis/behavior_hypothesis.hpp"
 #include "modules/models/behavior/motion_primitives/motion_primitives.hpp"
 // MCTS Library
 #include "mcts/hypothesis/hypothesis_state.h"
@@ -23,7 +24,7 @@ typedef std::shared_ptr<ObservedWorld> ObservedWorldPtr;
 namespace models {
 namespace behavior {
 
-
+using BarkAction = modules::models::behavior::Action;
 
 class MctsStateHypothesis : public mcts::HypothesisStateInterface<MctsStateHypothesis> {
 public:
@@ -71,7 +72,7 @@ typedef BarkAction ActionType; // required for template-mechanism to compile
   const bool is_terminal_state_;
   const mcts::ActionIdx num_ego_actions_;
   const float prediction_time_span_;
-  const std::vector<AgentIdx> agent_idx_;
+  const std::vector<mcts::AgentIdx> agent_idx_;
 
 
   // ---------------- Hypothesis specific ----------------------

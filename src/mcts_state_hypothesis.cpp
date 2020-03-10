@@ -37,7 +37,7 @@ MctsStateHypothesis::MctsStateHypothesis(
       num_ego_actions_(num_ego_actions),
       prediction_time_span_(prediction_time_span),
       behavior_hypothesis_(behavior_hypothesis),
-      ego_behavior_model(ego_behavior_model) {
+      ego_behavior_model_(ego_behavior_model) {
           auto agent_ids = get_agent_idx();
           // start at index 1 since first agent is ego agent
           for(size_t ai=1; ai < agent_ids.size(); ++ai) {
@@ -48,7 +48,7 @@ MctsStateHypothesis::MctsStateHypothesis(
 std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::clone() const {
   auto worldptr =
       std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
-  return std::make_shared<MctsStateSingleAgent>(
+  return std::make_shared<mcts::MctsStateSingleAgent>(
       worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_);
 }
 
@@ -103,7 +103,7 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
 }
 
 const std::vector<mcts::AgentIdx> MctsStateHypothesis::get_agent_idx() const {
-  return agent_id_map_;
+  return agent_idx_;
 }
 
 
