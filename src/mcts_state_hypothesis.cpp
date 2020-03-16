@@ -122,7 +122,7 @@ mcts::ActionIdx MctsStateHypothesis::plan_action_current_hypothesis(const mcts::
 
 
 mcts::Probability MctsStateHypothesis::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
-            const modules::models::behavior::Action& action) const {
+                const modules::models::behavior::Action& action) const {
     if (agent_idx == this->ego_agent_idx) {
         return 0.0f;
     } else {
