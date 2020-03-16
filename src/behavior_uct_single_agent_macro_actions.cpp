@@ -14,9 +14,6 @@ namespace models {
 namespace behavior {
 
 using modules::models::behavior::primitives::Primitive;
-using modules::models::behavior::primitives::PrimitiveConstAcceleration;
-using modules::models::behavior::primitives::PrimitiveChangeToLeft;
-using modules::models::behavior::primitives::PrimitiveChangeToRight;
 using modules::models::dynamic::Input;
 using modules::models::dynamic::SingleTrackModel;
 using modules::world::prediction::PredictionSettings;

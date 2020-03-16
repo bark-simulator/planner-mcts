@@ -56,7 +56,7 @@ public:
 
     template<typename ActionType = modules::models::behavior::Action>
     mcts::Probability get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
-                const modules::models::behavior::Action& action) const;
+                const ActionType& action) const; 
 
     template<typename ActionType = modules::models::behavior::Action>
     ActionType get_last_action(const mcts::AgentIdx& agent_idx) const;
@@ -79,10 +79,12 @@ typedef BarkAction ActionType; // required for template-mechanism to compile
   // available hypothesis and ego model can be shared across all states
   const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis_;
   const BehaviorMotionPrimitivesPtr& ego_behavior_model_;
-  std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
+  mutable std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
 
 };
 
+
+inline 
 
 
 }  // namespace behavior
