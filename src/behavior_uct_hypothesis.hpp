@@ -8,6 +8,7 @@
 
 #include <memory>
 #include "mcts/mcts_parameters.h"
+#include "src/mcts_state_hypothesis.hpp"
 #include "mcts/hypothesis/hypothesis_belief_tracker.h"
 
 #include "modules/models/behavior/behavior_model.hpp"
@@ -29,14 +30,14 @@ class BehaviorUCTHypothesis : public BehaviorModel {
   virtual Trajectory Plan(float delta_time,
                           const world::ObservedWorld& observed_world);
 
-  virtual std::shared_ptr<BehaviorModel> Clone() const = 0;
+  virtual std::shared_ptr<BehaviorModel> Clone() const;
 
 
  protected:
-   std::vector<AgentIdx> get_agent_id_map (const world::ObservedWorld &observed_world) const;
+   std::vector<mcts::AgentIdx> get_agent_id_map (const world::ObservedWorld &observed_world) const;
    
   // Prediction models (ego and hypothesis)
-  std::vector<BehaviorHypothesisPtr>> behavior_hypothesis_;
+  std::vector<BehaviorHypothesisPtr> behavior_hypothesis_;
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
 
   // PARAMETERS
@@ -45,6 +46,18 @@ class BehaviorUCTHypothesis : public BehaviorModel {
   double prediction_time_span_;
 
   // Belief tracking, we must also maintain previous mcts hypothesis state
-  HypothesisBeliefTracker belief_tracker_;
+  mcts::HypothesisBeliefTracker belief_tracker_;
   std::shared_ptr<MctsStateHypothesis> last_mcts_hypothesis_state_;
 };
+
+inline std::shared_ptr<BehaviorModel> BehaviorUCTHypothesis::Clone() const {
+  std::shared_ptr<BehaviorUCTHypothesis> model_ptr =
+      std::make_shared<BehaviorUCTHypothesis>(*this);
+  return model_ptr;
+}
+
+}  // namespace behavior
+}  // namespace models
+}  // namespace modules
+
+#endif  // MODULES_MODELS_BEHAVIOR_BEHAVIOR_UCT_HYPOTHESIS_HPP_

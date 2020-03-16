@@ -4,9 +4,10 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
 #include "gtest/gtest.h"
-#include "mcts/mcts.h"
 #include "src/mcts_state_single_agent.hpp"
 #include "src/behavior_uct_hypothesis.hpp"
+#include "modules/commons/params/setter_params.hpp"
+/*
 #include "modules/commons/params/default_params.hpp"
 #include "modules/world/tests/make_test_world.hpp"
 #include "modules/models/behavior/motion_primitives/motion_primitives.hpp"
@@ -14,7 +15,7 @@
 #include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
 #include "modules/models/dynamic/single_track.hpp"
 #include "modules/commons/params/default_params.hpp"
-#include "modules/commons/params/setter_params.hpp"
+
 #include "modules/world/evaluation/evaluator_drivable_area.hpp"
 #include "modules/world/evaluation/evaluator_collision_ego_agent.hpp"
 #include "modules/world/evaluation/evaluator_goal_reached.hpp"
@@ -23,7 +24,6 @@
 
 
 using namespace modules::models::behavior;
-using namespace mcts;
 using modules::world::tests::make_test_observed_world;
 using modules::world::tests::make_test_world;
 using modules::world::prediction::PredictionSettings;
@@ -42,7 +42,7 @@ using modules::models::dynamic::Trajectory;
 using modules::world::evaluation::EvaluatorDrivableArea;
 using modules::world::evaluation::EvaluatorGoalReached;
 using modules::world::evaluation::EvaluatorCollisionEgoAgent;
-
+*/
 
 // TEST(single_agent_mcts_state, execute) {
 //   // Setup prediction models for ego agent and other agents   
@@ -156,7 +156,7 @@ using modules::world::evaluation::EvaluatorCollisionEgoAgent;
 
 TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   // Test if uct planner accelerates if there is no agent in front
-  auto params = std::make_shared<SetterParams>(true);
+  auto params = std::make_shared<modules::commons::SetterParams>(true);
   params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 10000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
@@ -169,18 +169,18 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
 
-  float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
+ /* float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(20,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
   auto observed_world = make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
+*/
+  modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params);
 
-  BehaviorUCTSingleAgentMacroActions behavior_uct(params);
-
-  Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
+  //Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
 }
-
+/*
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>(true);
@@ -295,7 +295,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   }
   EXPECT_TRUE(goal_reached);
 
-}
+}*/
 
 
 

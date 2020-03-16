@@ -72,7 +72,7 @@ typedef BarkAction ActionType; // required for template-mechanism to compile
   const bool is_terminal_state_;
   const mcts::ActionIdx num_ego_actions_;
   const float prediction_time_span_;
-  const std::vector<AgentId> agent_ids_;
+  const std::vector<mcts::AgentIdx> agent_ids_;
 
 
   // ---------------- Hypothesis specific ----------------------
@@ -83,8 +83,19 @@ typedef BarkAction ActionType; // required for template-mechanism to compile
 
 };
 
+template<>
+inline mcts::Probability MctsStateHypothesis::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
+            const modules::models::behavior::Action& action) const {
+    if (agent_idx == this->ego_agent_idx) {
+        return 0.0f;
+    } else {
+        auto bark_agent_id = agent_ids_[agent_idx];
+        return static_cast<mcts::Probability>(
+            behavior_hypothesis_[hypothesis]->GetProbability(action, *observed_world_, bark_agent_id));
+    }
+}
 
-inline 
+
 
 
 }  // namespace behavior
