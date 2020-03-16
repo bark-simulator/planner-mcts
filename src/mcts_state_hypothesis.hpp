@@ -33,7 +33,7 @@ public:
                        const mcts::ActionIdx& num_ego_actions,
                        const float& prediction_time_span,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
-                       const std::vector<BehaviorHypothesisPtr>>& behavior_hypothesis,
+                       const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model);
 
 // General Interfaces MCTS State: todo(@bernhard) move to a generic base class
@@ -72,12 +72,12 @@ typedef BarkAction ActionType; // required for template-mechanism to compile
   const bool is_terminal_state_;
   const mcts::ActionIdx num_ego_actions_;
   const float prediction_time_span_;
-  const std::vector<mcts::AgentIdx> agent_idx_;
+  const std::vector<AgentId> agent_ids_;
 
 
   // ---------------- Hypothesis specific ----------------------
   // available hypothesis and ego model can be shared across all states
-  const std::vector<BehaviorHypothesisPtr>>& behavior_hypothesis_;
+  const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis_;
   const BehaviorMotionPrimitivesPtr& ego_behavior_model_;
   std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
 

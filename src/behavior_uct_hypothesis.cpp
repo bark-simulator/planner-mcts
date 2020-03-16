@@ -17,6 +17,8 @@ namespace modules {
 namespace models {
 namespace behavior {
 
+using modules::world::objects::AgentId;
+
 
 BehaviorUCTHypothesis::BehaviorUctHypothesis(
     const commons::ParamsPtr& params)
@@ -90,10 +92,10 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
   return traj;
 }
 
-std::vector<AgentIdx> BehaviorUCTHypothesis::get_agent_id_map (
+std::vector<AgentId> BehaviorUCTHypothesis::get_agent_id_map (
     const world::ObservedWorld &observed_world) const {
   world::AgentMap agent_map = observed_world.GetOtherAgents();
-  std::vector<mcts::AgentIdx> agent_ids(agent_map.size()+1);
+  std::vector<AgentId> agent_ids(agent_map.size()+1);
   agent_ids[MctsStateHypothesis::ego_agent_idx] =
            observed_world.GetEgoAgent()->GetAgentId();
   size_t i = 1;
