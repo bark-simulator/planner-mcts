@@ -51,7 +51,7 @@ public:
 
     std::string sprintf() const { return std::string(); };
 
-// Hypothesis State Interfaces
+    // Hypothesis State Interfaces
     mcts::ActionIdx plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const;
 
     template<typename ActionType = modules::models::behavior::Action>
@@ -65,7 +65,7 @@ public:
 
     mcts::HypothesisId get_num_hypothesis(const mcts::AgentIdx& agent_idx) const;
 
-typedef BarkAction ActionType; // required for template-mechanism to compile
+    typedef BarkAction ActionType; // required for template-mechanism to compile
 
  private:
   const std::shared_ptr<const modules::world::ObservedWorld> observed_world_;
@@ -73,7 +73,6 @@ typedef BarkAction ActionType; // required for template-mechanism to compile
   const mcts::ActionIdx num_ego_actions_;
   const float prediction_time_span_;
   const std::vector<mcts::AgentIdx> agent_ids_;
-
 
   // ---------------- Hypothesis specific ----------------------
   // available hypothesis and ego model can be shared across all states
@@ -83,24 +82,8 @@ typedef BarkAction ActionType; // required for template-mechanism to compile
 
 };
 
-template<>
-inline mcts::Probability MctsStateHypothesis::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
-            const modules::models::behavior::Action& action) const {
-    if (agent_idx == this->ego_agent_idx) {
-        return 0.0f;
-    } else {
-        auto bark_agent_id = agent_ids_[agent_idx];
-        return static_cast<mcts::Probability>(
-            behavior_hypothesis_[hypothesis]->GetProbability(action, *observed_world_, bark_agent_id));
-    }
-}
-
-
-
-
 }  // namespace behavior
 }  // namespace models
 }  // namespace modules
-
 
 #endif // BARK_MCTS_HYPOTHESIS_STATE_H_

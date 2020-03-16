@@ -127,6 +127,19 @@ modules::models::behavior::Action MctsStateHypothesis::get_last_action(const mct
     return observed_world_->GetAgent(bark_agent_id)->GetBehaviorModel()->GetLastAction();
 }
 
+
+template<>
+mcts::Probability MctsStateHypothesis::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
+            const modules::models::behavior::Action& action) const {
+    if (agent_idx == this->ego_agent_idx) {
+        return 0.0f;
+    } else {
+        auto bark_agent_id = agent_ids_[agent_idx];
+        return static_cast<mcts::Probability>(
+            behavior_hypothesis_[hypothesis]->GetProbability(action, *observed_world_, bark_agent_id));
+    }
+}
+
 mcts::Probability MctsStateHypothesis::get_prior(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx) const { return 0.5f;};
 
 mcts::HypothesisId MctsStateHypothesis::get_num_hypothesis(const mcts::AgentIdx& agent_idx) const {return behavior_hypothesis_.size();};
