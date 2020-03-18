@@ -34,7 +34,8 @@ public:
                        const float& prediction_time_span,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis,
-                       const BehaviorMotionPrimitivesPtr& ego_behavior_model);
+                       const BehaviorMotionPrimitivesPtr& ego_behavior_model,
+                       const std::vector<mcts::AgentIdx>& agent_ids);
 
 // General Interfaces MCTS State: todo(@bernhard) move to a generic base class
     std::shared_ptr<MctsStateHypothesis> execute(const mcts::JointAction &joint_action,

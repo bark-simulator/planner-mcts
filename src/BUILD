@@ -33,7 +33,8 @@ cc_library(
     hdrs = [
             "behavior_uct_hypothesis.hpp",
             "mcts_state_hypothesis.hpp",
-            "mcts_parameters_from_param_server.hpp"
+            "mcts_parameters_from_param_server.hpp",
+            "behav_macro_actions_from_param_server.hpp"
     ],
     copts = ["-Iexternal/bark_project"],
     deps= [

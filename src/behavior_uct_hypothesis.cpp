@@ -21,8 +21,12 @@ using modules::world::objects::AgentId;
 
 
 BehaviorUCTHypothesis::BehaviorUCTHypothesis(
-    const commons::ParamsPtr& params)
+    const commons::ParamsPtr& params,
+    const BehaviorMotionPrimitivesPtr& ego_behavior_model,
+    const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis)
     : BehaviorModel(params),
+      ego_behavior_model_(ego_behavior_model),
+      behavior_hypothesis_(behavior_hypothesis),
       mcts_parameters_(models::behavior::MctsParametersFromParamServer(
           GetParams()->AddChild("BehaviorUctSingleAgent"))),
       dump_tree_(GetParams()->AddChild("BehaviorUctSingleAgent")->GetBool(
@@ -57,6 +61,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
       ego_behavior_model_->GetNumMotionPrimitives(const_mcts_observed_world);
 
   // Define initial mcts state
+  auto agent_ids = get_agent_id_map(*const_mcts_observed_world);
   auto mcts_hypothesis_state_ptr = std::make_shared<MctsStateHypothesis>(
                                 mcts_observed_world, 
                                 false, // terminal
@@ -64,7 +69,8 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
                                 prediction_time_span_, 
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypothesis_,
-                                ego_behavior_model_);
+                                ego_behavior_model_,
+                                agent_ids);
   // if this is first call to Plan init belief tracker
   if(!last_mcts_hypothesis_state_) {
     belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *mcts_hypothesis_state_ptr);
