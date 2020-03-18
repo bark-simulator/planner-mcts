@@ -88,11 +88,11 @@ TEST(hypothesis_mcts_state, execute) {
                                               params);
 
   // Create an observed world with specific goal definition and the corresponding mcts state
-  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
-  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
 
-  double rel_distance = 30.0f, ego_velocity = 5.0f, velocity_difference = 0.0f, prediction_time_span = 0.2f;
+  double rel_distance = 4.0f, ego_velocity = 5.0f, velocity_difference = 0.0f, prediction_time_span = 1.0f;
   auto observed_world = std::dynamic_pointer_cast<ObservedWorld>(
         make_test_observed_world(1, rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
@@ -137,31 +137,38 @@ TEST(hypothesis_mcts_state, execute) {
                                                 // a long driving corridor along x exists
                                                 // no collision should occur after one action
   EXPECT_NEAR(rewards[0], 0 , 0.00001);
+  EXPECT_NEAR(cost, 0 , 0.00001);
 
- /* // Checking collision with corridor
-  next_mcts_state = mcts_state.execute(JointAction({1}), rewards, cost);
-  EXPECT_TRUE(next_mcts_state->is_terminal()); // < crazy action should lead to a collision with driving corridor
-  EXPECT_NEAR(rewards[0], -1000 , 0.00001);
-
-  // Checking collision with other agent ( use initial state again)
-  next_mcts_state = mcts_state.execute(JointAction({2}), rewards, cost);
-  EXPECT_TRUE(next_mcts_state->is_terminal()); // < action 3 should lead to a collision with other agent
-  EXPECT_NEAR(rewards[0], -1000 , 0.00001);
-
-
-  // Checking goal reached: Do multiple steps and expect that goal is reached
-  bool reached = false;
-  next_mcts_state = mcts_state.execute(JointAction({0}), rewards, cost);
-  reached = next_mcts_state->is_terminal();
-  for (int i = 0; i < 10000; ++i) {
+  // Checking collision with other agent
+  next_mcts_state = mcts_state.execute(JointAction({2, action_idx}), rewards, cost);
+  auto reached = next_mcts_state->is_terminal();
+  for (int i = 0; i < 100; ++i) {
     if(next_mcts_state->is_terminal()) {
       reached = true;
       break;
     }
-    next_mcts_state = next_mcts_state->execute(JointAction({0}), rewards, cost);
+    auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(1);
+    next_mcts_state = next_mcts_state->execute(JointAction({2, action_idx2}), rewards, cost);
+  }
+  EXPECT_TRUE(next_mcts_state->is_terminal()); // < acceleration should lead to a collision with other agent
+  EXPECT_NEAR(rewards[0], -1000 , 0.00001);
+  EXPECT_NEAR(cost, -1000 , 0.00001);
+
+
+  // Checking goal reached: Do multiple steps and expect that goal is reached
+  next_mcts_state = mcts_state.execute(JointAction({0, action_idx}), rewards, cost);
+  reached = next_mcts_state->is_terminal();
+  for (int i = 0; i < 100; ++i) {
+    if(next_mcts_state->is_terminal()) {
+      reached = true;
+      break;
+    }
+    auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(1);
+    next_mcts_state = next_mcts_state->execute(JointAction({0, action_idx2}), rewards, cost);
   }
   EXPECT_TRUE(reached);
   EXPECT_NEAR(rewards[0], 100 , 0.00001); // < reward should be one when reaching the goal */
+  EXPECT_NEAR(cost, 0 , 0.00001);
 }
 
 

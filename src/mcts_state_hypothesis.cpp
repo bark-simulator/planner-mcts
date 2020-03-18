@@ -100,6 +100,8 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
       (collision_drivable_area || collision_ego || out_of_map) * -1000.0f +
       goal_reached * 100.0f;
 
+  ego_cost = (collision_drivable_area || collision_ego || out_of_map) * -1000.0f;
+
   bool is_terminal =
       (collision_drivable_area || collision_ego || goal_reached || out_of_map);
 
