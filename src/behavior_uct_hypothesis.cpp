@@ -61,7 +61,8 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
       ego_behavior_model_->GetNumMotionPrimitives(const_mcts_observed_world);
 
   // Define initial mcts state
-  auto agent_ids = get_agent_id_map(*const_mcts_observed_world);
+  auto other_agent_ids = get_other_agent_ids(*const_mcts_observed_world);
+  auto ego_id = const_mcts_observed_world->GetEgoAgentId();
   auto mcts_hypothesis_state_ptr = std::make_shared<MctsStateHypothesis>(
                                 mcts_observed_world, 
                                 false, // terminal
@@ -70,14 +71,15 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypothesis_,
                                 ego_behavior_model_,
-                                agent_ids);
+                                other_agent_ids,
+                                ego_id);
   // if this is first call to Plan init belief tracker
   if(!last_mcts_hypothesis_state_) {
     belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *mcts_hypothesis_state_ptr);
   } else {
     belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *last_mcts_hypothesis_state_);
   }
-  mcts_hypothesis.search(*mcts_hypothesis_state_ptr);
+  mcts_hypothesis.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   auto last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
   mcts::ActionIdx best_action = mcts_hypothesis.returnBestAction();
   this->SetLastAction(DiscreteAction(best_action));
@@ -98,18 +100,14 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   return traj;
 }
 
-std::vector<mcts::AgentIdx> BehaviorUCTHypothesis::get_agent_id_map (
+std::vector<mcts::AgentIdx> BehaviorUCTHypothesis::get_other_agent_ids (
     const world::ObservedWorld &observed_world) const {
   world::AgentMap agent_map = observed_world.GetOtherAgents();
-  std::vector<mcts::AgentIdx> agent_ids(agent_map.size()+1);
-  agent_ids[MctsStateHypothesis::ego_agent_idx] =
-           observed_world.GetEgoAgent()->GetAgentId();
-  size_t i = 1;
+  std::vector<mcts::AgentIdx> other_agent_ids;
   for (const auto &agent : agent_map) {
-      agent_ids[i] = agent.first;
-      ++i;
+      other_agent_ids.push_back(agent.first);
   }
-  return agent_ids;
+  return other_agent_ids;
 }
 
 }  // namespace behavior

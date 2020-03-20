@@ -35,7 +35,8 @@ public:
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
-                       const std::vector<mcts::AgentIdx>& agent_ids);
+                       const std::vector<mcts::AgentIdx>& other_agent_ids,
+                       const mcts::AgentIdx& ego_agent_id);
 
 // General Interfaces MCTS State: todo(@bernhard) move to a generic base class
     std::shared_ptr<MctsStateHypothesis> execute(const mcts::JointAction &joint_action,
@@ -48,7 +49,9 @@ public:
 
     bool is_terminal() const { return is_terminal_state_; };
 
-    const std::vector<mcts::AgentIdx> get_agent_idx() const;
+    const std::vector<mcts::AgentIdx> get_other_agent_idx() const;
+
+    const mcts::AgentIdx get_ego_agent_idx() const;
 
     std::string sprintf() const { return std::string(); };
 
@@ -73,7 +76,8 @@ public:
   const bool is_terminal_state_;
   const mcts::ActionIdx num_ego_actions_;
   const float prediction_time_span_;
-  const std::vector<mcts::AgentIdx> agent_ids_;
+  const std::vector<mcts::AgentIdx> other_agent_ids_;
+  const mcts::AgentIdx ego_agent_id_;
 
   // ---------------- Hypothesis specific ----------------------
   // available hypothesis and ego model can be shared across all states

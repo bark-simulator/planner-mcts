@@ -91,8 +91,12 @@ mcts::ActionIdx MctsStateSingleAgent::get_num_actions(
 
 bool MctsStateSingleAgent::is_terminal() const { return is_terminal_state_; }
 
-const std::vector<mcts::AgentIdx> MctsStateSingleAgent::get_agent_idx() const {
+const std::vector<mcts::AgentIdx> MctsStateSingleAgent::get_other_agent_idx() const {
   return std::vector<mcts::AgentIdx>{0};
+}
+
+const mcts::AgentIdx MctsStateSingleAgent::get_ego_agent_idx() const {
+  return 0;
 }
 
 std::string MctsStateSingleAgent::sprintf() const { return std::string(); }

@@ -38,7 +38,7 @@ PredictionSettings BehaviorUCTSingleAgentMacroActions::SetupPredictionSettings(
   float cte = prediction_params_ego->GetReal("CrossTrackError",
                               "Parameter for lat control", 1);
   std::vector<float> acc_vec = prediction_params_ego->GetListFloat("AccelerationInputs",
-                           "A list of acceleration ", {0, 1, 4, -1, -8});
+                           "A list of acceleration ", {0, 1, 4, -1, -6});
 
   std::vector<std::shared_ptr<Primitive>> prim_vec;
 

@@ -36,7 +36,7 @@ class BehaviorUCTHypothesis : public BehaviorModel {
 
 
  protected:
-   std::vector<mcts::AgentIdx> get_agent_id_map (const world::ObservedWorld &observed_world) const;
+   std::vector<mcts::AgentIdx> get_other_agent_ids(const world::ObservedWorld &observed_world) const;
    
   // Prediction models (ego and hypothesis)
   std::vector<BehaviorHypothesisPtr> behavior_hypothesis_;

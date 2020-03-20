@@ -4,7 +4,6 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 #include <chrono>
 #include "gtest/gtest.h"
-#include "src/mcts_state_single_agent.hpp"
 #include "src/behavior_uct_hypothesis.hpp"
 #include "src/behav_macro_actions_from_param_server.hpp"
 #include "src/mcts_parameters_from_param_server.hpp"
@@ -111,7 +110,7 @@ TEST(hypothesis_mcts_state, execute) {
           std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
   auto ego_agent_id = observed_world->GetAgents().begin()->first;
   auto front_agent_id = std::next(observed_world->GetAgents().begin())->first;
-  std::vector<mcts::AgentIdx> agent_ids = {ego_agent_id, front_agent_id};
+  std::vector<mcts::AgentIdx> other_agent_ids = {front_agent_id};
   MctsStateHypothesis mcts_state(const_observed_world,
                         false,
                        num_ego_actions,
@@ -119,7 +118,8 @@ TEST(hypothesis_mcts_state, execute) {
                        belief_tracker.sample_current_hypothesis(),
                        behavior_hypothesis,
                        ego_behavior_model,
-                       agent_ids);
+                       other_agent_ids,
+                       ego_agent_id);
   
   std::vector<mcts::Reward> rewards;
   mcts::Cost cost;
@@ -172,117 +172,67 @@ TEST(hypothesis_mcts_state, execute) {
 }
 
 
-// TEST(single_agent_mcts_state, execute_goal_reached_state_limits) {
-//   // Setup prediction models for ego agent and other agents   
-//   auto params = std::make_shared<DefaultParams>();
-//   DynamicModelPtr dyn_model(new SingleTrackModel(params));
-//   BehaviorModelPtr ego_prediction_model(new BehaviorMPContinuousActions(dyn_model, params));
-//   float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.2f;
-//   Input u1(2);  u1 << 0, 0;
-//   Input u2(2);  u2 << 50, 3; //  < crazy action to drive out of the corridors
-//   Input u3(2);  u3 << (rel_distance+4)*2/(prediction_time_span*prediction_time_span), 0; //  < action to drive into other agent with a single step
-//                                                                                         //   (4m vehicle length assumed)
-//   std::dynamic_pointer_cast<BehaviorMPContinuousActions>(ego_prediction_model)->AddMotionPrimitive(u1);
-//   std::dynamic_pointer_cast<BehaviorMPContinuousActions>(ego_prediction_model)->AddMotionPrimitive(u2);
-//   std::dynamic_pointer_cast<BehaviorMPContinuousActions>(ego_prediction_model)->AddMotionPrimitive(u3);
-//   BehaviorModelPtr others_prediction_model(new BehaviorConstantVelocity(params));
-//   PredictionSettings prediction_settings(ego_prediction_model, others_prediction_model);
-
-//   // Create an observed world with specific goal definition and the corresponding mcts state
-//   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
-//   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(10,-1)))); // < move the state limit region to the front of the ego vehicle
-//   auto goal_definition_ptr = std::make_shared<GoalDefinitionStateLimits>(*goal_polygon, std::make_pair<float, float>(-0.2f,0.2f));
-
-//   auto observed_world = std::dynamic_pointer_cast<ObservedWorld>(
-//     make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
-//   observed_world->SetupPrediction(prediction_settings);
-//   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
-//   const auto num_ego_actions = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->GetNumMotionPrimitives(const_observed_world);
-//   MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span);
-  
-//   // Checking goal reached: Do multiple steps and expect that goal is reached
-//   std::vector<mcts::Reward> rewards;
-//   mcts::Cost cost;
-//   bool reached = false;
-//   auto next_mcts_state = mcts_state.execute(JointAction({0}), rewards, cost);
-//   reached = next_mcts_state->is_terminal();
-//   for (int i = 0; i < 10000; ++i) {
-//     if(next_mcts_state->is_terminal()) {
-//       reached = true;
-//       break;
-//     }
-//     next_mcts_state = next_mcts_state->execute(JointAction({0}), rewards, cost);
-//   }
-//   EXPECT_TRUE(reached);
-//   EXPECT_NEAR(rewards[0], 100 , 0.00001); // < reward should be one when reaching the goal
-// }
-
 TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   // Test if uct planner accelerates if there is no agent in front
-  auto params = std::make_shared<modules::commons::SetterParams>(true);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 10000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 20000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
-  params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {5,0}, {0,-1}, {0, 1}, {-3,0}}); 
-  params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.95);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 10000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 10);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
+  auto params = std::make_shared<SetterParams>();
 
- /* float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
-  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
-  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(20,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
   auto observed_world = make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
-*/
-  //modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params);
+  
+  auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
+                                              params);
+  auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
+  auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
+  std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
+  behavior_hypothesis.push_back(
+          std::dynamic_pointer_cast<BehaviorHypothesis>(
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1)));
+  behavior_hypothesis.push_back(
+          std::dynamic_pointer_cast<BehaviorHypothesis>(
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
+  modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, ego_behavior_model, behavior_hypothesis);
 
-  //Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
+  Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
+  auto action = behavior_uct.GetLastAction();
+  EXPECT_EQ(boost::get<DiscreteAction>(action), 2); // << max, available acceleration is action 2
 }
-/*
+
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
-  auto params = std::make_shared<SetterParams>(true);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 1000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 20000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
-  params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.9);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 10);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 100);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
+  auto params = std::make_shared<SetterParams>();
 
-  float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=2.0, prediction_time_span=0.2f;
-  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
-  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(100,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=2.0, prediction_time_span=0.5f;
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
   auto observed_world = make_test_observed_world(1,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
-
-  BehaviorUCTSingleAgentMacroActions behavior_uct(params);
+  
+  auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
+                                              params);
+  auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
+  auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
+  std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
+  behavior_hypothesis.push_back(
+          std::dynamic_pointer_cast<BehaviorHypothesis>(
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1)));
+  behavior_hypothesis.push_back(
+          std::dynamic_pointer_cast<BehaviorHypothesis>(
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
+  modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, ego_behavior_model, behavior_hypothesis);
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
+  auto action = behavior_uct.GetLastAction();
+  EXPECT_EQ(boost::get<DiscreteAction>(action), 4); // << max, available decceleration is action 4
 }
-
+/*
 TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
   auto params = std::make_shared<SetterParams>();
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 1000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 2000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
-  params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.9);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime",1);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 100);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
@@ -358,8 +308,8 @@ TEST(behavior_uct_single_agent, change_lane) {
   }
   EXPECT_TRUE(goal_reached);
 
-}*/
-
+}
+*/
 
 
 int main(int argc, char **argv) {

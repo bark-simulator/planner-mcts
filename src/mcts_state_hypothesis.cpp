@@ -31,7 +31,8 @@ MctsStateHypothesis::MctsStateHypothesis(
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
-                       const std::vector<mcts::AgentIdx>& agent_ids) :
+                       const std::vector<mcts::AgentIdx>& other_agent_ids,
+                       const mcts::AgentIdx& ego_agent_id) :
       mcts::HypothesisStateInterface<MctsStateHypothesis>(current_agents_hypothesis),
       observed_world_(observed_world),
       is_terminal_state_(is_terminal_state),
@@ -39,10 +40,11 @@ MctsStateHypothesis::MctsStateHypothesis(
       prediction_time_span_(prediction_time_span),
       behavior_hypothesis_(behavior_hypothesis),
       ego_behavior_model_(ego_behavior_model),
-      agent_ids_(agent_ids) {
+      other_agent_ids_(other_agent_ids),
+      ego_agent_id_(ego_agent_id) {
           // start at index 1 since first agent is ego agent
-          for(size_t ai=1; ai < agent_ids_.size(); ++ai) {
-              behaviors_stored_[ai] = std::make_shared<BehaviorActionStore>(nullptr);
+          for(const auto& agent_id : other_agent_ids_) {
+              behaviors_stored_[agent_id] = std::make_shared<BehaviorActionStore>(nullptr);
           }
       }
 
@@ -52,7 +54,7 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::clone() const {
   return std::make_shared<MctsStateHypothesis>(
       worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypothesis_, ego_behavior_model_,
-      agent_ids_);
+      other_agent_ids_, ego_agent_id_);
 }
 
 std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
@@ -62,11 +64,12 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
 
   // pass next actions to behavior models for prediction
   ego_behavior_model_->ActionToBehavior(DiscreteAction(joint_action[this->ego_agent_idx]));
-  auto agent_ids = get_agent_idx();
   auto predicted_behaviors_ = behaviors_stored_;
-  for (size_t i = 1; i < agent_ids.size(); ++i) {
-      std::dynamic_pointer_cast<BehaviorActionStore>(predicted_behaviors_[agent_ids[i]])
-            ->MakeBehaviorActive(static_cast<ActionHash>(joint_action[i]));
+  mcts::AgentIdx action_idx = 1;
+  for (const auto& agent_id : get_other_agent_idx()) {
+      std::dynamic_pointer_cast<BehaviorActionStore>(predicted_behaviors_[agent_id])
+            ->MakeBehaviorActive(static_cast<ActionHash>(joint_action[action_idx]));
+    action_idx++;
   }
   const auto predicted_world = 
             observed_world_->Predict(prediction_time_span_, ego_behavior_model_, predicted_behaviors_);
@@ -95,8 +98,8 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
     out_of_map = true;
   }
 
-  rewards.resize(1);
-  rewards[0] =
+  rewards.resize(this->get_num_agents(), 0.0f);
+  rewards[this->ego_agent_idx] =
       (collision_drivable_area || collision_ego || out_of_map) * -1000.0f +
       goal_reached * 100.0f;
 
@@ -108,29 +111,32 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
   return std::make_shared<MctsStateHypothesis>(
       predicted_world, is_terminal, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypothesis_, ego_behavior_model_,
-      agent_ids_);
+      other_agent_ids_, ego_agent_id_);
 }
 
-const std::vector<mcts::AgentIdx> MctsStateHypothesis::get_agent_idx() const {
-  return agent_ids_;
+const std::vector<mcts::AgentIdx> MctsStateHypothesis::get_other_agent_idx() const {
+  return other_agent_ids_;
+}
+
+const mcts::AgentIdx MctsStateHypothesis::get_ego_agent_idx() const {
+  return ego_agent_id_;
 }
 
 
 mcts::ActionIdx MctsStateHypothesis::plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const {
-    auto bark_agent_id = agent_ids_[agent_idx];
+    auto bark_agent_id = agent_idx;
     auto observed_world_for_other = observed_world_->ObserveForOtherAgent(bark_agent_id);
     const mcts::HypothesisId agt_hyp_id = this->current_agents_hypothesis_.at(agent_idx);
     const auto& trajectory = behavior_hypothesis_[agt_hyp_id]->Plan(prediction_time_span_, *observed_world_for_other);
     const BarkAction bark_action = behavior_hypothesis_[agt_hyp_id]->GetLastAction();
-    auto agent_ids = get_agent_idx();
     const mcts::ActionIdx mcts_action = std::dynamic_pointer_cast<BehaviorActionStore>(
-        behaviors_stored_[agent_ids_[agent_idx]])->Store(bark_action, trajectory);
+        behaviors_stored_[bark_agent_id])->Store(bark_action, trajectory);
     return mcts_action;
 }
 
 template<>
 modules::models::behavior::Action MctsStateHypothesis::get_last_action(const mcts::AgentIdx& agent_idx) const {
-    auto bark_agent_id = agent_ids_[agent_idx];
+    auto bark_agent_id = agent_idx;
     return observed_world_->GetAgent(bark_agent_id)->GetBehaviorModel()->GetLastAction();
 }
 
@@ -138,13 +144,9 @@ modules::models::behavior::Action MctsStateHypothesis::get_last_action(const mct
 template<>
 mcts::Probability MctsStateHypothesis::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
             const modules::models::behavior::Action& action) const {
-    if (agent_idx == this->ego_agent_idx) {
-        return 0.0f;
-    } else {
-        auto bark_agent_id = agent_ids_[agent_idx];
-        return static_cast<mcts::Probability>(
-            behavior_hypothesis_[hypothesis]->GetProbability(action, *observed_world_, bark_agent_id));
-    }
+    auto bark_agent_id = agent_idx;
+    return static_cast<mcts::Probability>(
+        behavior_hypothesis_[hypothesis]->GetProbability(action, *observed_world_, bark_agent_id));
 }
 
 mcts::Probability MctsStateHypothesis::get_prior(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx) const { return 0.5f;};
