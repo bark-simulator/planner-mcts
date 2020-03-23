@@ -16,7 +16,7 @@ cc_test(
         "@bark_project//modules/world/evaluation:evaluator_collision_ego_agent",
         "@bark_project//modules/world/evaluation:evaluator_drivable_area",
         "@bark_project//modules/world/goal_definition:goal_definition",
-        "@gtest//:main",
+        "@gtest//:gtest_main",
     ],
 )
 
@@ -38,7 +38,7 @@ cc_test(
         "@bark_project//modules/world/evaluation:evaluator_collision_ego_agent",
         "@bark_project//modules/world/evaluation:evaluator_drivable_area",
         "@bark_project//modules/world/goal_definition:goal_definition",
-        "@gtest//:main",
+        "@gtest//:gtest_main",
     ],
 )
 
@@ -63,6 +63,6 @@ cc_test(
         "@bark_project//modules/world/evaluation:evaluator_collision_ego_agent",
         "@bark_project//modules/world/evaluation:evaluator_drivable_area",
         "@bark_project//modules/world/goal_definition:goal_definition",
-        "@gtest//:main",
+        "@gtest//:gtest_main",
     ],
 )

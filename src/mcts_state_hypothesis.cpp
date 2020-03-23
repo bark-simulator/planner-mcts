@@ -137,7 +137,7 @@ mcts::ActionIdx MctsStateHypothesis::plan_action_current_hypothesis(const mcts::
 template<>
 modules::models::behavior::Action MctsStateHypothesis::get_last_action(const mcts::AgentIdx& agent_idx) const {
     auto bark_agent_id = agent_idx;
-    return observed_world_->GetAgent(bark_agent_id)->GetBehaviorModel()->GetLastAction();
+    return observed_world_->GetAgent(bark_agent_id)->GetStateInputHistory().back().second;
 }
 
 

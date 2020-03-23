@@ -126,11 +126,24 @@ TEST(hypothesis_mcts_state, execute) {
   belief_tracker.belief_update(mcts_state, mcts_state);
   belief_tracker.sample_current_hypothesis();
   auto t1 = std::chrono::high_resolution_clock::now();
-  auto action_idx = mcts_state.plan_action_current_hypothesis(1);
+  auto action_idx = mcts_state.plan_action_current_hypothesis(front_agent_id);
   auto t2 = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
   std::cout << "Duration" << duration << "[ms]";
   auto next_mcts_state = mcts_state.execute(JointAction({0, action_idx}), rewards, cost);
+
+  // Check Get Last Action
+  auto last_action_state = mcts_state.get_last_action(front_agent_id);
+  auto last_action_plan = observed_world->GetAgent(front_agent_id)->GetBehaviorModel()->GetLastAction();
+  EXPECT_EQ(last_action_state, last_action_plan);
+
+  auto last_action_state2 = next_mcts_state->get_last_action(ego_agent_id);
+  auto last_action_plan2 = Action(DiscreteAction(0));
+  EXPECT_EQ(last_action_state2, last_action_plan2);
+
+  // Check Get Probability -> only interface, calculation is checked in hypothesis
+  auto probability = next_mcts_state->get_probability(0, front_agent_id, Action(20.0f));
+  EXPECT_EQ(probability, 0);
 
   // Checking reward of zero if we are neither colliding or at goal
   EXPECT_FALSE(next_mcts_state->is_terminal()); // < make test world is defined in such a way that
@@ -205,12 +218,12 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>();
 
-  float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=2.0, prediction_time_span=0.5f;
+  float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
-  auto observed_world = make_test_observed_world(1,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
+  auto observed_world = make_test_observed_world(2,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
   
   auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
                                               params);
@@ -227,7 +240,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  EXPECT_EQ(boost::get<DiscreteAction>(action), 4); // << max, available decceleration is action 4
+  EXPECT_EQ(boost::get<DiscreteAction>(action), 4); // some decceleration should occur
 }
 /*
 TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
