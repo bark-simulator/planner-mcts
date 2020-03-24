@@ -259,9 +259,6 @@ TEST(behavior_uct_single_agent, change_lane) {
   auto params = std::make_shared<SetterParams>(true);
 
   // Desired headway should correspond to initial headway
-  float desired_dist = 8.0;
-  float initial_vel = 14.0;
-
   params->SetInt("BehaviorUctHypothesis::Mcts::MaxNumIterations", 400);
   params->SetInt("BehaviorUctHypothesis::Mcts::MaxSearchTime", 4000);
   params->SetInt("BehaviorUctHypothesis::Mcts::RandomSeed", 1000);
@@ -276,7 +273,7 @@ TEST(behavior_uct_single_agent, change_lane) {
 
   // IDM Classic
   params->SetReal("BehaviorIDMClassic::MinimumSpacing", 0.0f); // Required for testing
-  params->SetReal("BehaviorIDMClassic::DesiredTimeHeadway", desired_dist/initial_vel);
+  params->SetReal("BehaviorIDMClassic::DesiredTimeHeadway", 1.5);
   params->SetReal("BehaviorIDMClassic::MaxAcceleration", 1.0f); // Required for testing
   params->SetReal("BehaviorIDMClassic::AccelerationLowerBound", -8.0);
   params->SetReal("BehaviorIDMClassic::AccelerationUpperBound", 5.0);
@@ -287,8 +284,8 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetInt("BehaviorIDMClassic::Exponent", 4);
   // IDM Stochastic Headway
   params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
-  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", desired_dist/initial_vel - 1.0);
-  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", desired_dist/initial_vel + 1.0);
+  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", 1);
+  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", 1.5);
   params->SetDistribution("BehaviorIDMStochasticHeadway::HeadwayDistribution", "UniformDistribution1D");
   // IDM Hypothesis
   params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumSamples", 100000);
@@ -304,8 +301,9 @@ TEST(behavior_uct_single_agent, change_lane) {
   // Hypothesis behavior creation
   auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
                                               params);
-  auto params_hyp1 = make_params_hypothesis(desired_dist/initial_vel - 1.0, desired_dist/initial_vel + 1.0, 1.5);
-  auto params_hyp2 = make_params_hypothesis(desired_dist/initial_vel + 1.0, 3.0, 1.5);
+  auto params_hyp1 = make_params_hypothesis(1, 1.1, 1.5);
+  auto params_hyp2 = make_params_hypothesis(1.2, 1.4, 1.5);
+  auto params_hyp3 = make_params_hypothesis(1.4, 1.5, 1.5);
   std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
           std::dynamic_pointer_cast<BehaviorHypothesis>(
@@ -313,6 +311,9 @@ TEST(behavior_uct_single_agent, change_lane) {
   behavior_hypothesis.push_back(
           std::dynamic_pointer_cast<BehaviorHypothesis>(
           std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
+  behavior_hypothesis.push_back(
+          std::dynamic_pointer_cast<BehaviorHypothesis>(
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp3)));
 
   auto behavior_uct = std::make_shared<BehaviorUCTHypothesis>(params, ego_behavior_model, behavior_hypothesis);
 
@@ -354,11 +355,32 @@ TEST(behavior_uct_single_agent, change_lane) {
     }
   }
   EXPECT_TRUE(goal_reached);
+
+  // check beliefs
   LOG(INFO) << "final beliefs: " << behavior_uct->GetBeliefTracker().sprintf();
-  EXPECT_TRUE(behavior_uct->GetBeliefTracker().get_beliefs()
-              .at(left_agent1->GetAgentId())[0] > 0.9);
+  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
+              .at(left_agent1->GetAgentId())[0], 1.0/5.0, 0.05);
+  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
+              .at(left_agent1->GetAgentId())[1], 2.0/5.0, 0.05);
+  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
+              .at(left_agent1->GetAgentId())[2], 1.0/5.0, 0.05);
+
+  // This agent was not influenced by parameter sampling all hypothesis should be equal likley
+  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
+              .at(left_agent2->GetAgentId())[0], 0.333, 0.05);
+  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
+              .at(left_agent2->GetAgentId())[0], 0.333, 0.05);
+  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
+              .at(left_agent2->GetAgentId())[2], 0.333, 0.05);
 }
 
+
+TEST(behavior_uct_single_agent, belief_correct) {
+
+
+
+
+}
 
 
 int main(int argc, char **argv) {
