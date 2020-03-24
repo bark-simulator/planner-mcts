@@ -24,7 +24,7 @@
 #include "modules/world/evaluation/evaluator_collision_ego_agent.hpp"
 #include "modules/world/evaluation/evaluator_goal_reached.hpp"
 #include "modules/world/goal_definition/goal_definition_polygon.hpp"
-#include "modules/world/goal_definition/goal_definition_state_limits.hpp"
+#include "modules/world/goal_definition/goal_definition_state_limits_frenet.hpp"
 
 
 using namespace modules::models::behavior;
@@ -44,7 +44,7 @@ using modules::geometry::Point2d;
 using modules::geometry::Pose;
 using modules::world::goal_definition::GoalDefinitionPtr;
 using modules::world::goal_definition::GoalDefinitionPolygon;
-using modules::world::goal_definition::GoalDefinitionStateLimits;
+using modules::world::goal_definition::GoalDefinitionStateLimitsFrenet;
 using modules::models::dynamic::Trajectory;
 using modules::world::evaluation::EvaluatorDrivableArea;
 using modules::world::evaluation::EvaluatorGoalReached;
@@ -287,8 +287,8 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetInt("BehaviorIDMClassic::Exponent", 4);
   // IDM Stochastic Headway
   params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
-  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", -8.0);
-  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", 5.0);
+  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", desired_dist/initial_vel - 1.0);
+  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", desired_dist/initial_vel + 1.0);
   params->SetDistribution("BehaviorIDMStochasticHeadway::HeadwayDistribution", "UniformDistribution1D");
   // IDM Hypothesis
   params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumSamples", 100000);
@@ -304,8 +304,8 @@ TEST(behavior_uct_single_agent, change_lane) {
   // Hypothesis behavior creation
   auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
                                               params);
-  auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
-  auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
+  auto params_hyp1 = make_params_hypothesis(desired_dist/initial_vel - 1.0, desired_dist/initial_vel + 1.0, 1.5);
+  auto params_hyp2 = make_params_hypothesis(desired_dist/initial_vel + 1.0, 3.0, 1.5);
   std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
           std::dynamic_pointer_cast<BehaviorHypothesis>(
@@ -330,7 +330,6 @@ TEST(behavior_uct_single_agent, change_lane) {
 
   world->SetMap(map_interface);
 
-
   // Run simulation with evaluations
   auto evaluator_drivable_area = EvaluatorDrivableArea();
   auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->GetAgents().begin()->second->GetAgentId());
@@ -342,14 +341,19 @@ TEST(behavior_uct_single_agent, change_lane) {
     bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));
     EXPECT_FALSE(outside_drivable_area);
     EXPECT_FALSE(collision_ego);
-    LOG(INFO) << world->GetAgents().begin()->second->GetCurrentState();
+
+    LOG(INFO) << "Time step " << i*0.2;
+    for (const auto& agent : world->GetAgents()) {
+      LOG(INFO) << "Agent " << agent.first << ", State: " << agent.second->GetCurrentState() << 
+          ", Action: " << agent.second->GetBehaviorModel()->GetLastAction();
+    }
+
     if(world->GetAgents().begin()->second->AtGoal()) {
       goal_reached = true;
       break;
     }
   }
   EXPECT_TRUE(goal_reached);
-
 }
 
 
