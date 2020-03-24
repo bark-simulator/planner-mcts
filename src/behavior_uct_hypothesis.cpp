@@ -28,11 +28,11 @@ BehaviorUCTHypothesis::BehaviorUCTHypothesis(
       ego_behavior_model_(ego_behavior_model),
       behavior_hypothesis_(behavior_hypothesis),
       mcts_parameters_(models::behavior::MctsParametersFromParamServer(
-          GetParams()->AddChild("BehaviorUctSingleAgent"))),
-      dump_tree_(GetParams()->AddChild("BehaviorUctSingleAgent")->GetBool(
+          GetParams()->AddChild("BehaviorUctHypothesis"))),
+      dump_tree_(GetParams()->AddChild("BehaviorUctHypothesis")->GetBool(
           "DumpTree",
           "If true, tree is dumped to dot file after planning", false)),
-        prediction_time_span_(GetParams()->AddChild("BehaviorUctSingleAgent")
+        prediction_time_span_(GetParams()->AddChild("BehaviorUctHypothesis")
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",
           "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)),

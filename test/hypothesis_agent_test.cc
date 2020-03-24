@@ -7,10 +7,12 @@
 #include "src/behavior_uct_hypothesis.hpp"
 #include "src/behav_macro_actions_from_param_server.hpp"
 #include "src/mcts_parameters_from_param_server.hpp"
+#include "test/test_helpers.hpp"
 #include "modules/commons/params/setter_params.hpp"
 
 #include "modules/commons/params/default_params.hpp"
 #include "modules/world/tests/make_test_world.hpp"
+#include "modules/world/tests/make_test_xodr_map.hpp"
 #include "modules/models/behavior/motion_primitives/motion_primitives.hpp"
 #include "modules/models/behavior/motion_primitives/macro_actions.hpp"
 #include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
@@ -27,8 +29,8 @@
 
 using namespace modules::models::behavior;
 using namespace mcts;
+using namespace modules::world::tests;
 using modules::world::tests::make_test_observed_world;
-using modules::world::tests::make_test_world;
 using modules::world::prediction::PredictionSettings;
 using modules::models::dynamic::SingleTrackModel;
 using modules::models::dynamic::Input;
@@ -47,6 +49,15 @@ using modules::models::dynamic::Trajectory;
 using modules::world::evaluation::EvaluatorDrivableArea;
 using modules::world::evaluation::EvaluatorGoalReached;
 using modules::world::evaluation::EvaluatorCollisionEgoAgent;
+using modules::world::map::MapInterface;
+using modules::world::map::MapInterfacePtr;
+using modules::world::objects::Agent;
+using modules::world::WorldPtr;
+using modules::world::World;
+using modules::world::ObservedWorldPtr;
+using modules::world::objects::AgentPtr;
+using modules::world::opendrive::OpenDriveMapPtr;
+using modules::world::tests::MakeXodrMapOneRoadTwoLanes;
 
 ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float fixed_headway,
                                  float acc_lower_bound=-5.0f, float acc_upper_bound=8.0f,
@@ -242,73 +253,91 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   auto action = behavior_uct.GetLastAction();
   EXPECT_EQ(boost::get<DiscreteAction>(action), 4); // some decceleration should occur
 }
-/*
-TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
-  // Test if the planner reaches the goal at some point when agent is slower and in front
-  auto params = std::make_shared<SetterParams>();
-
-  float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;
-  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
-  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(10,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
-  auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
-  
-  auto world = make_test_world(1,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
-
-  BehaviorModelPtr behavior_uct(new BehaviorUCTSingleAgentMacroActions(params));
-  world->GetAgents().begin()->second->SetBehaviorModel(behavior_uct);
-
-  auto evaluator_drivable_area = EvaluatorDrivableArea();
-  auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->GetAgents().begin()->second->GetAgentId());
-        
-
-  bool goal_reached = false;
-  for(int i =0; i<100; ++i) {
-    world->Step(prediction_time_span);
-    bool outside_drivable_area = boost::get<bool>(evaluator_drivable_area.Evaluate(*world));
-    bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));
-    EXPECT_FALSE(outside_drivable_area);
-    EXPECT_FALSE(collision_ego);
-    if(world->GetAgents().begin()->second->AtGoal()) {
-      goal_reached = true;
-      break;
-    }
-  }
-  EXPECT_TRUE(goal_reached);
-
-}
 
 TEST(behavior_uct_single_agent, change_lane) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
-  auto params = std::make_shared<SetterParams>();
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 400);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 4000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
-  params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {1,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
-  params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.9);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 20000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 10);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
+  auto params = std::make_shared<SetterParams>(true);
+
+  // Desired headway should correspond to initial headway
+  float desired_dist = 8.0;
+  float initial_vel = 14.0;
+
+  params->SetInt("BehaviorUctHypothesis::Mcts::MaxNumIterations", 400);
+  params->SetInt("BehaviorUctHypothesis::Mcts::MaxSearchTime", 4000);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomSeed", 1000);
+  params->SetBool("BehaviorUctHypothesis::DumpTree", true);
+  params->SetListListFloat("BehaviorUctHypothesis::MotionPrimitiveInputs", {{0,0}, {1,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
+  params->SetReal("BehaviorUctHypothesis::Mcts::DiscountFactor", 0.9);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ExplorationConstant", 0.7);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxSearchTime", 20000);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxNumIterations", 10);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnLowerBound", -1000);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnUpperBound", 100);
+
+  // IDM Classic
+  params->SetReal("BehaviorIDMClassic::MinimumSpacing", 0.0f); // Required for testing
+  params->SetReal("BehaviorIDMClassic::DesiredTimeHeadway", desired_dist/initial_vel);
+  params->SetReal("BehaviorIDMClassic::MaxAcceleration", 1.0f); // Required for testing
+  params->SetReal("BehaviorIDMClassic::AccelerationLowerBound", -8.0);
+  params->SetReal("BehaviorIDMClassic::AccelerationUpperBound", 5.0);
+  params->SetReal("BehaviorIDMClassic::DesiredVelocity", 15.0f);
+  params->SetReal("BehaviorIDMClassic::ComfortableBrakingAcceleration",  1.0f);
+  params->SetReal("BehaviorIDMClassic::MinVelocity", 0.0f);
+  params->SetReal("BehaviorIDMClassic::MaxVelocity", 50.0f);
+  params->SetInt("BehaviorIDMClassic::Exponent", 4);
+  // IDM Stochastic Headway
+  params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
+  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", -8.0);
+  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", 5.0);
+  params->SetDistribution("BehaviorIDMStochasticHeadway::HeadwayDistribution", "UniformDistribution1D");
+  // IDM Hypothesis
+  params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumSamples", 100000);
+  params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumBuckets", 1000);
+  params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsLowerBound", -8.0);
+  params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsUpperBound", 5.0);
+
+  // Map creation
+  OpenDriveMapPtr open_drive_map = MakeXodrMapOneRoadTwoLanes();
+  MapInterfacePtr map_interface = std::make_shared<MapInterface>();
+  map_interface->interface_from_opendrive(open_drive_map);
+
+  // Hypothesis behavior creation
+  auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
+                                              params);
+  auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
+  auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
+  std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
+  behavior_hypothesis.push_back(
+          std::dynamic_pointer_cast<BehaviorHypothesis>(
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1)));
+  behavior_hypothesis.push_back(
+          std::dynamic_pointer_cast<BehaviorHypothesis>(
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
+
+  auto behavior_uct = std::make_shared<BehaviorUCTHypothesis>(params, ego_behavior_model, behavior_hypothesis);
+
+  // Agent and world Creation
+  auto ego_agent = CreateAgent(true, 5.0, 15.0, false, params, map_interface);
+  auto left_agent1 = CreateAgent(false, 3.0, 14.0, false, params, map_interface);
+  auto left_agent2 = CreateAgent(false, 3.0+4.0+10.0, 14.0, false, params, map_interface);
+
+  WorldPtr world(new World(params));
+  ego_agent->SetBehaviorModel(behavior_uct);
+  world->AddAgent(ego_agent);
+  world->AddAgent(left_agent1);
+  world->AddAgent(left_agent2);
+  world->UpdateAgentRTree();
+
+  world->SetMap(map_interface);
 
 
-  float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;
-  Polygon polygon(Pose(0, 0, 0), std::vector<Point2d>{Point2d(0, -1), Point2d(0, 1), Point2d(20, 1), Point2d(20, -1), Point2d(0, -1)});
-  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(30, -0.5)))); // < move the goal polygon into the driving corridor to the side of the ego vehicle
-  auto goal_definition_ptr = std::make_shared<GoalDefinitionStateLimits>(*goal_polygon, std::make_pair<float, float>(-0.2f, 0.2f));
-  
-  auto world = make_test_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
-
-  BehaviorModelPtr behavior_uct(new BehaviorUCTSingleAgentMacroActions(params));
-  world->GetAgents().begin()->second->SetBehaviorModel(behavior_uct);
-
+  // Run simulation with evaluations
   auto evaluator_drivable_area = EvaluatorDrivableArea();
   auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->GetAgents().begin()->second->GetAgentId());
 
   bool goal_reached = false;
   for(int i =0; i<100; ++i) {
-    world->Step(prediction_time_span);
+    world->Step(0.2);
     bool outside_drivable_area = boost::get<bool>(evaluator_drivable_area.Evaluate(*world));
     bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));
     EXPECT_FALSE(outside_drivable_area);
@@ -322,7 +351,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   EXPECT_TRUE(goal_reached);
 
 }
-*/
+
 
 
 int main(int argc, char **argv) {

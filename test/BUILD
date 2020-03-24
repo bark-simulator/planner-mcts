@@ -42,6 +42,26 @@ cc_test(
     ],
 )
 
+cc_library(
+    name="test_helpers",
+    srcs=[
+        "test_helpers.cpp"
+    ],
+    hdrs = [
+        "test_helpers.hpp"
+    ],
+    deps = [
+        "@bark_project//modules/geometry",
+        "@bark_project//modules/models/behavior/idm:idm_classic",
+        "@bark_project//modules/models/behavior/constant_velocity:constant_velocity",
+        "@bark_project//modules/models/behavior/idm/stochastic:stochastic",
+        "@bark_project//modules/models/execution/interpolation:interpolation",
+        "@bark_project//modules/world/tests:make_test_xodr_map",
+        "@com_github_eigen_eigen//:eigen",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 cc_test(
     name = "hypothesis_agent_test",
     srcs = [
@@ -50,6 +70,7 @@ cc_test(
     copts = ["-Iexternal/gtest/include"],
     deps = [
         "//src:planner_uct_hypothesis",
+        "//test:test_helpers",
         "@bark_project//modules/world:world",
         "@bark_project//modules/world/tests:make_test_world",
         "@bark_project//modules/models/behavior:behavior",
@@ -57,7 +78,7 @@ cc_test(
         "@bark_project//modules/models/behavior/mobil:mobil",
         "@bark_project//modules/models/behavior/action_store:behavior_action_store",
         "@bark_project//modules/models/behavior/hypothesis/idm:hypothesis_idm",
-        "@bark_project//modules/models/behavior/constant_velocity:constant_velocity",
+        "@bark_project//modules/models/behavior/idm/stochastic:stochastic",
         "@bark_project//modules/models/behavior/idm:idm_lane_tracking",
         "@bark_project//modules/world/evaluation:evaluator_goal_reached",
         "@bark_project//modules/world/evaluation:evaluator_collision_ego_agent",
