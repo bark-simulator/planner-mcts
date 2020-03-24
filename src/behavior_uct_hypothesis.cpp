@@ -80,7 +80,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
     belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *last_mcts_hypothesis_state_);
   }
   mcts_hypothesis.search(*mcts_hypothesis_state_ptr, belief_tracker_);
-  auto last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
+  last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
   mcts::ActionIdx best_action = mcts_hypothesis.returnBestAction();
   this->SetLastAction(DiscreteAction(best_action));
 

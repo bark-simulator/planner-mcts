@@ -354,6 +354,9 @@ TEST(behavior_uct_single_agent, change_lane) {
     }
   }
   EXPECT_TRUE(goal_reached);
+  LOG(INFO) << "final beliefs: " << behavior_uct->GetBeliefTracker().sprintf();
+  EXPECT_TRUE(behavior_uct->GetBeliefTracker().get_beliefs()
+              .at(left_agent1->GetAgentId())[0] > 0.9);
 }
 
 

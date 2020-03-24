@@ -34,6 +34,8 @@ class BehaviorUCTHypothesis : public BehaviorModel {
 
   virtual std::shared_ptr<BehaviorModel> Clone() const;
 
+  const mcts::HypothesisBeliefTracker& GetBeliefTracker() const { return belief_tracker_;}
+
 
  protected:
    std::vector<mcts::AgentIdx> get_other_agent_ids(const world::ObservedWorld &observed_world) const;
