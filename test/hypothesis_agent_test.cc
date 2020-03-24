@@ -375,14 +375,6 @@ TEST(behavior_uct_single_agent, change_lane) {
 }
 
 
-TEST(behavior_uct_single_agent, belief_correct) {
-
-
-
-
-}
-
-
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
 
