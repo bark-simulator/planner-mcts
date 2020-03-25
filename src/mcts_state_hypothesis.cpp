@@ -145,8 +145,10 @@ template<>
 mcts::Probability MctsStateHypothesis::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
             const modules::models::behavior::Action& action) const {
     auto bark_agent_id = agent_idx;
-    return static_cast<mcts::Probability>(
+    auto prob = static_cast<mcts::Probability>(
         behavior_hypothesis_[hypothesis]->GetProbability(action, *observed_world_, bark_agent_id));
+    LOG(INFO) << "Hyp " << hypothesis << ", action " << action << " : P = " << prob;
+    return prob;
 }
 
 mcts::Probability MctsStateHypothesis::get_prior(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx) const { return 0.5f;};

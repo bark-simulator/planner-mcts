@@ -41,8 +41,8 @@ mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsPtr& par
     parameters.hypothesis_statistic.EXPLORATION_CONSTANT = params->GetReal("Mcts::HypothesisStatistic::ExplorationConstant", "Exploration constant", 0.7);
 
     parameters.hypothesis_belief_tracker.RANDOM_SEED_HYPOTHESIS_SAMPLING = params->GetInt("Mcts::BeliefTracker::RandomSeedHypSampling", "Seed for hypothesis sampling", 2000);
-    parameters.hypothesis_belief_tracker.HISTORY_LENGTH = params->GetInt("Mcts::BeliefTracker::HistoryLength", "Length of probability history", 20);
-    parameters.hypothesis_belief_tracker.PROBABILITY_DISCOUNT = params->GetReal("Mcts::BeliefTracker::ProbabilityDiscount", "Discount factor for probabilities", 1.0f);
+    parameters.hypothesis_belief_tracker.HISTORY_LENGTH = params->GetInt("Mcts::BeliefTracker::HistoryLength", "Length of probability history", 10);
+    parameters.hypothesis_belief_tracker.PROBABILITY_DISCOUNT = params->GetReal("Mcts::BeliefTracker::ProbabilityDiscount", "Discount factor for probabilities", 0.7f);
     parameters.hypothesis_belief_tracker.POSTERIOR_TYPE = params->GetInt("Mcts::BeliefTracker::PosteriorType", "Zero for product, One for sum", 1);
     parameters.hypothesis_belief_tracker.FIXED_HYPOTHESIS_SET = fixed_hypothesis_set;
 

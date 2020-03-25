@@ -98,7 +98,7 @@ TEST(hypothesis_mcts_state, execute) {
                                               params);
 
   // Create an observed world with specific goal definition and the corresponding mcts state
-  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-4, 4), Point2d(-4, 4), Point2d(4, 4), Point2d(4, -4), Point2d(-4, -4)});
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
 
@@ -284,14 +284,14 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetInt("BehaviorIDMClassic::Exponent", 4);
   // IDM Stochastic Headway
   params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
-  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", 1);
-  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", 1.5);
+  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", 0);
+  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", 0.2);
   params->SetDistribution("BehaviorIDMStochasticHeadway::HeadwayDistribution", "UniformDistribution1D");
   // IDM Hypothesis
-  params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumSamples", 100000);
+  params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumSamples", 1000000);
   params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumBuckets", 1000);
-  params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsLowerBound", -8.0);
-  params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsUpperBound", 5.0);
+  params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsLowerBound", -9.0);
+  params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsUpperBound", 6.0);
 
   // Map creation
   OpenDriveMapPtr open_drive_map = MakeXodrMapOneRoadTwoLanes();
@@ -301,9 +301,15 @@ TEST(behavior_uct_single_agent, change_lane) {
   // Hypothesis behavior creation
   auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
                                               params);
-  auto params_hyp1 = make_params_hypothesis(1, 1.1, 1.5);
-  auto params_hyp2 = make_params_hypothesis(1.2, 1.4, 1.5);
-  auto params_hyp3 = make_params_hypothesis(1.4, 1.5, 1.5);
+  auto make_hyp_params = [&](float lower, float upper) {
+    auto params_new = std::make_shared<SetterParams>(true, params->GetCondensedParamList());
+    params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", lower);
+    params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", upper);
+    return params_new;
+  };
+                                          
+  auto params_hyp1 = make_hyp_params(0.0, 0.1);
+  auto params_hyp2 = make_hyp_params(0.1, 0.2);
   std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
           std::dynamic_pointer_cast<BehaviorHypothesis>(
@@ -311,9 +317,6 @@ TEST(behavior_uct_single_agent, change_lane) {
   behavior_hypothesis.push_back(
           std::dynamic_pointer_cast<BehaviorHypothesis>(
           std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
-  behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp3)));
 
   auto behavior_uct = std::make_shared<BehaviorUCTHypothesis>(params, ego_behavior_model, behavior_hypothesis);
 
@@ -348,6 +351,7 @@ TEST(behavior_uct_single_agent, change_lane) {
       LOG(INFO) << "Agent " << agent.first << ", State: " << agent.second->GetCurrentState() << 
           ", Action: " << agent.second->GetBehaviorModel()->GetLastAction();
     }
+    LOG(INFO) << behavior_uct->GetBeliefTracker().sprintf();
 
     if(world->GetAgents().begin()->second->AtGoal()) {
       goal_reached = true;
@@ -355,23 +359,149 @@ TEST(behavior_uct_single_agent, change_lane) {
     }
   }
   EXPECT_TRUE(goal_reached);
+}
 
-  // check beliefs
-  LOG(INFO) << "final beliefs: " << behavior_uct->GetBeliefTracker().sprintf();
-  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
-              .at(left_agent1->GetAgentId())[0], 1.0/5.0, 0.05);
-  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
-              .at(left_agent1->GetAgentId())[1], 2.0/5.0, 0.05);
-  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
-              .at(left_agent1->GetAgentId())[2], 1.0/5.0, 0.05);
+TEST(behavior_uct_single_agent, belief_test) {
+  // Test if the planner reaches the goal at some point when agent is slower and in front
+  auto params = std::make_shared<SetterParams>(true);
+
+  // Desired headway should correspond to initial headway
+  params->SetInt("BehaviorUctHypothesis::Mcts::MaxNumIterations", 400);
+  params->SetInt("BehaviorUctHypothesis::Mcts::MaxSearchTime", 4000);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomSeed", 1000);
+  params->SetBool("BehaviorUctHypothesis::DumpTree", true);
+  params->SetListListFloat("BehaviorUctHypothesis::MotionPrimitiveInputs", {{0,0}, {1,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
+  params->SetReal("BehaviorUctHypothesis::Mcts::DiscountFactor", 0.9);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ExplorationConstant", 0.7);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxSearchTime", 20000);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxNumIterations", 10);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnLowerBound", -1000);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnUpperBound", 100);
+
+  // IDM Classic
+  params->SetReal("BehaviorIDMClassic::MinimumSpacing", 1.0f); // Required for testing
+  params->SetReal("BehaviorIDMClassic::DesiredTimeHeadway", 1.5);
+  params->SetReal("BehaviorIDMClassic::MaxAcceleration", 1.0f); // Required for testing
+  params->SetReal("BehaviorIDMClassic::AccelerationLowerBound", -8.0);
+  params->SetReal("BehaviorIDMClassic::AccelerationUpperBound", 5.0);
+  params->SetReal("BehaviorIDMClassic::DesiredVelocity", 8.0f);
+  params->SetReal("BehaviorIDMClassic::ComfortableBrakingAcceleration",  1.0f);
+  params->SetReal("BehaviorIDMClassic::MinVelocity", 0.0f);
+  params->SetReal("BehaviorIDMClassic::MaxVelocity", 50.0f);
+  params->SetInt("BehaviorIDMClassic::Exponent", 4);
+  // IDM Stochastic Headway
+  params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
+  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", 0);
+  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", 0.2);
+  params->SetDistribution("BehaviorIDMStochasticHeadway::HeadwayDistribution", "UniformDistribution1D");
+  // IDM Hypothesis
+  params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumSamples", 1000000);
+  params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumBuckets", 1000);
+  params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsLowerBound", -9.0);
+  params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsUpperBound", 6.0);
+
+  // Map creation
+  OpenDriveMapPtr open_drive_map = MakeXodrMapOneRoadTwoLanes();
+  MapInterfacePtr map_interface = std::make_shared<MapInterface>();
+  map_interface->interface_from_opendrive(open_drive_map);
+
+  // Hypothesis behavior creation
+  auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
+                                              params);
+  auto make_hyp_params = [&](float lower, float upper) {
+    auto params_new = std::make_shared<SetterParams>(true, params->GetCondensedParamList());
+    params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", lower);
+    params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", upper);
+    return params_new;
+  };
+                                          
+  auto params_hyp1 = make_hyp_params(0.0, 0.1);
+  auto params_hyp2 = make_hyp_params(0.1, 0.2);
+  auto params_hyp3 = make_hyp_params(0.2, 0.3);
+  std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
+  behavior_hypothesis.push_back(
+          std::dynamic_pointer_cast<BehaviorHypothesis>(
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1)));
+  behavior_hypothesis.push_back(
+          std::dynamic_pointer_cast<BehaviorHypothesis>(
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
+  behavior_hypothesis.push_back(
+          std::dynamic_pointer_cast<BehaviorHypothesis>(
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp3)));
+
+
+
+  // Agent and world Creation
+  auto ego_agent = CreateAgent(true, 5.0, 2.7, false, params, map_interface);
+  auto left_agent1 = CreateAgent(false, 3.0, 5, false, params, map_interface);
+  auto left_agent2 = CreateAgent(false, 3.0+4.0+0.5, 5, false, params, map_interface);
+
+  WorldPtr world(new World(params));
+  world->AddAgent(ego_agent);
+  world->AddAgent(left_agent1);
+  world->AddAgent(left_agent2);
+  world->UpdateAgentRTree();
+
+  world->SetMap(map_interface);
+
+  mcts::HypothesisBeliefTracker belief_tracker(
+                      modules::models::behavior::MctsParametersFromParamServer(
+                                      params->AddChild("BehaviorUctHypothesis")));
+
+  auto observed_world = std::make_shared<ObservedWorld>(world->Clone(), ego_agent->GetAgentId());
+  auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
+  std::vector<mcts::AgentIdx> ids = {left_agent1->GetAgentId(), left_agent2->GetAgentId()};
+  auto last_mcts_state = std::make_shared<MctsStateHypothesis>(const_observed_world,
+                        false,
+                       2,
+                       0.2,
+                       belief_tracker.sample_current_hypothesis(),
+                       behavior_hypothesis,
+                       nullptr,
+                       ids,
+                       ego_agent->GetAgentId());
+
+  belief_tracker.belief_update(*last_mcts_state, *last_mcts_state);
+
+  for(int i =0; i<10; ++i) {
+    world->Step(0.2);
+
+    auto next_world = std::make_shared<ObservedWorld>(world->Clone(), ego_agent->GetAgentId());
+    auto next_const_observed_world = std::const_pointer_cast<ObservedWorld>(next_world);
+    auto mcts_state = std::make_shared<MctsStateHypothesis>(next_const_observed_world,
+                      false,
+                       2,
+                       0.2,
+                       belief_tracker.sample_current_hypothesis(),
+                       behavior_hypothesis,
+                       nullptr,
+                       ids,
+                       ego_agent->GetAgentId());
+    belief_tracker.belief_update(*last_mcts_state, *mcts_state);
+    last_mcts_state = mcts_state;
+
+    LOG(INFO) << "Time step " << i*0.2;
+    for (const auto& agent : world->GetAgents()) {
+      LOG(INFO) << "Agent " << agent.first << ", State: " << agent.second->GetCurrentState() << 
+          ", Action: " << agent.second->GetBehaviorModel()->GetLastAction();
+    }
+    LOG(INFO) << belief_tracker.sprintf();
+  }
+
+  EXPECT_NEAR(belief_tracker.get_beliefs()
+              .at(left_agent1->GetAgentId())[0], 0.5, 0.1);
+  EXPECT_NEAR(belief_tracker.get_beliefs()
+              .at(left_agent1->GetAgentId())[1], 0.5, 0.1);
+  EXPECT_NEAR(belief_tracker.get_beliefs()
+              .at(left_agent1->GetAgentId())[2], 0.0, 0.1);
 
   // This agent was not influenced by parameter sampling all hypothesis should be equal likley
-  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
-              .at(left_agent2->GetAgentId())[0], 0.333, 0.05);
-  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
-              .at(left_agent2->GetAgentId())[0], 0.333, 0.05);
-  EXPECT_NEAR(behavior_uct->GetBeliefTracker().get_beliefs()
-              .at(left_agent2->GetAgentId())[2], 0.333, 0.05);
+  EXPECT_NEAR(belief_tracker.get_beliefs()
+              .at(left_agent2->GetAgentId())[0], 0.333, 0.08);
+  EXPECT_NEAR(belief_tracker.get_beliefs()
+              .at(left_agent2->GetAgentId())[1], 0.333, 0.08);
+  EXPECT_NEAR(belief_tracker.get_beliefs()
+              .at(left_agent2->GetAgentId())[2], 0.333, 0.08);
 }
 
 

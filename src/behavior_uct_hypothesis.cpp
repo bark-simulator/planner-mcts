@@ -77,7 +77,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   if(!last_mcts_hypothesis_state_) {
     belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *mcts_hypothesis_state_ptr);
   } else {
-    belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *last_mcts_hypothesis_state_);
+    belief_tracker_.belief_update(*last_mcts_hypothesis_state_, *mcts_hypothesis_state_ptr);
   }
   mcts_hypothesis.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
