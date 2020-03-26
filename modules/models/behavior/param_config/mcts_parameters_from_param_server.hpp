@@ -14,7 +14,7 @@ namespace models {
 namespace behavior {
 
 
-mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsPtr& params,
+inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsPtr& params,
                     std::unordered_map<unsigned int, unsigned int> fixed_hypothesis_set = {}) {
     mcts::MctsParameters parameters;
     parameters.DISCOUNT_FACTOR = params->GetReal("Mcts::DiscountFactor", "Discount factor used in MDP problem", 0.9);

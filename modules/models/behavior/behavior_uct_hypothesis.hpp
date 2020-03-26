@@ -36,12 +36,15 @@ class BehaviorUCTHypothesis : public BehaviorModel {
 
   const mcts::HypothesisBeliefTracker& GetBeliefTracker() const { return belief_tracker_;}
 
+  std::vector<BehaviorHypothesisPtr> GetBehaviorHypotheses() const { return behavior_hypotheses_; }
+
+  BehaviorMotionPrimitivesPtr GetEgoBehavior() const { return ego_behavior_model_; }
 
  protected:
    std::vector<mcts::AgentIdx> get_other_agent_ids(const world::ObservedWorld &observed_world) const;
    
   // Prediction models (ego and hypothesis)
-  std::vector<BehaviorHypothesisPtr> behavior_hypothesis_;
+  std::vector<BehaviorHypothesisPtr> behavior_hypotheses_;
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
 
   // PARAMETERS

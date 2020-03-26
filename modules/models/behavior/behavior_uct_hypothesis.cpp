@@ -26,7 +26,7 @@ BehaviorUCTHypothesis::BehaviorUCTHypothesis(
     const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis)
     : BehaviorModel(params),
       ego_behavior_model_(ego_behavior_model),
-      behavior_hypothesis_(behavior_hypothesis),
+      behavior_hypotheses_(behavior_hypothesis),
       mcts_parameters_(models::behavior::MctsParametersFromParamServer(
           GetParams()->AddChild("BehaviorUctHypothesis"))),
       dump_tree_(GetParams()->AddChild("BehaviorUctHypothesis")->GetBool(
@@ -69,7 +69,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
                                 num, // num action 
                                 prediction_time_span_, 
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
-                                behavior_hypothesis_,
+                                behavior_hypotheses_,
                                 ego_behavior_model_,
                                 other_agent_ids,
                                 ego_id);

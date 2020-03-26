@@ -81,7 +81,7 @@ public:
 
   // ---------------- Hypothesis specific ----------------------
   // available hypothesis and ego model can be shared across all states
-  const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis_;
+  const std::vector<BehaviorHypothesisPtr>& behavior_hypotheses_;
   const BehaviorMotionPrimitivesPtr& ego_behavior_model_;
   mutable std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
 

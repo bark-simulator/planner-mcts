@@ -31,7 +31,7 @@ using modules::models::dynamic::SingleTrackModel;
 using modules::world::prediction::PredictionSettings;
 
 
-BehaviorMotionPrimitivesPtr BehaviorMacroActionsFromParamServer(const commons::ParamsPtr& params) {
+inline BehaviorMotionPrimitivesPtr BehaviorMacroActionsFromParamServer(const commons::ParamsPtr& params) {
     DynamicModelPtr dyn_model(new SingleTrackModel(params));
     BehaviorModelPtr ego_prediction_model(
         new BehaviorMPMacroActions(dyn_model, params));
