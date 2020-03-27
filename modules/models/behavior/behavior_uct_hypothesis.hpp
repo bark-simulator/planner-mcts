@@ -24,7 +24,6 @@ namespace behavior {
 class BehaviorUCTHypothesis : public BehaviorModel {
  public:
   explicit BehaviorUCTHypothesis(const commons::ParamsPtr& params,
-                                const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                                 const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis);
 
   virtual ~BehaviorUCTHypothesis() {}

@@ -207,8 +207,6 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   
   auto observed_world = make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
   
-  auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
-                                              params);
   auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
   auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
   std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
@@ -218,7 +216,7 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   behavior_hypothesis.push_back(
           std::dynamic_pointer_cast<BehaviorHypothesis>(
           std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
-  modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, ego_behavior_model, behavior_hypothesis);
+  modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, behavior_hypothesis);
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
@@ -236,8 +234,6 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   
   auto observed_world = make_test_observed_world(2,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
   
-  auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
-                                              params);
   auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
   auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
   std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
@@ -247,7 +243,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   behavior_hypothesis.push_back(
           std::dynamic_pointer_cast<BehaviorHypothesis>(
           std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
-  modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, ego_behavior_model, behavior_hypothesis);
+  modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, behavior_hypothesis);
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();

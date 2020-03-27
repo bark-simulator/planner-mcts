@@ -57,11 +57,11 @@ void python_planner_uct(py::module m) {
              std::shared_ptr<BehaviorUCTHypothesis>>(
       m, "BehaviorUCTHypothesis")
       .def(py::init<const modules::commons::ParamsPtr &,
-       const BehaviorMotionPrimitivesPtr&,
        const std::vector<BehaviorHypothesisPtr>&>())
       .def("__repr__", [](const BehaviorUCTHypothesis &m) {
         return "bark.behavior.BehaviorUCTSingleAgentMacroActions";
       })
+      .def_property_readonly("hypotheses", &BehaviorUCTHypothesis::GetBehaviorHypotheses)
       .def(py::pickle(
       [](const BehaviorUCTHypothesis& b) {
         py::list list;
@@ -69,31 +69,22 @@ void python_planner_uct(py::module m) {
         for (const auto& hypothesis : hypotheses) {
           list.append(BehaviorModelToPython(hypothesis));
         }
-        return py::make_tuple(ParamsToPython(b.GetParams()),
-               BehaviorModelToPython(b.GetEgoBehavior()), list);
+        return py::make_tuple(ParamsToPython(b.GetParams()), list);
       },
       [](py::tuple t) {
-        if (t.size() != 3)
+        if (t.size() != 2)
           throw std::runtime_error("Invalid behavior model state!");
         /* Create a new C++ instance */
         std::vector<BehaviorHypothesisPtr> hypotheses;
-        const auto& list =  t[2].cast<py::list>();
+        const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
-          auto behavior_model = PythonToBehaviorModel(el.cast<py::tuple>());
-          auto hypothesis_ptr = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_model);
+          auto hypothesis_ptr = std::dynamic_pointer_cast<BehaviorHypothesis>(PythonToBehaviorModel(el.cast<py::tuple>()));
           if(!hypothesis_ptr) {
             throw std::runtime_error("Could not cast behavior model to hypothesis model!");
           }
           hypotheses.push_back(hypothesis_ptr);
         }
-        const auto ego_behavior_model = PythonToBehaviorModel(t[1].cast<py::tuple>());
-        auto ego_behavior_motion_primitive = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(
-                ego_behavior_model);
-        if(!ego_behavior_motion_primitive) {
-          throw std::runtime_error("Could not cast behavior model to motion primitive model!");
-        }
         return new BehaviorUCTHypothesis(PythonToParams(t[0].cast<py::tuple>()),
-                ego_behavior_motion_primitive,
                 hypotheses);
       }));
 

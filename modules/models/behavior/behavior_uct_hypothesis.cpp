@@ -1,5 +1,6 @@
 #include "modules/models/behavior/behavior_uct_hypothesis.hpp"
 #include "modules/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
+#include "modules/models/behavior/motion_primitives/param_config/behav_macro_actions_from_param_server.hpp"
 #define MCTS_EXPECT_TRUE(cond) BARK_EXPECT_TRUE(cond)
 #include "mcts/heuristics/random_heuristic.h"
 #include "mcts/mcts.h"
@@ -22,10 +23,11 @@ using modules::world::objects::AgentId;
 
 BehaviorUCTHypothesis::BehaviorUCTHypothesis(
     const commons::ParamsPtr& params,
-    const BehaviorMotionPrimitivesPtr& ego_behavior_model,
     const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis)
     : BehaviorModel(params),
-      ego_behavior_model_(ego_behavior_model),
+      ego_behavior_model_(models::behavior::
+          BehaviorMacroActionsFromParamServer(GetParams()
+            ->AddChild("BehaviorUctHypothesis")->AddChild("EgoBehavior"))),
       behavior_hypotheses_(behavior_hypothesis),
       mcts_parameters_(models::behavior::MctsParametersFromParamServer(
           GetParams()->AddChild("BehaviorUctHypothesis"))),
