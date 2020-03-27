@@ -5,7 +5,7 @@
 #include <chrono>
 #include "gtest/gtest.h"
 #include "modules/models/behavior/behavior_uct_hypothesis.hpp"
-#include "modules/models/behavior/param_config/behav_macro_actions_from_param_server.hpp"
+#include "modules/models/behavior/motion_primitives/param_config/behav_macro_actions_from_param_server.hpp"
 #include "modules/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
 #include "modules/models/behavior/tests/test_helpers.hpp"
 #include "modules/commons/params/setter_params.hpp"
@@ -314,7 +314,7 @@ TEST(behavior_uct_single_agent, change_lane) {
           std::dynamic_pointer_cast<BehaviorHypothesis>(
           std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
 
-  auto behavior_uct = std::make_shared<BehaviorUCTHypothesis>(params, ego_behavior_model, behavior_hypothesis);
+  auto behavior_uct = std::make_shared<BehaviorUCTHypothesis>(params, behavior_hypothesis);
 
   // Agent and world Creation
   auto ego_agent = CreateAgent(true, 5.0, 15.0, false, params, map_interface);
