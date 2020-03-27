@@ -3,7 +3,7 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "src/mcts_state_single_agent.hpp"
+#include "modules/models/behavior/mcts_state/mcts_state_single_agent.hpp"
 
 #include <memory>
 #include <string>

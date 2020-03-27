@@ -8,7 +8,7 @@
 
 #include <memory>
 #include "mcts/mcts_parameters.h"
-#include "src/mcts_state_hypothesis.hpp"
+#include "modules/models/behavior/mcts_state/mcts_state_hypothesis.hpp"
 #include "mcts/hypothesis/hypothesis_belief_tracker.h"
 
 #include "modules/models/behavior/behavior_model.hpp"

@@ -3,13 +3,13 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "src/behavior_uct_single_agent_base.hpp"
-#include "src/mcts_parameters_from_param_server.hpp"
+#include "modules/models/behavior/behavior_uct_single_agent_base.hpp"
+#include "modules/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
 #define MCTS_EXPECT_TRUE(cond) BARK_EXPECT_TRUE(cond)
 #include "mcts/heuristics/random_heuristic.h"
 #include "mcts/mcts.h"
 #include "mcts/statistics/uct_statistic.h"
-#include "src/mcts_state_single_agent.hpp"
+#include "modules/models/behavior/mcts_state/mcts_state_single_agent.hpp"
 
 #include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
 #include "modules/models/behavior/idm/idm_classic.hpp"

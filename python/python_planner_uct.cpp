@@ -6,10 +6,9 @@
 #include "python/python_planner_uct.hpp"
 #include "python/polymorphic_conversion.hpp"
 #include <memory>
-#include "src/behavior_uct_single_agent.hpp"
-#include "src/behavior_uct_single_agent_macro_actions.hpp"
-#include "src/behav_macro_actions_from_param_server.hpp"
-#include "src/behavior_uct_hypothesis.hpp"
+#include "modules/models/behavior/behavior_uct_single_agent.hpp"
+#include "modules/models/behavior/behavior_uct_single_agent_macro_actions.hpp"
+#include "modules/models/behavior/behavior_uct_hypothesis.hpp"
 
 #include "mcts/random_generator.h"
 
@@ -98,5 +97,4 @@ void python_planner_uct(py::module m) {
                 hypotheses);
       }));
 
-  m.def("BehaviorMacroActionFromParamServer", &BehaviorMacroActionsFromParamServer);
 }

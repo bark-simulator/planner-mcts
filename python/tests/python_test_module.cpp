@@ -4,7 +4,7 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
 #include "python/models/behavior.hpp"
-#include "python_planner_uct.hpp"
+#include "python/python_planner_uct.hpp"
 
 namespace py = pybind11;
 

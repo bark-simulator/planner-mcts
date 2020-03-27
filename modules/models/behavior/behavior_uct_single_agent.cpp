@@ -3,7 +3,7 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "src/behavior_uct_single_agent.hpp"
+#include "modules/models/behavior/behavior_uct_single_agent.hpp"
 
 #include "modules/models/behavior/idm/idm_classic.hpp"
 #include "modules/models/behavior/motion_primitives/continuous_actions.hpp"

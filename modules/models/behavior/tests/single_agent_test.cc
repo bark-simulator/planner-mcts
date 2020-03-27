@@ -5,8 +5,8 @@
 
 #include "gtest/gtest.h"
 #include "mcts/mcts.h"
-#include "src/mcts_state_single_agent.hpp"
-#include "src/behavior_uct_single_agent.hpp"
+#include "modules/models/behavior/mcts_state/mcts_state_single_agent.hpp"
+#include "modules/models/behavior/behavior_uct_single_agent.hpp"
 #include "modules/commons/params/default_params.hpp"
 #include "modules/world/tests/make_test_world.hpp"
 #include "modules/models/behavior/motion_primitives/motion_primitives.hpp"

@@ -4,10 +4,10 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 #include <chrono>
 #include "gtest/gtest.h"
-#include "src/behavior_uct_hypothesis.hpp"
-#include "src/behav_macro_actions_from_param_server.hpp"
-#include "src/mcts_parameters_from_param_server.hpp"
-#include "test/test_helpers.hpp"
+#include "modules/models/behavior/behavior_uct_hypothesis.hpp"
+#include "modules/models/behavior/param_config/behav_macro_actions_from_param_server.hpp"
+#include "modules/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
+#include "modules/models/behavior/tests/test_helpers.hpp"
 #include "modules/commons/params/setter_params.hpp"
 
 #include "modules/commons/params/default_params.hpp"

@@ -1,11 +1,11 @@
-#include "src/behavior_uct_hypothesis.hpp"
-#include "src/mcts_parameters_from_param_server.hpp"
+#include "modules/models/behavior/behavior_uct_hypothesis.hpp"
+#include "modules/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
 #define MCTS_EXPECT_TRUE(cond) BARK_EXPECT_TRUE(cond)
 #include "mcts/heuristics/random_heuristic.h"
 #include "mcts/mcts.h"
 #include "mcts/statistics/uct_statistic.h"
 #include "mcts/hypothesis/hypothesis_statistic.h"
-#include "src/mcts_state_hypothesis.hpp"
+#include "modules/models/behavior/mcts_state/mcts_state_hypothesis.hpp"
 
 #include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
 #include "modules/models/behavior/idm/idm_classic.hpp"

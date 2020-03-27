@@ -7,7 +7,7 @@
 #define MODULES_MODELS_BEHAVIOR_UCT_SINGLE_AGENT_MACRO_ACTIONS_HPP_
 
 #include <memory>
-#include "src/behavior_uct_single_agent_base.hpp"
+#include "modules/models/behavior/behavior_uct_single_agent_base.hpp"
 
 namespace modules {
 namespace models {

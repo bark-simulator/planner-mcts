@@ -5,7 +5,7 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "test/test_helpers.hpp"
+#include "modules/models/behavior/tests/test_helpers.hpp"
 #include <vector>
 #include "modules/commons/params/default_params.hpp"
 #include "modules/geometry/commons.hpp"
