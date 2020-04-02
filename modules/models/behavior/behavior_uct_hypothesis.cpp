@@ -63,7 +63,6 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
       ego_behavior_model_->GetNumMotionPrimitives(const_mcts_observed_world);
 
   // Define initial mcts state
-  auto other_agent_ids = get_other_agent_ids(*const_mcts_observed_world);
   auto ego_id = const_mcts_observed_world->GetEgoAgentId();
   auto mcts_hypothesis_state_ptr = std::make_shared<MctsStateHypothesis>(
                                 mcts_observed_world, 
@@ -73,7 +72,6 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypotheses_,
                                 ego_behavior_model_,
-                                other_agent_ids,
                                 ego_id);
   // if this is first call to Plan init belief tracker
   if(!last_mcts_hypothesis_state_) {
@@ -100,16 +98,6 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   auto traj = ego_behavior_model_->Plan(delta_time, observed_world);
   SetLastTrajectory(traj);
   return traj;
-}
-
-std::vector<mcts::AgentIdx> BehaviorUCTHypothesis::get_other_agent_ids (
-    const world::ObservedWorld &observed_world) const {
-  world::AgentMap agent_map = observed_world.GetOtherAgents();
-  std::vector<mcts::AgentIdx> other_agent_ids;
-  for (const auto &agent : agent_map) {
-      other_agent_ids.push_back(agent.first);
-  }
-  return other_agent_ids;
 }
 
 }  // namespace behavior

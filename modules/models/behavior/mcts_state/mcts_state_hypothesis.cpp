@@ -31,7 +31,6 @@ MctsStateHypothesis::MctsStateHypothesis(
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
-                       const std::vector<mcts::AgentIdx>& other_agent_ids,
                        const mcts::AgentIdx& ego_agent_id) :
       mcts::HypothesisStateInterface<MctsStateHypothesis>(current_agents_hypothesis),
       observed_world_(observed_world),
@@ -40,7 +39,7 @@ MctsStateHypothesis::MctsStateHypothesis(
       prediction_time_span_(prediction_time_span),
       behavior_hypotheses_(behavior_hypothesis),
       ego_behavior_model_(ego_behavior_model),
-      other_agent_ids_(other_agent_ids),
+      other_agent_ids_(update_other_agent_ids()),
       ego_agent_id_(ego_agent_id) {
           // start at index 1 since first agent is ego agent
           for(const auto& agent_id : other_agent_ids_) {
@@ -54,7 +53,7 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::clone() const {
   return std::make_shared<MctsStateHypothesis>(
       worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
-      other_agent_ids_, ego_agent_id_);
+      ego_agent_id_);
 }
 
 std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
@@ -111,7 +110,7 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
   return std::make_shared<MctsStateHypothesis>(
       predicted_world, is_terminal, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
-      other_agent_ids_, ego_agent_id_);
+      ego_agent_id_);
 }
 
 const std::vector<mcts::AgentIdx> MctsStateHypothesis::get_other_agent_idx() const {
@@ -155,7 +154,14 @@ mcts::Probability MctsStateHypothesis::get_prior(const mcts::HypothesisId& hypot
 
 mcts::HypothesisId MctsStateHypothesis::get_num_hypothesis(const mcts::AgentIdx& agent_idx) const {return behavior_hypotheses_.size();};
 
-
+std::vector<mcts::AgentIdx> MctsStateHypothesis::update_other_agent_ids() const {
+  world::AgentMap agent_map = observed_world_->GetOtherAgents();
+  std::vector<mcts::AgentIdx> ids;
+  for (const auto &agent : agent_map) {
+      ids.push_back(agent.first);
+  }
+  return ids;
+}
 
 }  // namespace behavior
 }  // namespace models

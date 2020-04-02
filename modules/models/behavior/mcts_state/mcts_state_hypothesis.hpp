@@ -35,7 +35,6 @@ public:
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
-                       const std::vector<mcts::AgentIdx>& other_agent_ids,
                        const mcts::AgentIdx& ego_agent_id);
 
 // General Interfaces MCTS State: todo(@bernhard) move to a generic base class
@@ -72,6 +71,8 @@ public:
     typedef BarkAction ActionType; // required for template-mechanism to compile
 
  private:
+  std::vector<mcts::AgentIdx> update_other_agent_ids() const;
+
   const std::shared_ptr<const modules::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
   const mcts::ActionIdx num_ego_actions_;

@@ -121,7 +121,6 @@ TEST(hypothesis_mcts_state, execute) {
           std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
   auto ego_agent_id = observed_world->GetAgents().begin()->first;
   auto front_agent_id = std::next(observed_world->GetAgents().begin())->first;
-  std::vector<mcts::AgentIdx> other_agent_ids = {front_agent_id};
   MctsStateHypothesis mcts_state(const_observed_world,
                         false,
                        num_ego_actions,
@@ -129,7 +128,6 @@ TEST(hypothesis_mcts_state, execute) {
                        belief_tracker.sample_current_hypothesis(),
                        behavior_hypothesis,
                        ego_behavior_model,
-                       other_agent_ids,
                        ego_agent_id);
   
   std::vector<mcts::Reward> rewards;
@@ -446,7 +444,6 @@ TEST(behavior_uct_single_agent, belief_test) {
 
   auto observed_world = std::make_shared<ObservedWorld>(world->Clone(), ego_agent->GetAgentId());
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
-  std::vector<mcts::AgentIdx> ids = {left_agent1->GetAgentId(), left_agent2->GetAgentId()};
   auto last_mcts_state = std::make_shared<MctsStateHypothesis>(const_observed_world,
                         false,
                        2,
@@ -454,7 +451,6 @@ TEST(behavior_uct_single_agent, belief_test) {
                        belief_tracker.sample_current_hypothesis(),
                        behavior_hypothesis,
                        nullptr,
-                       ids,
                        ego_agent->GetAgentId());
 
   belief_tracker.belief_update(*last_mcts_state, *last_mcts_state);
@@ -471,7 +467,6 @@ TEST(behavior_uct_single_agent, belief_test) {
                        belief_tracker.sample_current_hypothesis(),
                        behavior_hypothesis,
                        nullptr,
-                       ids,
                        ego_agent->GetAgentId());
     belief_tracker.belief_update(*last_mcts_state, *mcts_state);
     last_mcts_state = mcts_state;
