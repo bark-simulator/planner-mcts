@@ -103,7 +103,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
 
   LOG(INFO) << "BehaviorUCTHypothesis, iterations: " << mcts_hypothesis.numIterations()
             << ", search time " << mcts_hypothesis.searchTime()
-            << ", best action: " << best_action;
+            << ", best action: " << best_action ", beliefs:" << belief_tracker_.sprintf();
 
   // Covert action to a trajectory
   ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
