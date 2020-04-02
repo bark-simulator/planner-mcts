@@ -29,7 +29,7 @@ MctsStateHypothesis::MctsStateHypothesis(
                        const mcts::ActionIdx& num_ego_actions,
                        const float& prediction_time_span,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
-                       const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis,
+                       const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id) :
       mcts::HypothesisStateInterface<MctsStateHypothesis>(current_agents_hypothesis),
@@ -144,9 +144,12 @@ template<>
 mcts::Probability MctsStateHypothesis::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
             const modules::models::behavior::Action& action) const {
     auto bark_agent_id = agent_idx;
+    auto hypothesis_ptr = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypotheses_[hypothesis]);
+    if(!hypothesis_ptr) {
+        LOG(FATAL) << "Behaviors specified as hypothesis are not castable to hypothesis.";
+    }
     auto prob = static_cast<mcts::Probability>(
-        behavior_hypotheses_[hypothesis]->GetProbability(action, *observed_world_, bark_agent_id));
-    LOG(INFO) << "Hyp " << hypothesis << ", action " << action << " : P = " << prob;
+        hypothesis_ptr->GetProbability(action, *observed_world_, bark_agent_id));
     return prob;
 }
 

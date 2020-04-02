@@ -24,7 +24,7 @@ namespace behavior {
 class BehaviorUCTHypothesis : public BehaviorModel {
  public:
   explicit BehaviorUCTHypothesis(const commons::ParamsPtr& params,
-                                const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis);
+                                const std::vector<BehaviorModelPtr>& behavior_hypothesis);
 
   virtual ~BehaviorUCTHypothesis() {}
 
@@ -35,19 +35,22 @@ class BehaviorUCTHypothesis : public BehaviorModel {
 
   const mcts::HypothesisBeliefTracker& GetBeliefTracker() const { return belief_tracker_;}
 
-  std::vector<BehaviorHypothesisPtr> GetBehaviorHypotheses() const { return behavior_hypotheses_; }
+  std::vector<BehaviorModelPtr> GetBehaviorHypotheses() const { return behavior_hypotheses_; }
 
   BehaviorMotionPrimitivesPtr GetEgoBehavior() const { return ego_behavior_model_; }
 
  protected:
+  void DefineTrueBehaviorsAsHypothesis(const world::ObservedWorld& observed_world);
+
   // Prediction models (ego and hypothesis)
-  std::vector<BehaviorHypothesisPtr> behavior_hypotheses_;
+  std::vector<BehaviorModelPtr> behavior_hypotheses_;
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
 
   // PARAMETERS
   mcts::MctsParameters mcts_parameters_;
   bool dump_tree_;
   double prediction_time_span_;
+  bool use_true_behaviors_as_hypothesis_;
 
   // Belief tracking, we must also maintain previous mcts hypothesis state
   mcts::HypothesisBeliefTracker belief_tracker_;

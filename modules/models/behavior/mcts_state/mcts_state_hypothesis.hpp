@@ -33,7 +33,7 @@ public:
                        const mcts::ActionIdx& num_ego_actions,
                        const float& prediction_time_span,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
-                       const std::vector<BehaviorHypothesisPtr>& behavior_hypothesis,
+                       const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id);
 
@@ -82,7 +82,7 @@ public:
 
   // ---------------- Hypothesis specific ----------------------
   // available hypothesis and ego model can be shared across all states
-  const std::vector<BehaviorHypothesisPtr>& behavior_hypotheses_;
+  const std::vector<BehaviorModelPtr>& behavior_hypotheses_;
   const BehaviorMotionPrimitivesPtr& ego_behavior_model_;
   mutable std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
 

@@ -112,13 +112,12 @@ TEST(hypothesis_mcts_state, execute) {
   mcts::HypothesisBeliefTracker belief_tracker(MctsParametersFromParamServer(params));
   auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
   auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
-  std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
+  std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1));
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2));
+
   auto ego_agent_id = observed_world->GetAgents().begin()->first;
   auto front_agent_id = std::next(observed_world->GetAgents().begin())->first;
   MctsStateHypothesis mcts_state(const_observed_world,
@@ -207,13 +206,12 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   
   auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
   auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
-  std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
+  std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1));
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2));
+
   modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, behavior_hypothesis);
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
@@ -234,13 +232,11 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   
   auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
   auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
-  std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
+  std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1));
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2));
   modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, behavior_hypothesis);
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
@@ -304,13 +300,12 @@ TEST(behavior_uct_single_agent, change_lane) {
                                           
   auto params_hyp1 = make_hyp_params(0.0, 0.1);
   auto params_hyp2 = make_hyp_params(0.1, 0.2);
-  std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
+  std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1));
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2));
+
 
   auto behavior_uct = std::make_shared<BehaviorUCTHypothesis>(params, behavior_hypothesis);
 
@@ -412,16 +407,13 @@ TEST(behavior_uct_single_agent, belief_test) {
   auto params_hyp1 = make_hyp_params(0.0, 0.1);
   auto params_hyp2 = make_hyp_params(0.1, 0.2);
   auto params_hyp3 = make_hyp_params(0.2, 0.3);
-  std::vector<BehaviorHypothesisPtr> behavior_hypothesis;
+  std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1));
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2));
   behavior_hypothesis.push_back(
-          std::dynamic_pointer_cast<BehaviorHypothesis>(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp3)));
+          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp3));
 
 
 

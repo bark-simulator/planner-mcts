@@ -57,7 +57,7 @@ void python_planner_uct(py::module m) {
              std::shared_ptr<BehaviorUCTHypothesis>>(
       m, "BehaviorUCTHypothesis")
       .def(py::init<const modules::commons::ParamsPtr &,
-       const std::vector<BehaviorHypothesisPtr>&>())
+       const std::vector<BehaviorModelPtr>&>())
       .def("__repr__", [](const BehaviorUCTHypothesis &m) {
         return "bark.behavior.BehaviorUCTSingleAgentMacroActions";
       })
@@ -75,7 +75,7 @@ void python_planner_uct(py::module m) {
         if (t.size() != 2)
           throw std::runtime_error("Invalid behavior model state!");
         /* Create a new C++ instance */
-        std::vector<BehaviorHypothesisPtr> hypotheses;
+        std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
           auto hypothesis_ptr = std::dynamic_pointer_cast<BehaviorHypothesis>(PythonToBehaviorModel(el.cast<py::tuple>()));
