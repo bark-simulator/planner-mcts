@@ -78,11 +78,7 @@ void python_planner_uct(py::module m) {
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
-          auto hypothesis_ptr = std::dynamic_pointer_cast<BehaviorHypothesis>(PythonToBehaviorModel(el.cast<py::tuple>()));
-          if(!hypothesis_ptr) {
-            throw std::runtime_error("Could not cast behavior model to hypothesis model!");
-          }
-          hypotheses.push_back(hypothesis_ptr);
+          hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
         }
         return new BehaviorUCTHypothesis(PythonToParams(t[0].cast<py::tuple>()),
                 hypotheses);
