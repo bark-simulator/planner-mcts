@@ -103,6 +103,7 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
       goal_reached * 100.0f;
 
   ego_cost = -1.0*rewards[this->ego_agent_idx];
+  VLOG(3) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
 
   bool is_terminal =
       (collision_drivable_area || collision_ego || goal_reached || out_of_map);

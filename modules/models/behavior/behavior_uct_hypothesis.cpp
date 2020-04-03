@@ -101,9 +101,10 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
     mcts_hypothesis.printTreeToDotFile(filename.str());
   }
 
-  LOG(INFO) << "BehaviorUCTHypothesis, iterations: " << mcts_hypothesis.numIterations()
+  VLOG(2) << "BehaviorUCTHypothesis, iterations: " << mcts_hypothesis.numIterations()
             << ", search time " << mcts_hypothesis.searchTime()
-            << ", best action: " << best_action << belief_tracker_.sprintf();
+            << ", best action: " << best_action;
+  VLOG_EVERY_N(3, 3) << belief_tracker_.sprintf();
 
   // Covert action to a trajectory
   ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
