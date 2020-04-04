@@ -97,7 +97,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
 
   if (dump_tree_) {
     std::stringstream filename;
-    filename << "tree_dot_file_" << delta_time;
+    filename << "tree_dot_file_" << observed_world.GetWorldTime();
     mcts_hypothesis.printTreeToDotFile(filename.str());
   }
 
