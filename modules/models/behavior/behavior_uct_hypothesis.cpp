@@ -110,6 +110,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
   auto traj = ego_behavior_model_->Plan(delta_time, observed_world);
   SetLastTrajectory(traj);
+  SetLastAction(ego_behavior_model_->GetLastAction());
   return traj;
 }
 
