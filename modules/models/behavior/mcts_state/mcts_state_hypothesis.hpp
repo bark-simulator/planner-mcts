@@ -26,6 +26,13 @@ namespace behavior {
 
 using BarkAction = modules::models::behavior::Action;
 
+typedef struct StateParameters {
+  float GOAL_REWARD;
+  float COLLISION_REWARD;
+  float GOAL_COST;
+  float COLLISION_COST;
+};
+
 class MctsStateHypothesis : public mcts::HypothesisStateInterface<MctsStateHypothesis> {
 public:
     MctsStateHypothesis(const modules::world::ObservedWorldPtr& observed_world,
@@ -35,7 +42,8 @@ public:
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
-                       const mcts::AgentIdx& ego_agent_id);
+                       const mcts::AgentIdx& ego_agent_id,
+                       const StateParameters& state_parameters);
 
 // General Interfaces MCTS State: todo(@bernhard) move to a generic base class
     std::shared_ptr<MctsStateHypothesis> execute(const mcts::JointAction &joint_action,
@@ -79,6 +87,8 @@ public:
   const float prediction_time_span_;
   const std::vector<mcts::AgentIdx> other_agent_ids_;
   const mcts::AgentIdx ego_agent_id_;
+  const StateParameters& state_parameters_;
+
 
   // ---------------- Hypothesis specific ----------------------
   // available hypothesis and ego model can be shared across all states

@@ -51,6 +51,7 @@ class BehaviorUCTHypothesis : public BehaviorModel {
   bool dump_tree_;
   double prediction_time_span_;
   bool use_true_behaviors_as_hypothesis_;
+  StateParameters mcts_state_parameters_;
 
   // Belief tracking, we must also maintain previous mcts hypothesis state
   mcts::HypothesisBeliefTracker belief_tracker_;

@@ -1,5 +1,6 @@
 #include "modules/models/behavior/behavior_uct_hypothesis.hpp"
 #include "modules/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
+#include "modules/models/behavior/param_config/mcts_state_parameters_from_param_server.hpp"
 #include "modules/models/behavior/motion_primitives/param_config/behav_macro_actions_from_param_server.hpp"
 #define MCTS_EXPECT_TRUE(cond) BARK_EXPECT_TRUE(cond)
 #include "mcts/heuristics/random_heuristic.h"
@@ -41,6 +42,8 @@ BehaviorUCTHypothesis::BehaviorUCTHypothesis(
       use_true_behaviors_as_hypothesis_(GetParams()->AddChild("BehaviorUctHypothesis")
                                         ->AddChild("PredictionSettings")
                                         ->GetBool("UseTrueBehaviorsAsHypothesis", "When true behaviors out of observed world are used as hypothesis", false)),
+      mcts_state_parameters_(MctsStateParametersFromParamServer(
+          GetParams()->AddChild("BehaviorUctHypothesis"))),
       belief_tracker_(mcts_parameters_),
       last_mcts_hypothesis_state_() {}
 
@@ -75,7 +78,8 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypotheses_,
                                 ego_behavior_model_,
-                                ego_id);
+                                ego_id,
+                                mcts_state_parameters_);
 
   // Belief update only required, if we do not use true behaviors as hypothesis
   if(!use_true_behaviors_as_hypothesis_) {

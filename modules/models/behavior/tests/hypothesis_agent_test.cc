@@ -7,6 +7,7 @@
 #include "modules/models/behavior/behavior_uct_hypothesis.hpp"
 #include "modules/models/behavior/motion_primitives/param_config/behav_macro_actions_from_param_server.hpp"
 #include "modules/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
+#include "modules/models/behavior/param_config/mcts_state_parameters_from_param_server.hpp"
 #include "modules/models/behavior/tests/test_helpers.hpp"
 #include "modules/commons/params/setter_params.hpp"
 
@@ -94,6 +95,12 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
 TEST(hypothesis_mcts_state, execute) {
   // Setup prediction models for ego agent and other agents   
   auto params = std::make_shared<SetterParams>();
+
+  params->SetReal("Mcts::State::GoalReward", 200.0);
+  params->SetReal("Mcts::State::CollisionReward", -2000.0);
+  params->SetReal("Mcts::State::GoalCost", 10.0);
+  params->SetReal("Mcts::State::CollisionCost", 300);
+
   auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
                                               params);
 
@@ -102,7 +109,7 @@ TEST(hypothesis_mcts_state, execute) {
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
 
-  double rel_distance = 4.0f, ego_velocity = 5.0f, velocity_difference = 0.0f, prediction_time_span = 1.0f;
+  double rel_distance = 4.0f, ego_velocity = 5.0f, velocity_difference = -4.0f, prediction_time_span = 1.0f;
   auto observed_world = std::dynamic_pointer_cast<ObservedWorld>(
         make_test_observed_world(1, rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
@@ -120,6 +127,7 @@ TEST(hypothesis_mcts_state, execute) {
 
   auto ego_agent_id = observed_world->GetAgents().begin()->first;
   auto front_agent_id = std::next(observed_world->GetAgents().begin())->first;
+  auto state_params = MctsStateParametersFromParamServer(params);
   MctsStateHypothesis mcts_state(const_observed_world,
                         false,
                        num_ego_actions,
@@ -127,7 +135,8 @@ TEST(hypothesis_mcts_state, execute) {
                        belief_tracker.sample_current_hypothesis(),
                        behavior_hypothesis,
                        ego_behavior_model,
-                       ego_agent_id);
+                       ego_agent_id,
+                       state_params);
   
   std::vector<mcts::Reward> rewards;
   mcts::Cost cost;
@@ -157,8 +166,8 @@ TEST(hypothesis_mcts_state, execute) {
   EXPECT_FALSE(next_mcts_state->is_terminal()); // < make test world is defined in such a way that
                                                 // a long driving corridor along x exists
                                                 // no collision should occur after one action
-  EXPECT_NEAR(rewards[0], 0 , 0.00001);
-  EXPECT_NEAR(cost, 0 , 0.00001);
+  EXPECT_NEAR(rewards[0], 0.0f , 0.00001);
+  EXPECT_NEAR(cost, 0,0.001);
 
   // Checking collision with other agent
   next_mcts_state = mcts_state.execute(JointAction({2, action_idx}), rewards, cost);
@@ -169,11 +178,11 @@ TEST(hypothesis_mcts_state, execute) {
       break;
     }
     auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(1);
-    next_mcts_state = next_mcts_state->execute(JointAction({2, action_idx2}), rewards, cost);
+    next_mcts_state = next_mcts_state->execute(JointAction({0, action_idx2}), rewards, cost);
   }
   EXPECT_TRUE(next_mcts_state->is_terminal()); // < acceleration should lead to a collision with other agent
-  EXPECT_NEAR(rewards[0], -1000 , 0.00001);
-  EXPECT_NEAR(cost, -1000 , 0.00001);
+  EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::CollisionReward", "", 1.0) , 0.00001);
+  EXPECT_NEAR(cost, params->GetReal("Mcts::State::CollisionCost", "", 1.0) , 0.00001);
 
 
   // Checking goal reached: Do multiple steps and expect that goal is reached
@@ -188,8 +197,8 @@ TEST(hypothesis_mcts_state, execute) {
     next_mcts_state = next_mcts_state->execute(JointAction({0, action_idx2}), rewards, cost);
   }
   EXPECT_TRUE(reached);
-  EXPECT_NEAR(rewards[0], 100 , 0.00001); // < reward should be one when reaching the goal */
-  EXPECT_NEAR(cost, 0 , 0.00001);
+  EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::GoalReward", "", 1.0)  , 0.00001); // < reward should be one when reaching the goal */
+  EXPECT_NEAR(cost, params->GetReal("Mcts::State::GoalCost", "", 1.0) , 0.00001);
 }
 
 
@@ -367,6 +376,11 @@ TEST(behavior_uct_single_agent, belief_test) {
   params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnLowerBound", -1000);
   params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnUpperBound", 100);
 
+  params->SetReal("BehaviorUctHypothesis::Mcts::State::GoalReward", 100.0);
+  params->SetReal("BehaviorUctHypothesis::Mcts::State::collisionReward", -1000.0);
+  params->SetReal("BehaviorUctHypothesis::Mcts::State::GoalCost", 0.0);
+  params->SetReal("BehaviorUctHypothesis::Mcts::State::CollisionCost", 1000);
+
   // IDM Classic
   params->SetReal("BehaviorIDMClassic::MinimumSpacing", 1.0f); // Required for testing
   params->SetReal("BehaviorIDMClassic::DesiredTimeHeadway", 1.5);
@@ -389,6 +403,7 @@ TEST(behavior_uct_single_agent, belief_test) {
   params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsLowerBound", -9.0);
   params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsUpperBound", 6.0);
 
+
   // Map creation
   OpenDriveMapPtr open_drive_map = MakeXodrMapOneRoadTwoLanes();
   MapInterfacePtr map_interface = std::make_shared<MapInterface>();
@@ -403,7 +418,7 @@ TEST(behavior_uct_single_agent, belief_test) {
     params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", upper);
     return params_new;
   };
-                                          
+
   auto params_hyp1 = make_hyp_params(0.0, 0.1);
   auto params_hyp2 = make_hyp_params(0.1, 0.2);
   auto params_hyp3 = make_hyp_params(0.2, 0.3);
@@ -436,6 +451,7 @@ TEST(behavior_uct_single_agent, belief_test) {
 
   auto observed_world = std::make_shared<ObservedWorld>(world->Clone(), ego_agent->GetAgentId());
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
+  auto state_params = MctsStateParametersFromParamServer(params);
   auto last_mcts_state = std::make_shared<MctsStateHypothesis>(const_observed_world,
                         false,
                        2,
@@ -443,7 +459,8 @@ TEST(behavior_uct_single_agent, belief_test) {
                        belief_tracker.sample_current_hypothesis(),
                        behavior_hypothesis,
                        nullptr,
-                       ego_agent->GetAgentId());
+                       ego_agent->GetAgentId(),
+                       state_params);
 
   belief_tracker.belief_update(*last_mcts_state, *last_mcts_state);
 
@@ -452,6 +469,7 @@ TEST(behavior_uct_single_agent, belief_test) {
 
     auto next_world = std::make_shared<ObservedWorld>(world->Clone(), ego_agent->GetAgentId());
     auto next_const_observed_world = std::const_pointer_cast<ObservedWorld>(next_world);
+    auto state_params = MctsStateParametersFromParamServer(params);
     auto mcts_state = std::make_shared<MctsStateHypothesis>(next_const_observed_world,
                       false,
                        2,
@@ -459,7 +477,8 @@ TEST(behavior_uct_single_agent, belief_test) {
                        belief_tracker.sample_current_hypothesis(),
                        behavior_hypothesis,
                        nullptr,
-                       ego_agent->GetAgentId());
+                       ego_agent->GetAgentId(),
+                       state_params);
     belief_tracker.belief_update(*last_mcts_state, *mcts_state);
     last_mcts_state = mcts_state;
 

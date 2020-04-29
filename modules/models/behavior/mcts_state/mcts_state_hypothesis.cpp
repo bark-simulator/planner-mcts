@@ -31,7 +31,8 @@ MctsStateHypothesis::MctsStateHypothesis(
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
-                       const mcts::AgentIdx& ego_agent_id) :
+                       const mcts::AgentIdx& ego_agent_id,
+                       const StateParameters& state_parameters) :
       mcts::HypothesisStateInterface<MctsStateHypothesis>(current_agents_hypothesis),
       observed_world_(observed_world),
       is_terminal_state_(is_terminal_state),
@@ -40,7 +41,8 @@ MctsStateHypothesis::MctsStateHypothesis(
       behavior_hypotheses_(behavior_hypothesis),
       ego_behavior_model_(ego_behavior_model),
       other_agent_ids_(update_other_agent_ids()),
-      ego_agent_id_(ego_agent_id) {
+      ego_agent_id_(ego_agent_id),
+      state_parameters_(state_parameters) {
           // start at index 1 since first agent is ego agent
           for(const auto& agent_id : other_agent_ids_) {
               behaviors_stored_[agent_id] = std::make_shared<BehaviorActionStore>(nullptr);
@@ -53,7 +55,7 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::clone() const {
   return std::make_shared<MctsStateHypothesis>(
       worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
-      ego_agent_id_);
+      ego_agent_id_, state_parameters_);
 }
 
 std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
@@ -99,10 +101,11 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
 
   rewards.resize(this->get_num_agents(), 0.0f);
   rewards[this->ego_agent_idx] =
-      (collision_drivable_area || collision_ego || out_of_map) * -1000.0f +
-      goal_reached * 100.0f;
+      (collision_drivable_area || collision_ego || out_of_map) * state_parameters_.COLLISION_REWARD +
+      goal_reached * state_parameters_.GOAL_REWARD;
 
-  ego_cost = -1.0*rewards[this->ego_agent_idx];
+  ego_cost = (collision_drivable_area || collision_ego || out_of_map) *state_parameters_.COLLISION_COST +
+      goal_reached * state_parameters_.GOAL_COST;
   VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 3) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
 
   bool is_terminal =
@@ -111,7 +114,7 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
   return std::make_shared<MctsStateHypothesis>(
       predicted_world, is_terminal, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
-      ego_agent_id_);
+      ego_agent_id_, state_parameters_);
 }
 
 const std::vector<mcts::AgentIdx> MctsStateHypothesis::get_other_agent_idx() const {
