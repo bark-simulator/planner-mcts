@@ -134,6 +134,8 @@ mcts::ActionIdx MctsStateHypothesis::plan_action_current_hypothesis(const mcts::
     const BarkAction bark_action = behavior_hypotheses_[agt_hyp_id]->GetLastAction();
     const mcts::ActionIdx mcts_action = std::dynamic_pointer_cast<BehaviorActionStore>(
         behaviors_stored_[bark_agent_id])->Store(bark_action, trajectory);
+    behaviors_stored_[bark_agent_id]->SetBehaviorStatus(
+        behavior_hypotheses_[agt_hyp_id]->GetBehaviorStatus());
     return mcts_action;
 }
 
