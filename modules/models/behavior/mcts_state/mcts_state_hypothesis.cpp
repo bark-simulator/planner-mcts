@@ -162,10 +162,12 @@ mcts::Probability MctsStateHypothesis::get_prior(const mcts::HypothesisId& hypot
 mcts::HypothesisId MctsStateHypothesis::get_num_hypothesis(const mcts::AgentIdx& agent_idx) const {return behavior_hypotheses_.size();};
 
 std::vector<mcts::AgentIdx> MctsStateHypothesis::update_other_agent_ids() const {
-  world::AgentMap agent_map = observed_world_->GetValidAgents();
+  world::AgentMap agent_map = observed_world_->GetOtherAgents();
   std::vector<mcts::AgentIdx> ids;
   for (const auto &agent : agent_map) {
-      if ( agent.first != observed_world_->GetEgoAgentId()) {
+      const auto& behavior_status = agent.second->GetBehaviorModel()->GetBehaviorStatus();
+      if ( behavior_status == models::behavior::BehaviorStatus::VALID ||
+           behavior_status == models::behavior::BehaviorStatus::NOT_STARTED_YET) {
           ids.push_back(agent.first);
       }
   }

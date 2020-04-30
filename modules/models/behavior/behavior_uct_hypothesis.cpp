@@ -57,11 +57,6 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   if(use_true_behaviors_as_hypothesis_) {
     DefineTrueBehaviorsAsHypothesis(observed_world);
   }
-  // Then clear behavior models, we set them based on hypothesis in mcts state execute
-  auto agents = mcts_observed_world->GetAgents();
-  for (const auto& agent : agents) {
-    agent.second->SetBehaviorModel(nullptr);
-  }
 
   const ObservedWorldPtr const_mcts_observed_world =
       std::const_pointer_cast<ObservedWorld>(mcts_observed_world);

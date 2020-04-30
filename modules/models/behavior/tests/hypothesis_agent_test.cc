@@ -64,7 +64,7 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
                                  float acc_lower_bound=-5.0f, float acc_upper_bound=8.0f,
                                  float buckets_lower_bound = -8.0f, float buckets_upper_bound=9.0f) {
     // Behavior params
-    auto params = std::make_shared<SetterParams>(true);
+    auto params = std::make_shared<SetterParams>(false);
     // IDM Classic
     params->SetReal("BehaviorIDMClassic::MinimumSpacing", 0.0f); // Required for testing
     params->SetReal("BehaviorIDMClassic::DesiredTimeHeadway", fixed_headway);
@@ -76,6 +76,7 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
     params->SetReal("BehaviorIDMClassic::MinVelocity", 0.0f);
     params->SetReal("BehaviorIDMClassic::MaxVelocity", 50.0f);
     params->SetInt("BehaviorIDMClassic::Exponent", 4);
+    params->SetReal("BehaviorIDMClassic::CoolnessFactor", 0.0f);
     // IDM Stochastic Headway
     params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
     params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", headway_lower);
@@ -94,7 +95,7 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
 
 TEST(hypothesis_mcts_state, execute) {
   // Setup prediction models for ego agent and other agents   
-  auto params = std::make_shared<SetterParams>();
+  auto params = std::make_shared<SetterParams>(false);
 
   params->SetReal("Mcts::State::GoalReward", 200.0);
   params->SetReal("Mcts::State::CollisionReward", -2000.0);
@@ -109,9 +110,10 @@ TEST(hypothesis_mcts_state, execute) {
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
 
-  double rel_distance = 4.0f, ego_velocity = 5.0f, velocity_difference = -4.0f, prediction_time_span = 1.0f;
+  double rel_distance = 10.0f, ego_velocity = 5.0f, velocity_difference = -4.0f, prediction_time_span = 1.0f;
   auto observed_world = std::dynamic_pointer_cast<ObservedWorld>(
         make_test_observed_world(1, rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
+  observed_world->SetRemoveAgents(true);
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
   const auto num_ego_actions = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_behavior_model)->GetNumMotionPrimitives(const_observed_world);
 
@@ -156,7 +158,7 @@ TEST(hypothesis_mcts_state, execute) {
 
   auto last_action_state2 = next_mcts_state->get_last_action(ego_agent_id);
   auto last_action_plan2 = Action(DiscreteAction(0));
-  EXPECT_TRUE(last_action_state2 =0 last_action_plan2);
+  EXPECT_TRUE(last_action_state2 == last_action_plan2);
 
   // Check Get Probability -> only interface, calculation is checked in hypothesis
   auto probability = next_mcts_state->get_probability(0, front_agent_id, Action(20.0f));
@@ -172,7 +174,7 @@ TEST(hypothesis_mcts_state, execute) {
   // Checking collision with other agent
   next_mcts_state = mcts_state.execute(JointAction({2, action_idx}), rewards, cost);
   auto reached = next_mcts_state->is_terminal();
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < 1000; ++i) {
     if(next_mcts_state->is_terminal()) {
       reached = true;
       break;
@@ -188,7 +190,7 @@ TEST(hypothesis_mcts_state, execute) {
   // Checking goal reached: Do multiple steps and expect that goal is reached
   next_mcts_state = mcts_state.execute(JointAction({0, action_idx}), rewards, cost);
   reached = next_mcts_state->is_terminal();
-  for (int i = 0; i < 100; ++i) {
+  for (int i = 0; i < 1000; ++i) {
     if(next_mcts_state->is_terminal()) {
       reached = true;
       break;
@@ -212,7 +214,7 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
   auto observed_world = make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
-  
+  observed_world.SetRemoveAgents(true);
   auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
   auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
   std::vector<BehaviorModelPtr> behavior_hypothesis;
@@ -225,7 +227,7 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  EXPECT_EQ(boost::get<DiscreteAction>(action), 2); // << max, available acceleration is action 2
+  EXPECT_TRUE(boost::get<Continuous1DAction>(action)>= 0.0); // << max, available acceleration is action 2
 }
 
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
@@ -238,7 +240,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
   auto observed_world = make_test_observed_world(2,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
-  
+  observed_world.SetRemoveAgents(true);
   auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
   auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
   std::vector<BehaviorModelPtr> behavior_hypothesis;
@@ -250,12 +252,12 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  EXPECT_EQ(boost::get<DiscreteAction>(action), 4); // some decceleration should occur
+  EXPECT_TRUE(boost::get<Continuous1DAction>(action) < 0.0f); // some decceleration should occur
 }
 
 TEST(behavior_uct_single_agent, change_lane) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
-  auto params = std::make_shared<SetterParams>(true);
+  auto params = std::make_shared<SetterParams>(false);
 
   // Desired headway should correspond to initial headway
   params->SetInt("BehaviorUctHypothesis::Mcts::MaxNumIterations", 400);
@@ -281,7 +283,8 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetReal("BehaviorIDMClassic::MinVelocity", 0.0f);
   params->SetReal("BehaviorIDMClassic::MaxVelocity", 50.0f);
   params->SetInt("BehaviorIDMClassic::Exponent", 4);
-  // IDM Stochastic Headway
+  params->SetReal("BehaviorIDMClassic::CoolnessFactor", 0.0f);
+  // IDM Stochastic
   params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
   params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", 0);
   params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", 0.2);
@@ -301,7 +304,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
                                               params);
   auto make_hyp_params = [&](float lower, float upper) {
-    auto params_new = std::make_shared<SetterParams>(true, params->GetCondensedParamList());
+    auto params_new = std::make_shared<SetterParams>(false, params->GetCondensedParamList());
     params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", lower);
     params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", upper);
     return params_new;
@@ -361,7 +364,7 @@ TEST(behavior_uct_single_agent, change_lane) {
 
 TEST(behavior_uct_single_agent, belief_test) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
-  auto params = std::make_shared<SetterParams>(true);
+  auto params = std::make_shared<SetterParams>(false);
 
   // Desired headway should correspond to initial headway
   params->SetInt("BehaviorUctHypothesis::Mcts::MaxNumIterations", 400);
@@ -392,6 +395,7 @@ TEST(behavior_uct_single_agent, belief_test) {
   params->SetReal("BehaviorIDMClassic::MinVelocity", 0.0f);
   params->SetReal("BehaviorIDMClassic::MaxVelocity", 50.0f);
   params->SetInt("BehaviorIDMClassic::Exponent", 4);
+  params->SetReal("BehaviorIDMClassic::CoolnessFactor", 0.0f);
   // IDM Stochastic Headway
   params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
   params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", 0);
@@ -413,7 +417,7 @@ TEST(behavior_uct_single_agent, belief_test) {
   auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
                                               params);
   auto make_hyp_params = [&](float lower, float upper) {
-    auto params_new = std::make_shared<SetterParams>(true, params->GetCondensedParamList());
+    auto params_new = std::make_shared<SetterParams>(false, params->GetCondensedParamList());
     params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", lower);
     params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", upper);
     return params_new;
