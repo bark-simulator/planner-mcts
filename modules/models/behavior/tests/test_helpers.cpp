@@ -11,7 +11,7 @@
 #include "modules/geometry/commons.hpp"
 #include "modules/geometry/line.hpp"
 #include "modules/geometry/polygon.hpp"
-#include "modules/models/behavior/idm/stochastic/idm_stochastic_headway.hpp"
+#include "modules/models/behavior/idm/stochastic/idm_stochastic.hpp"
 #include "modules/world/goal_definition/goal_definition_state_limits_frenet.hpp"
 #include "modules/models/dynamic/single_track.hpp"
 #include "modules/models/execution/interpolation/interpolate.hpp"
@@ -48,7 +48,7 @@ AgentPtr modules::world::tests::CreateAgent(bool right_lane, float s, float velo
                          const ParamsPtr& params, const MapInterfacePtr& map_interface) {
     ExecutionModelPtr exec_model(new ExecutionModelInterpolate(params));
   DynamicModelPtr dyn_model(new SingleTrackModel(params));
-  auto beh_model_idm_stoch = std::make_shared<BehaviorIDMStochasticHeadway>(params);
+  auto beh_model_idm_stoch = std::make_shared<BehaviorIDMStochastic>(params);
   auto shape = CarRectangle();
 
   float pos_y = pos_y_left_lane;

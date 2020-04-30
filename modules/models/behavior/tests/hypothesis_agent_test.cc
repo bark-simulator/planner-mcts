@@ -17,7 +17,7 @@
 #include "modules/models/behavior/motion_primitives/motion_primitives.hpp"
 #include "modules/models/behavior/motion_primitives/macro_actions.hpp"
 #include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
-#include "modules/models/behavior/hypothesis/idm/hypothesis_idm_stochastic_headway.hpp"
+#include "modules/models/behavior/hypothesis/idm/hypothesis_idm.hpp"
 #include "modules/models/dynamic/single_track.hpp"
 #include "modules/commons/params/default_params.hpp"
 
@@ -121,9 +121,9 @@ TEST(hypothesis_mcts_state, execute) {
   auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
   std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp1));
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
 
   auto ego_agent_id = observed_world->GetAgents().begin()->first;
   auto front_agent_id = std::next(observed_world->GetAgents().begin())->first;
@@ -152,11 +152,11 @@ TEST(hypothesis_mcts_state, execute) {
   // Check Get Last Action
   auto last_action_state = mcts_state.get_last_action(front_agent_id);
   auto last_action_plan = observed_world->GetAgent(front_agent_id)->GetBehaviorModel()->GetLastAction();
-  EXPECT_EQ(last_action_state, last_action_plan);
+  EXPECT_TRUE(last_action_state  == last_action_plan);
 
   auto last_action_state2 = next_mcts_state->get_last_action(ego_agent_id);
   auto last_action_plan2 = Action(DiscreteAction(0));
-  EXPECT_EQ(last_action_state2, last_action_plan2);
+  EXPECT_TRUE(last_action_state2 =0 last_action_plan2);
 
   // Check Get Probability -> only interface, calculation is checked in hypothesis
   auto probability = next_mcts_state->get_probability(0, front_agent_id, Action(20.0f));
@@ -217,9 +217,9 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
   std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp1));
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
 
   modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, behavior_hypothesis);
 
@@ -243,9 +243,9 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
   std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp1));
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
   modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, behavior_hypothesis);
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
@@ -311,9 +311,9 @@ TEST(behavior_uct_single_agent, change_lane) {
   auto params_hyp2 = make_hyp_params(0.1, 0.2);
   std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp1));
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
 
 
   auto behavior_uct = std::make_shared<BehaviorUCTHypothesis>(params, behavior_hypothesis);
@@ -347,7 +347,7 @@ TEST(behavior_uct_single_agent, change_lane) {
     LOG(INFO) << "Time step " << i*0.2;
     for (const auto& agent : world->GetAgents()) {
       LOG(INFO) << "Agent " << agent.first << ", State: " << agent.second->GetCurrentState() << 
-          ", Action: " << agent.second->GetBehaviorModel()->GetLastAction();
+          ", Action: " <<  boost::apply_visitor(action_tostring_visitor(), agent.second->GetBehaviorModel()->GetLastAction()) ;
     }
     LOG(INFO) << behavior_uct->GetBeliefTracker().sprintf();
 
@@ -424,11 +424,11 @@ TEST(behavior_uct_single_agent, belief_test) {
   auto params_hyp3 = make_hyp_params(0.2, 0.3);
   std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp1));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp1));
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp2));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
   behavior_hypothesis.push_back(
-          std::make_shared<BehaviorHypothesisIDMStochasticHeadway>(params_hyp3));
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp3));
 
 
 
@@ -485,7 +485,7 @@ TEST(behavior_uct_single_agent, belief_test) {
     LOG(INFO) << "Time step " << i*0.2;
     for (const auto& agent : world->GetAgents()) {
       LOG(INFO) << "Agent " << agent.first << ", State: " << agent.second->GetCurrentState() << 
-          ", Action: " << agent.second->GetBehaviorModel()->GetLastAction();
+          ", Action: " << boost::apply_visitor(action_tostring_visitor(), agent.second->GetBehaviorModel()->GetLastAction());
     }
     LOG(INFO) << belief_tracker.sprintf();
   }
