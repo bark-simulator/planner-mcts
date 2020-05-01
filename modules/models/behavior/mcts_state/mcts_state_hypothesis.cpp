@@ -132,10 +132,9 @@ mcts::ActionIdx MctsStateHypothesis::plan_action_current_hypothesis(const mcts::
     const mcts::HypothesisId agt_hyp_id = this->current_agents_hypothesis_.at(agent_idx);
     const auto& trajectory = behavior_hypotheses_[agt_hyp_id]->Plan(prediction_time_span_, *observed_world_for_other);
     const BarkAction bark_action = behavior_hypotheses_[agt_hyp_id]->GetLastAction();
+    const auto& behavior_status = behavior_hypotheses_[agt_hyp_id]->GetBehaviorStatus();
     const mcts::ActionIdx mcts_action = std::dynamic_pointer_cast<BehaviorActionStore>(
-        behaviors_stored_[bark_agent_id])->Store(bark_action, trajectory);
-    behaviors_stored_[bark_agent_id]->SetBehaviorStatus(
-        behavior_hypotheses_[agt_hyp_id]->GetBehaviorStatus());
+        behaviors_stored_[bark_agent_id])->Store(bark_action, trajectory, behavior_status);
     return mcts_action;
 }
 
@@ -167,11 +166,7 @@ std::vector<mcts::AgentIdx> MctsStateHypothesis::update_other_agent_ids() const 
   world::AgentMap agent_map = observed_world_->GetOtherAgents();
   std::vector<mcts::AgentIdx> ids;
   for (const auto &agent : agent_map) {
-      const auto& behavior_status = agent.second->GetBehaviorModel()->GetBehaviorStatus();
-      if ( behavior_status == models::behavior::BehaviorStatus::VALID ||
-           behavior_status == models::behavior::BehaviorStatus::NOT_STARTED_YET) {
-          ids.push_back(agent.first);
-      }
+    ids.push_back(agent.first);
   }
   return ids;
 }
