@@ -87,7 +87,7 @@ public:
   const float prediction_time_span_;
   const std::vector<mcts::AgentIdx> other_agent_ids_;
   const mcts::AgentIdx ego_agent_id_;
-  const StateParameters& state_parameters_;
+  const StateParameters state_parameters_;
 
 
   // ---------------- Hypothesis specific ----------------------
