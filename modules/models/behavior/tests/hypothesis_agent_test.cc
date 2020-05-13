@@ -151,16 +151,13 @@ TEST(hypothesis_mcts_state, execute) {
   std::cout << "Duration" << duration << "[ms]";
   auto next_mcts_state = mcts_state.execute(JointAction({0, action_idx}), rewards, cost);
 
-  // Check Get Last Action
+  // Check Get Last Action other agent
   auto last_action_state = mcts_state.get_last_action(front_agent_id);
   auto last_action_plan = observed_world->GetAgent(front_agent_id)->GetBehaviorModel()->GetLastAction();
   EXPECT_TRUE(last_action_state  == last_action_plan);
 
-  auto last_action_state2 = next_mcts_state->get_last_action(ego_agent_id);
-  auto last_action_plan2 = Action(DiscreteAction(0));
-  EXPECT_TRUE(last_action_state2 == last_action_plan2);
-
   // Check Get Probability -> only interface, calculation is checked in hypothesis
+  LOG(INFO) << "Warning due to bucket bound can be neglected. We check for an out-of-bound action.";
   auto probability = next_mcts_state->get_probability(0, front_agent_id, Action(20.0f));
   EXPECT_EQ(probability, 0);
 
