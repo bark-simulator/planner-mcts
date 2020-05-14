@@ -99,6 +99,10 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
     out_of_map = true;
   }
 
+  if((collision_drivable_area || collision_ego || out_of_map)) {
+      std::cout << "collision";
+  }
+
   rewards.resize(this->get_num_agents(), 0.0f);
   rewards[this->ego_agent_idx] =
       (collision_drivable_area || collision_ego || out_of_map) * state_parameters_.COLLISION_REWARD +
