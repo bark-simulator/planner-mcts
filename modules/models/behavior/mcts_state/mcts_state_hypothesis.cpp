@@ -175,6 +175,15 @@ std::vector<mcts::AgentIdx> MctsStateHypothesis::update_other_agent_ids() const 
   return ids;
 }
 
+std::string MctsStateHypothesis::sprintf() const {
+    std::stringstream ss;
+    for ( const auto& agent : observed_world_->GetAgents()) {
+         ss << "Agent " << agent.first << ", State: " << agent.second->GetCurrentState() << 
+          ", Action: " <<  boost::apply_visitor(action_tostring_visitor(), agent.second->GetBehaviorModel()->GetLastAction()) ;
+    }
+    return ss.str();
+}
+
 }  // namespace behavior
 }  // namespace models
 }  // namespace modules

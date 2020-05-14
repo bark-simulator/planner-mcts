@@ -78,15 +78,26 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
     params->SetInt("BehaviorIDMClassic::Exponent", 4);
     params->SetReal("BehaviorIDMClassic::CoolnessFactor", 0.0f);
     // IDM Stochastic Headway
-    params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
-    params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", headway_lower);
-    params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", headway_upper);
-    params->SetDistribution("BehaviorIDMStochasticHeadway::HeadwayDistribution", "UniformDistribution1D");
+    params->SetInt("BehaviorIDMStochastic::HeadwayDistribution::RandomSeed", 1234);
+    params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::LowerBound", headway_lower);
+    params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::UpperBound", headway_upper);
+    params->SetDistribution("BehaviorIDMStochastic::HeadwayDistribution", "UniformDistribution1D");
+
+    params->SetDistribution("BehaviorIDMStochastic::SpacingDistribution", "FixedValue");
+    params->SetListFloat("BehaviorIDMStochastic::SpacingDistribution::FixedValue", {0.0f});
+    params->SetDistribution("BehaviorIDMStochastic::MaxAccDistribution", "FixedValue");
+    params->SetListFloat("BehaviorIDMStochastic::MaxAccDistribution::FixedValue", {1.0f});
+    params->SetDistribution("BehaviorIDMStochastic::DesiredVelDistribution", "FixedValue");
+    params->SetListFloat("BehaviorIDMStochastic::DesiredVelDistribution::FixedValue", {15.0f});
+    params->SetDistribution("BehaviorIDMStochastic::ComftBrakingDistribution", "FixedValue");
+    params->SetListFloat("BehaviorIDMStochastic::ComftBrakingDistribution::FixedValue", {1.0f});
+    params->SetDistribution("BehaviorIDMStochastic::CoolnessFactorDistribution", "FixedValue");
+    params->SetListFloat("BehaviorIDMStochastic::CoolnessFactorDistribution::FixedValue", {0.0f});
     // IDM Hypothesis
-    params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumSamples", 100000);
-    params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumBuckets", 1000);
-    params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsLowerBound", buckets_lower_bound);
-    params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsUpperBound", buckets_upper_bound);
+    params->SetInt("BehaviorHypothesisIDMStochastic::NumSamples", 100000);
+    params->SetInt("BehaviorHypothesisIDMStochastic::NumBuckets", 1000);
+    params->SetReal("BehaviorHypothesisIDMStochastic::BucketsLowerBound", buckets_lower_bound);
+    params->SetReal("BehaviorHypothesisIDMStochastic::BucketsUpperBound", buckets_upper_bound);
 
     return params;
 }
@@ -187,6 +198,7 @@ TEST(hypothesis_mcts_state, execute) {
   // Checking goal reached: Do multiple steps and expect that goal is reached
   next_mcts_state = mcts_state.execute(JointAction({0, action_idx}), rewards, cost);
   for (int i = 0; i < 1000; ++i) {
+    LOG(INFO) << next_mcts_state->sprintf();
     if(next_mcts_state->is_terminal()) {
       break;
     }
@@ -279,15 +291,26 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetInt("BehaviorIDMClassic::Exponent", 4);
   params->SetReal("BehaviorIDMClassic::CoolnessFactor", 0.0f);
   // IDM Stochastic
-  params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
-  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", 0);
-  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", 0.2);
-  params->SetDistribution("BehaviorIDMStochasticHeadway::HeadwayDistribution", "UniformDistribution1D");
+  params->SetInt("BehaviorIDMStochastic::HeadwayDistribution::RandomSeed", 1234);
+  params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::LowerBound", 0);
+  params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::UpperBound", 0.2);
+  params->SetDistribution("BehaviorIDMStochastic::HeadwayDistribution", "UniformDistribution1D");
+
+  params->SetDistribution("BehaviorIDMStochastic::SpacingDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::SpacingDistribution::FixedValue", {0.0f});
+  params->SetDistribution("BehaviorIDMStochastic::MaxAccDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::MaxAccDistribution::FixedValue", {1.0f});
+  params->SetDistribution("BehaviorIDMStochastic::DesiredVelDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::DesiredVelDistribution::FixedValue", {15.0f});
+  params->SetDistribution("BehaviorIDMStochastic::ComftBrakingDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::ComftBrakingDistribution::FixedValue", {1.0f});
+  params->SetDistribution("BehaviorIDMStochastic::CoolnessFactorDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::CoolnessFactorDistribution::FixedValue", {0.0f});
   // IDM Hypothesis
-  params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumSamples", 1000000);
-  params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumBuckets", 1000);
-  params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsLowerBound", -9.0);
-  params->SetReal("BehaviorHypothesisIDMStochasticHeadway::BucketsUpperBound", 6.0);
+  params->SetInt("BehaviorHypothesisIDMStochastic::NumSamples", 1000000);
+  params->SetInt("BehaviorHypothesisIDMStochastic::NumBuckets", 1000);
+  params->SetReal("BehaviorHypothesisIDMStochastic::BucketsLowerBound", -9.0);
+  params->SetReal("BehaviorHypothesisIDMStochastic::BucketsUpperBound", 6.0);
 
   // Map creation
   OpenDriveMapPtr open_drive_map = MakeXodrMapOneRoadTwoLanes();
@@ -299,8 +322,8 @@ TEST(behavior_uct_single_agent, change_lane) {
                                               params);
   auto make_hyp_params = [&](float lower, float upper) {
     auto params_new = std::make_shared<SetterParams>(false, params->GetCondensedParamList());
-    params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", lower);
-    params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", upper);
+    params_new->SetReal("BehaviorIDMStochastic::HeadwayDistribution::LowerBound", lower);
+    params_new->SetReal("BehaviorIDMStochastic::HeadwayDistribution::UpperBound", upper);
     return params_new;
   };
                                           
@@ -391,21 +414,21 @@ TEST(behavior_uct_single_agent, belief_test) {
   params->SetInt("BehaviorIDMClassic::Exponent", 4);
   params->SetReal("BehaviorIDMClassic::CoolnessFactor", 0.0f);
   // IDM Stochastic Headway
-  params->SetInt("BehaviorIDMStochasticHeadway::HeadwayDistribution::RandomSeed", 1234);
-  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", 0);
-  params->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", 0.2);
-  params->SetDistribution("BehaviorIDMStochasticHeadway::HeadwayDistribution", "UniformDistribution1D");
+  params->SetInt("BehaviorIDMStochastic::HeadwayDistribution::RandomSeed", 1234);
+  params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::LowerBound", 1.0);
+  params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::UpperBound", 3.0);
+  params->SetDistribution("BehaviorIDMStochastic::HeadwayDistribution", "UniformDistribution1D");
 
-  params->SetDistribution("BehaviorIDMStochasticHeadway::SpacingDistribution", "FixedValue");
-  params->SetReal("BehaviorIDMStochasticHeadway::SpacingDistribution::FixedValue", 1.5f);
-  params->SetDistribution("BehaviorIDMStochasticHeadway::MaxAccDistribution", "UniformDistribution1D");
-  params->SetReal("BehaviorIDMStochasticHeadway::MaxAccDistribution::FixedValue", 1.0f);
-  params->SetDistribution("BehaviorIDMStochasticHeadway::DesiredVelDistribution", "UniformDistribution1D");
-  params->SetReal("BehaviorIDMStochasticHeadway::DesiredVelDistribution::FixedValue", 8.0f);
-  params->SetDistribution("BehaviorIDMStochasticHeadway::CoolnessFactorDistribution", "UniformDistribution1D");
-  params->SetReal("BehaviorIDMStochasticHeadway::CoolnessFactorDistribution::FixedValue", 0.0f);
-  params->SetDistribution("BehaviorIDMStochasticHeadway::ComftBrakingDistribution", "UniformDistribution1D");
-  params->SetReal("BehaviorIDMStochasticHeadway::ComftBrakingDistribution::FixedValue", 1.0f);
+  params->SetDistribution("BehaviorIDMStochastic::SpacingDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::SpacingDistribution::FixedValue", {0.0f});
+  params->SetDistribution("BehaviorIDMStochastic::MaxAccDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::MaxAccDistribution::FixedValue", {1.0f});
+  params->SetDistribution("BehaviorIDMStochastic::DesiredVelDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::DesiredVelDistribution::FixedValue", {15.0f});
+  params->SetDistribution("BehaviorIDMStochastic::ComftBrakingDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::ComftBrakingDistribution::FixedValue", {1.0f});
+  params->SetDistribution("BehaviorIDMStochastic::CoolnessFactorDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::CoolnessFactorDistribution::FixedValue", {0.0f});
 
   // IDM Hypothesis
   params->SetInt("BehaviorHypothesisIDMStochasticHeadway::NumSamples", 1000000);
@@ -424,14 +447,14 @@ TEST(behavior_uct_single_agent, belief_test) {
                                               params);
   auto make_hyp_params = [&](float lower, float upper) {
     auto params_new = std::make_shared<SetterParams>(false, params->GetCondensedParamList());
-    params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::LowerBound", lower);
-    params_new->SetReal("BehaviorIDMStochasticHeadway::HeadwayDistribution::UpperBound", upper);
+    params_new->SetReal("BehaviorIDMStochastic::HeadwayDistribution::LowerBound", lower);
+    params_new->SetReal("BehaviorIDMStochastic::HeadwayDistribution::UpperBound", upper);
     return params_new;
   };
 
-  auto params_hyp1 = make_hyp_params(0.0, 0.1);
-  auto params_hyp2 = make_hyp_params(0.1, 0.2);
-  auto params_hyp3 = make_hyp_params(0.2, 0.3);
+  auto params_hyp1 = make_hyp_params(1, 2);
+  auto params_hyp2 = make_hyp_params(2, 3);
+  auto params_hyp3 = make_hyp_params(3, 4);
   std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
           std::make_shared<BehaviorHypothesisIDM>(params_hyp1));

@@ -60,7 +60,7 @@ public:
 
     const mcts::AgentIdx get_ego_agent_idx() const;
 
-    std::string sprintf() const { return std::string(); };
+    std::string sprintf() const;
 
     // Hypothesis State Interfaces
     mcts::ActionIdx plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const;
