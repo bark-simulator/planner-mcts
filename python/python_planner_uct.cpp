@@ -59,7 +59,7 @@ void python_planner_uct(py::module m) {
       .def(py::init<const modules::commons::ParamsPtr &,
        const std::vector<BehaviorModelPtr>&>())
       .def("__repr__", [](const BehaviorUCTHypothesis &m) {
-        return "bark.behavior.BehaviorUCTSingleAgentMacroActions";
+        return "bark.behavior.BehaviorUCTHypothesis";
       })
       .def_property_readonly("hypotheses", &BehaviorUCTHypothesis::GetBehaviorHypotheses)
       .def(py::pickle(

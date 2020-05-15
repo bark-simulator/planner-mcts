@@ -112,13 +112,14 @@ TEST(hypothesis_mcts_state, execute) {
   params->SetReal("Mcts::State::CollisionReward", -2000.0);
   params->SetReal("Mcts::State::GoalCost", 10.0);
   params->SetReal("Mcts::State::CollisionCost", 300);
+  params->SetListFloat("AccelerationInputs", {0, 1, 4, -1, -8});
 
   auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
                                               params);
 
   // Create an observed world with specific goal definition and the corresponding mcts state
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-4, 4), Point2d(-4, 4), Point2d(4, 4), Point2d(4, -4), Point2d(-4, -4)});
-  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(20, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(40, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
 
   double rel_distance = 10.0f, ego_velocity = 5.0f, velocity_difference = -4.0f, prediction_time_span = 1.0f;
@@ -183,12 +184,13 @@ TEST(hypothesis_mcts_state, execute) {
   next_mcts_state = mcts_state.execute(JointAction({2, action_idx}), rewards, cost);
   auto reached = next_mcts_state->is_terminal();
   for (int i = 0; i < 1000; ++i) {
+    LOG(INFO) << "---------------\n" << next_mcts_state->sprintf();
     if(next_mcts_state->is_terminal()) {
       reached = true;
       break;
     }
     auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(1);
-    next_mcts_state = next_mcts_state->execute(JointAction({0, action_idx2}), rewards, cost);
+    next_mcts_state = next_mcts_state->execute(JointAction({2, action_idx2}), rewards, cost);
   }
   EXPECT_TRUE(next_mcts_state->is_terminal()); // < acceleration should lead to a collision with other agent
   EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::CollisionReward", "", 1.0) , 0.00001);
@@ -198,7 +200,6 @@ TEST(hypothesis_mcts_state, execute) {
   // Checking goal reached: Do multiple steps and expect that goal is reached
   next_mcts_state = mcts_state.execute(JointAction({0, action_idx}), rewards, cost);
   for (int i = 0; i < 1000; ++i) {
-    LOG(INFO) << next_mcts_state->sprintf();
     if(next_mcts_state->is_terminal()) {
       break;
     }
@@ -270,7 +271,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetInt("BehaviorUctHypothesis::Mcts::MaxSearchTime", 4000);
   params->SetInt("BehaviorUctHypothesis::Mcts::RandomSeed", 1000);
   params->SetBool("BehaviorUctHypothesis::DumpTree", true);
-  params->SetListListFloat("BehaviorUctHypothesis::MotionPrimitiveInputs", {{0,0}, {1,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
+  params->SetListFloat("BehaviorUctHypothesis::EgoBehavior::AccelerationInputs", {0, 1, 4, -1, -8});
   params->SetReal("BehaviorUctHypothesis::Mcts::DiscountFactor", 0.9);
   params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ExplorationConstant", 0.7);
   params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxSearchTime", 20000);
@@ -292,8 +293,8 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetReal("BehaviorIDMClassic::CoolnessFactor", 0.0f);
   // IDM Stochastic
   params->SetInt("BehaviorIDMStochastic::HeadwayDistribution::RandomSeed", 1234);
-  params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::LowerBound", 0);
-  params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::UpperBound", 0.2);
+  params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::LowerBound", 1);
+  params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::UpperBound", 2);
   params->SetDistribution("BehaviorIDMStochastic::HeadwayDistribution", "UniformDistribution1D");
 
   params->SetDistribution("BehaviorIDMStochastic::SpacingDistribution", "FixedValue");
@@ -327,8 +328,8 @@ TEST(behavior_uct_single_agent, change_lane) {
     return params_new;
   };
                                           
-  auto params_hyp1 = make_hyp_params(0.0, 0.1);
-  auto params_hyp2 = make_hyp_params(0.1, 0.2);
+  auto params_hyp1 = make_hyp_params(1, 1.5);
+  auto params_hyp2 = make_hyp_params(1.5, 2.0);
   std::vector<BehaviorModelPtr> behavior_hypothesis;
   behavior_hypothesis.push_back(
           std::make_shared<BehaviorHypothesisIDM>(params_hyp1));
