@@ -21,6 +21,7 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
     parameters.RANDOM_SEED = params->GetInt("Mcts::RandomSeed", "Random seed applied used during search process", 1000);
     parameters.MAX_SEARCH_TIME = params->GetInt("Mcts::MaxSearchTime", "Maximum search time in milliseconds", 2000);
     parameters.MAX_NUMBER_OF_ITERATIONS = params->GetInt("Mcts::MaxNumIterations", "Maximum search time in milliseconds", 2000);
+    parameters.MAX_SEARCH_DEPTH = params->GetInt("Mcts::MaxSearchDepth", "Maximum search tree depth", 1000);
     
     parameters.random_heuristic.MAX_SEARCH_TIME = params->GetInt("Mcts::RandomHeuristic::MaxSearchTime",
                                                          "Maximum time available for random rollout in milliseconds", 10);

@@ -102,7 +102,7 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
     return params;
 }
 
-
+/*
 
 TEST(hypothesis_mcts_state, execute) {
   // Setup prediction models for ego agent and other agents   
@@ -206,7 +206,7 @@ TEST(hypothesis_mcts_state, execute) {
     auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(1);
     next_mcts_state = next_mcts_state->execute(JointAction({0, action_idx2}), rewards, cost);
   }
-  EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::GoalReward", "", 1.0)  , 0.00001); // < reward should be one when reaching the goal */
+  EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::GoalReward", "", 1.0)  , 0.00001); // < reward should be one when reaching the goal 
   EXPECT_NEAR(cost, params->GetReal("Mcts::State::GoalCost", "", 1.0) , 0.00001);
 }
 
@@ -278,6 +278,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxNumIterations", 10);
   params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnLowerBound", -1000);
   params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnUpperBound", 100);
+
 
   // IDM Classic
   params->SetReal("BehaviorIDMClassic::MinimumSpacing", 0.0f); // Required for testing
@@ -398,7 +399,7 @@ TEST(behavior_uct_single_agent, belief_test) {
   params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnUpperBound", 100);
 
   params->SetReal("BehaviorUctHypothesis::Mcts::State::GoalReward", 100.0);
-  params->SetReal("BehaviorUctHypothesis::Mcts::State::collisionReward", -1000.0);
+  params->SetReal("BehaviorUctHypothesis::Mcts::State::CollisionReward", -1000.0);
   params->SetReal("BehaviorUctHypothesis::Mcts::State::GoalCost", 0.0);
   params->SetReal("BehaviorUctHypothesis::Mcts::State::CollisionCost", 1000);
 
@@ -539,7 +540,55 @@ TEST(behavior_uct_single_agent, belief_test) {
   EXPECT_NEAR(belief_tracker.get_beliefs()
               .at(left_agent2->GetAgentId())[2], 0.333, 0.08);
 }
+*/
 
+TEST(behavior_uct_single_agent_macro_actions, normalization) {
+  // Try to provoke a normalization error
+  auto params = std::make_shared<SetterParams>(false);
+  params->SetInt("BehaviorUctHypothesis::Mcts::MaxNumIterations", 20000);
+  params->SetInt("BehaviorUctHypothesis::Mcts::MaxSearchTime", 20000);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomSeed", 1000);
+  params->SetBool("BehaviorUctHypothesis::DumpTree", true);
+  params->SetListListFloat("BehaviorUctHypothesis::MotionPrimitiveInputs", {{0,0}, {1,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
+  params->SetReal("BehaviorUctHypothesis::Mcts::DiscountFactor", 0.9);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ExplorationConstant", 0.7);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxSearchTime", 20000);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxNumIterations", 40);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnLowerBound", -1000);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnUpperBound", 100);
+
+  params->SetBool("BehaviorUctHypothesis::Mcts::HypothesisStatistic::CostBasedActionSelection", true);
+  params->SetReal("BehaviorUctHypothesis::Mcts::HypothesisStatistic::LowerCostBound", -100);
+  params->SetReal("BehaviorUctHypothesis::Mcts::HypothesisStatistic::UpperCostBound", 1000);
+
+  params->SetReal("BehaviorUctHypothesis::Mcts::State::GoalReward", 100.0);
+  params->SetReal("BehaviorUctHypothesis::Mcts::State::CollisionReward", -1000.0);
+  params->SetReal("BehaviorUctHypothesis::Mcts::State::GoalCost", -100.0);
+  params->SetReal("BehaviorUctHypothesis::Mcts::State::CollisionCost", 1000);
+
+  float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(5, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
+
+  auto observed_world = make_test_observed_world(2,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
+  observed_world.SetRemoveAgents(true);
+  auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
+  auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
+  std::vector<BehaviorModelPtr> behavior_hypothesis;
+  behavior_hypothesis.push_back(
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp1));
+  behavior_hypothesis.push_back(
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
+
+  modules::models::behavior::BehaviorUCTHypothesis behavior_uct(params, behavior_hypothesis);
+
+  try {
+     Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
+  } catch(...) {
+    EXPECT_TRUE(false);
+  }
+}
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

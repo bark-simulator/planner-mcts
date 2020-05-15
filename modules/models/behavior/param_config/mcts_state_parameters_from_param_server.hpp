@@ -22,8 +22,8 @@ inline StateParameters MctsStateParametersFromParamServer(const commons::ParamsP
     parameters.GOAL_REWARD = params->GetReal("Mcts::State::GoalReward", "Reward for goal", 100.0f);
     parameters.COLLISION_REWARD = params->GetReal("Mcts::State::CollisionReward", "Reward for goal", -1000.0f);
 
-    parameters.GOAL_COST = params->GetReal("Mcts::State::GoalCost", "Reward for goal", 0.0f);
-    parameters.COLLISION_COST = params->GetReal("Mcts::State::CollisionCost", "Reward for goal", -1000.0f);
+    parameters.GOAL_COST = params->GetReal("Mcts::State::GoalCost", "Reward for goal", -100.0f);
+    parameters.COLLISION_COST = params->GetReal("Mcts::State::CollisionCost", "Reward for goal", 1000.0f);
 
     return parameters;
 }
