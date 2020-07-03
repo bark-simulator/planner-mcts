@@ -3,12 +3,13 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "python/python_planner_uct.hpp"
-#include "python/polymorphic_conversion.hpp"
+#include "bark/python_wrapper/python_planner_uct.hpp"
+#include "bark/python_wrapper/polymorphic_conversion.hpp"
 #include <memory>
 #include "bark/models/behavior/behavior_uct_single_agent.hpp"
-#include "bark/models/behavior/behavior_uct_single_agent_macro_actions.hpp"
+//#include "bark/models/behavior/behavior_uct_single_agent_macro_actions.hpp"
 #include "bark/models/behavior/behavior_uct_hypothesis.hpp"
+#include "bark/models/behavior/hypothesis/idm/hypothesis_idm.hpp"
 
 #include "mcts/random_generator.h"
 
@@ -35,7 +36,7 @@ void python_planner_uct(py::module m) {
         return new BehaviorUCTSingleAgent(PythonToParams(t[0].cast<py::tuple>()));
       }));
   
-  py::class_<BehaviorUCTSingleAgentMacroActions, BehaviorModel,
+ /* py::class_<BehaviorUCTSingleAgentMacroActions, BehaviorModel,
              std::shared_ptr<BehaviorUCTSingleAgentMacroActions>>(
       m, "BehaviorUCTSingleAgentMacroActions")
       .def(py::init<const bark::commons::ParamsPtr &>())
@@ -49,11 +50,11 @@ void python_planner_uct(py::module m) {
       [](py::tuple t) {
         if (t.size() != 1)
           throw std::runtime_error("Invalid behavior model state!");
-        /* Create a new C++ instance */
         return new BehaviorUCTSingleAgentMacroActions(PythonToParams(t[0].cast<py::tuple>()));
       }));
+*/
 
-  py::class_<BehaviorUCTHypothesis, BehaviorModel,
+ py::class_<BehaviorUCTHypothesis, BehaviorModel,
              std::shared_ptr<BehaviorUCTHypothesis>>(
       m, "BehaviorUCTHypothesis")
       .def(py::init<const bark::commons::ParamsPtr &,
@@ -86,12 +87,12 @@ void python_planner_uct(py::module m) {
 
   py::class_<BehaviorHypothesis,
              BehaviorModel,
-             shared_ptr<BehaviorHypothesis>>(m,
+             std::shared_ptr<BehaviorHypothesis>>(m,
     "BehaviorHypothesis");
     
       py::class_<BehaviorHypothesisIDM,
              BehaviorHypothesis,
-             shared_ptr<BehaviorHypothesisIDM>>(m, "BehaviorHypothesisIDM", py::multiple_inheritance())
+             std::shared_ptr<BehaviorHypothesisIDM>>(m, "BehaviorHypothesisIDM", py::multiple_inheritance())
     .def(py::init<const bark::commons::ParamsPtr&>())
     .def("__repr__", [](const BehaviorHypothesisIDM &m) {
       return "bark.behavior.BehaviorHypothesisIDM";

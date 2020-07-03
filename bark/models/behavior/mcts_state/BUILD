@@ -5,6 +5,7 @@ cc_library(
     copts = ["-Iexternal/bark_project"],
     deps= [
         "//bark/models/behavior/hypothesis:hypothesis",
+        "//bark/models/behavior/action_store:behavior_action_store",
         "@bark_project//bark:include",
         "@mamcts_project//mcts:mamcts",
     ],

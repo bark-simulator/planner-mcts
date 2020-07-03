@@ -7,7 +7,7 @@ cc_library(
   deps = [
     "@bark_project//bark/python_wrapper:common",
     "//bark/models/behavior:planner_uct_single_agent",
-    "//bark/models/behavior:planner_uct_single_agent_macro_actions",
+ #   "//bark/models/behavior:planner_uct_single_agent_macro_actions",
     "//bark/models/behavior:planner_uct_hypothesis",
     "@python_linux//:python-lib",
     "@pybind11//:pybind11",

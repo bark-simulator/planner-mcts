@@ -7,7 +7,6 @@
 
 #include "bark/models/behavior/tests/test_helpers.hpp"
 #include <vector>
-#include "bark/commons/params/default_params.hpp"
 #include "bark/geometry/commons.hpp"
 #include "bark/geometry/line.hpp"
 #include "bark/geometry/polygon.hpp"

@@ -5,7 +5,7 @@
 
 #ifndef PYTHON_PYTHON_PLANNER_UCT_HPP_
 #define PYTHON_PYTHON_PLANNER_UCT_HPP_
-#include "python/common.hpp"
+#include "bark/python_wrapper/common.hpp"
 
 namespace py = pybind11;
 

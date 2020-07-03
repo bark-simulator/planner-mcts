@@ -7,7 +7,7 @@ cc_library(
         "hypothesis_idm.cpp",
     ],
     deps = [
-        "@bark_project//bark/models/behavior/hypothesis:hypothesis",
+        "//bark/models/behavior/hypothesis:hypothesis",
         "@bark_project//bark/models/behavior/idm/stochastic:stochastic",
     ],
     visibility = ["//visibility:public"],

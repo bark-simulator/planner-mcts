@@ -1,5 +1,4 @@
 #!/bin/bash
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-mkdir -p $DIR/venv
-virtualenv --system-site-packages -p python3 $DIR/venv
-source $DIR/venv/bin/activate
+mkdir -p bark/python_wrapper/venv
+virtualenv --system-site-packages -p python3 bark/python_wrapper/venv
+source bark/python_wrapper/venv/bin/activate

@@ -24,7 +24,7 @@ class PickleTests(unittest.TestCase):
         behavior = BehaviorUCTSingleAgentMacroActions(params)
         unpickled = pickle_unpickle(behavior)
 
-    def test_behavior_uct_single_agent_macro_actions_pickle(self):
+    def test_behavior_hypothesis_uct_pickle(self):
         params = ParameterServer()
         params["BehaviorIDMStochastic"]["HeadwayDistribution"]["LowerBound"] = 1.343412233123232323
         params["BehaviorIDMStochastic"]["HeadwayDistribution"]["UpperBound"] = 1.75656563123232323

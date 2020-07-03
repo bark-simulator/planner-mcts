@@ -22,7 +22,7 @@ PredictionSettings BehaviorUCTSingleAgent::SetupPredictionSettings(
   // Setup prediction models for ego agent and other agents
   DynamicModelPtr dyn_model(new SingleTrackModel(params));
   BehaviorModelPtr ego_prediction_model(
-      new BehaviorMPContinuousActions(dyn_model, params));
+      new BehaviorMPContinuousActions(params));
 
   auto input_list =
       params->GetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs",

@@ -1,46 +1,46 @@
-cc_test(
-    name = "single_agent_test",
-    srcs = [
-        "single_agent_test.cc",
-    ],
-    copts = ["-Iexternal/gtest/include", "-O3"],
-    deps = [
-        "//bark/models/behavior:planner_uct_single_agent",
-        "@bark_project//bark/world:world",
-        "@bark_project//bark/world/tests:make_test_world",
-        "@bark_project//bark/models/behavior:behavior",
-        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
-        "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
-        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
-        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
-        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
-        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
-        "@bark_project//bark/world/goal_definition:goal_definition",
-        "@gtest//:gtest_main",
-    ],
-)
+#cc_test(
+#    name = "single_agent_test",
+#    srcs = [
+#        "single_agent_test.cc",
+#    ],
+#    copts = ["-Iexternal/gtest/include", "-O3"],
+#    deps = [
+#        "//bark/models/behavior:planner_uct_single_agent",
+#        "@bark_project//bark/world:world",
+#        "@bark_project//bark/world/tests:make_test_world",
+#        "@bark_project//bark/models/behavior:behavior",
+#        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
+#        "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
+#        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
+#        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
+#        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
+#        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
+#        "@bark_project//bark/world/goal_definition:goal_definition",
+#        "@gtest//:gtest_main",
+#    ],
+#)
 
-cc_test(
-    name = "single_agent_macro_actions_test",
-    srcs = [
-        "single_agent_macro_actions_test.cc"
-    ],
-    copts = ["-Iexternal/gtest/include"],
-    deps = [
-        "//bark/models/behavior:planner_uct_single_agent_macro_actions",
-        "@bark_project//bark/world:world",
-        "@bark_project//bark/world/tests:make_test_world",
-        "@bark_project//bark/models/behavior:behavior",
-        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
-        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
-        "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
-        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
-        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
-        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
-        "@bark_project//bark/world/goal_definition:goal_definition",
-        "@gtest//:gtest_main",
-    ],
-)
+#cc_test(
+#    name = "single_agent_macro_actions_test",
+#    srcs = [
+#        "single_agent_macro_actions_test.cc"
+#    ],
+#    copts = ["-Iexternal/gtest/include"],
+#    deps = [
+#        "//bark/models/behavior:planner_uct_single_agent_macro_actions",
+#        "@bark_project//bark/world:world",
+#        "@bark_project//bark/world/tests:make_test_world",
+#        "@bark_project//bark/models/behavior:behavior",
+#        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
+#        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
+#        "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
+#        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
+#        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
+#        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
+#        "@bark_project//bark/world/goal_definition:goal_definition",
+#        "@gtest//:gtest_main",
+#    ],
+#)
 
 cc_library(
     name="test_helpers",
@@ -51,8 +51,9 @@ cc_library(
         "test_helpers.hpp"
     ],
     deps = [
+        "//bark/models/behavior/hypothesis/idm:hypothesis_idm",
+        "//bark/models/behavior/action_store:behavior_action_store",
         "@bark_project//bark/geometry",
-        "@bark_project//bark/python_wrapper:behavior",
         "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
         "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
         "@bark_project//bark/models/behavior/dynamic_model:dynamic_model",
@@ -62,9 +63,8 @@ cc_library(
         "@bark_project//bark/models/behavior/rule_based:intersection_behavior",
         "@bark_project//bark/models/behavior/rule_based:mobil_behavior",
         "@bark_project//bark/models/behavior/static_trajectory",
+        "@bark_project//bark/models/execution/interpolation:interpolation",
         "@bark_project//bark/models/behavior/idm/stochastic:stochastic",
-        "@bark_project//bark/models/behavior/hypothesis/idm:hypothesis_idm",
-        "@bark_project//bark/models/behavior/action_store:behavior_action_store",
         "@bark_project//bark/world/tests:make_test_xodr_map",
         "@com_github_eigen_eigen//:eigen",
     ],
@@ -79,8 +79,8 @@ cc_test(
     ],
     copts = ["-Iexternal/gtest/include"],
     deps = [
+        "//bark/models/behavior/hypothesis/idm:hypothesis_idm",
         "@bark_project//bark/geometry",
-        "@bark_project//bark/models/behavior/hypothesis/idm:hypothesis_idm",
         "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
         "@bark_project//bark/models/execution/interpolation:interpolation",
         "@gtest//:gtest_main",
@@ -89,23 +89,36 @@ cc_test(
     ],
 )
 
+
+py_test(
+  name = "py_behavior_space_test",
+  srcs = ["py_behavior_space_test.py"],
+  data = ['@bark_project//bark:generate_core',
+          '//bark/models/behavior/hypothesis/behavior_space:behavior_space'],
+  imports = ['../../../python/'],
+  deps = [
+      "@bark_project//bark/runtime/commons:commons"
+         ],
+)
+
 cc_test(
-    name = "hypothesis_agent_test",
+    name = "behavior_uct_hypothesis_test",
     srcs = [
-        "hypothesis_agent_test.cc"
+        "behavior_uct_hypothesis_test.cc"
     ],
     copts = ["-Iexternal/gtest/include"],
     deps = [
         "//bark/models/behavior:planner_uct_hypothesis",
+        "//bark/models/behavior/action_store:behavior_action_store",
+        "//bark/models/behavior/hypothesis/idm:hypothesis_idm",
         ":test_helpers",
         "@bark_project//bark/world:world",
         "@bark_project//bark/world/tests:make_test_world",
         "@bark_project//bark/models/behavior:behavior",
         "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
-        "@bark_project//bark/models/behavior/action_store:behavior_action_store",
-        "@bark_project//bark/models/behavior/hypothesis/idm:hypothesis_idm",
         "@bark_project//bark/models/behavior/idm/stochastic:stochastic",
         "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
+        "@bark_project//bark/models/execution/interpolation:interpolation",
         "@bark_project//bark/world/evaluation:evaluator_goal_reached",
         "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
         "@bark_project//bark/world/evaluation:evaluator_drivable_area",

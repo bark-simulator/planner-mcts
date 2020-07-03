@@ -8,6 +8,8 @@ cc_binary(
   srcs = ["python_test_module.cpp"],
   deps = [
     "//bark/python_wrapper:planner_uct",
+    "//bark/models/behavior/hypothesis/idm:hypothesis_idm",
+    "//bark/models/behavior/action_store:behavior_action_store",
     "@bark_project//bark/python_wrapper:behavior",
     "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
     "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
@@ -19,8 +21,6 @@ cc_binary(
     "@bark_project//bark/models/behavior/rule_based:mobil_behavior",
     "@bark_project//bark/models/behavior/static_trajectory",
     "@bark_project//bark/models/behavior/idm/stochastic:stochastic",
-    "@bark_project//bark/models/behavior/hypothesis/idm:hypothesis_idm",
-    "@bark_project//bark/models/behavior/action_store:behavior_action_store",
     "@bark_project//bark/world:world",
     "@bark_project//bark/world/evaluation:evaluator_goal_reached",
     "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",

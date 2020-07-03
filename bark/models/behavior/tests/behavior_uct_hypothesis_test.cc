@@ -11,7 +11,6 @@
 #include "bark/models/behavior/tests/test_helpers.hpp"
 #include "bark/commons/params/setter_params.hpp"
 
-#include "bark/commons/params/default_params.hpp"
 #include "bark/world/tests/make_test_world.hpp"
 #include "bark/world/tests/make_test_xodr_map.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
@@ -19,7 +18,6 @@
 #include "bark/models/behavior/constant_velocity/constant_velocity.hpp"
 #include "bark/models/behavior/hypothesis/idm/hypothesis_idm.hpp"
 #include "bark/models/dynamic/single_track.hpp"
-#include "bark/commons/params/default_params.hpp"
 
 #include "bark/world/evaluation/evaluator_drivable_area.hpp"
 #include "bark/world/evaluation/evaluator_collision_ego_agent.hpp"
@@ -36,7 +34,6 @@ using bark::world::prediction::PredictionSettings;
 using bark::models::dynamic::SingleTrackModel;
 using bark::models::dynamic::Input;
 using bark::world::ObservedWorldPtr;
-using bark::commons::DefaultParams;
 using bark::commons::SetterParams;
 using bark::commons::ParamsPtr;
 
