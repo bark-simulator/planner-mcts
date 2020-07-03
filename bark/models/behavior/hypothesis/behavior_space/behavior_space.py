@@ -1,9 +1,9 @@
-// Copyright (c) 2020 fortiss GmbH
-//
-// Author: Julian Bernhard
-//
-// This work is licensed under the terms of the MIT license.
-// For a copy, see <https://opensource.org/licenses/MIT>.
+# Copyright (c) 2020 fortiss GmbH
+#
+# Author: Julian Bernhard
+#
+# This work is licensed under the terms of the MIT license.
+# For a copy, see <https://opensource.org/licenses/MIT>.
 
 import math
 import itertools
