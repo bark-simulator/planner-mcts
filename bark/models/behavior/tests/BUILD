@@ -71,6 +71,24 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
+
+cc_test(
+    name = "behavior_hypothesis_test",
+    srcs = [
+        "behavior_hypothesis_test.cc",
+    ],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        "@bark_project//bark/geometry",
+        "@bark_project//bark/models/behavior/hypothesis/idm:hypothesis_idm",
+        "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
+        "@bark_project//bark/models/execution/interpolation:interpolation",
+        "@gtest//:gtest_main",
+        "@com_github_eigen_eigen//:eigen",
+        "@bark_project//bark/world/tests:make_test_world",
+    ],
+)
+
 cc_test(
     name = "hypothesis_agent_test",
     srcs = [

@@ -1,4 +1,4 @@
-// Copyright (c) 2019 fortiss GmbH
+// Copyright (c) 2020 Julian Bernhard
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
@@ -82,6 +82,29 @@ void python_planner_uct(py::module m) {
         }
         return new BehaviorUCTHypothesis(PythonToParams(t[0].cast<py::tuple>()),
                 hypotheses);
+      }));
+
+  py::class_<BehaviorHypothesis,
+             BehaviorModel,
+             shared_ptr<BehaviorHypothesis>>(m,
+    "BehaviorHypothesis");
+    
+      py::class_<BehaviorHypothesisIDM,
+             BehaviorHypothesis,
+             shared_ptr<BehaviorHypothesisIDM>>(m, "BehaviorHypothesisIDM", py::multiple_inheritance())
+    .def(py::init<const bark::commons::ParamsPtr&>())
+    .def("__repr__", [](const BehaviorHypothesisIDM &m) {
+      return "bark.behavior.BehaviorHypothesisIDM";
+    })
+    .def(py::pickle(
+      [](const BehaviorHypothesisIDM& b) {
+        // We throw away other information such as last trajectories
+        return py::make_tuple(ParamsToPython(b.GetParams()));
+      },
+      [](py::tuple t) {
+        if (t.size() != 1)
+          throw std::runtime_error("Invalid behavior model state!");
+        return new BehaviorHypothesisIDM(PythonToParams(t[0].cast<py::tuple>()));
       }));
 
 }

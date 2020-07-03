@@ -4,6 +4,7 @@ cc_library(
     hdrs = ["mcts_state_hypothesis.hpp"],
     copts = ["-Iexternal/bark_project"],
     deps= [
+        "//bark/models/behavior/hypothesis:hypothesis",
         "@bark_project//bark:include",
         "@mamcts_project//mcts:mamcts",
     ],
