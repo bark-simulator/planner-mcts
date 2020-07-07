@@ -3,6 +3,11 @@ workspace(name = "planner_uct")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
+local_repository(
+    name="bark_project",
+    path="/home/bernhard/development/bark"
+)
+
 load("//util:deps.bzl", "planner_uct_rules_dependencies")
 planner_uct_rules_dependencies()
 

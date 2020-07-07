@@ -4,7 +4,7 @@ def planner_uct_rules_dependencies():
     _maybe(
     native.new_local_repository,
     name = "python_linux",
-    path = "./bark/python_wrapper/venv/",
+    path = "./bark_mcts/python_wrapper/venv/",
     build_file_content = """
 cc_library(
     name = "python-lib",
@@ -16,12 +16,12 @@ cc_library(
     """
     )
 
-    _maybe(
-    git_repository,
-    name = "bark_project",
-    commit="02e5c872393efd0798d665b4b80b82158dde77b9",
-    remote = "https://github.com/bark-simulator/bark",
-    )
+   # _maybe(
+   # git_repository,
+   # name = "bark_project",
+   # commit="02e5c872393efd0798d665b4b80b82158dde77b9",
+   # remote = "https://github.com/bark-simulator/bark",
+   # )
 
     _maybe(
     git_repository,
