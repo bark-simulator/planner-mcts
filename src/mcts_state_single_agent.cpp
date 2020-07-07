@@ -116,6 +116,10 @@ float MctsStateSingleAgent::get_distance_to_goal() const {
   return EvaluatorDistanceToGoal::DistanceToGoal(observed_world_->GetEgoAgent());
 }
 
+const modules::world::ObservedWorldPtr MctsStateSingleAgent::get_observed_world() const {
+  return observed_world_;
+}
+
 }  // namespace behavior
 }  // namespace models
 }  // namespace modules

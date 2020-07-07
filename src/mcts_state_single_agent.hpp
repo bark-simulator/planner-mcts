@@ -47,6 +47,8 @@ class MctsStateSingleAgent : public mcts::StateInterface<MctsStateSingleAgent> {
   float get_distance_to_goal() const;
 
   bool get_collision_happen() const;
+  
+  const modules::world::ObservedWorldPtr get_observed_world() const;
 
  private:
   const std::shared_ptr<const modules::world::ObservedWorld> observed_world_;

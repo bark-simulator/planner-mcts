@@ -38,6 +38,8 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
           "If true, tree is dumped to dot file after planning", false)),
       random_heuristic_(GetParams()->AddChild("BehaviorUctSingleAgent")->GetBool(
           "UseRandomHeuristic", "True if random heuristic shall be used, otherwise domain heuristic is applied", false)),
+      nn_heuristic_(GetParams()->AddChild("BehaviorUctSingleAgent")->GetBool(
+          "UseNNHeuristic", "True if nn heuristic shall be used, otherwise domain heuristic is applied", false)),
       prediction_time_span_(GetParams()->AddChild("BehaviorUctSingleAgent")
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",
@@ -52,7 +54,9 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
   mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic,
              mcts::RandomHeuristic> mcts_random (mcts_parameters_);
   mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic,
-             DomainHeuristic> mcts_domain(mcts_parameters_);
+             mcts::DomainHeuristic> mcts_domain(mcts_parameters_);
+  mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic,
+             mcts::NNHeuristic> mcts_nn(mcts_parameters_);
 
   std::shared_ptr<BehaviorMotionPrimitives> ego_model =
       std::dynamic_pointer_cast<BehaviorMotionPrimitives>(
@@ -70,26 +74,38 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
   unsigned num_iterations;
   unsigned search_time;
   
-  if(random_heuristic_) {
-      mcts_random.search(mcts_state);
-      best_action = mcts_random.returnBestAction();
-      num_iterations = mcts_random.numIterations();
-      search_time = mcts_random.searchTime();
-        if (dump_tree_) {
-            std::stringstream filename;
-            filename << "tree_dot_file_" << delta_time;
-            mcts_random.printTreeToDotFile(filename.str());
-        }
-  } else {
-      mcts_domain.search(mcts_state);
-      best_action = mcts_domain.returnBestAction();
-      num_iterations = mcts_domain.numIterations();
-      search_time = mcts_domain.searchTime();
-        if (dump_tree_) {
-            std::stringstream filename;
-            filename << "tree_dot_file_" << delta_time;
-            mcts_domain.printTreeToDotFile(filename.str());
-        }
+  if((random_heuristic_)&&(nn_heuristic_)) {
+      LOG(ERROR) << "Can't use random_heuristic and nn_heuristic at same time.";
+      throw;
+      } elseif((random_heuristic_)&&!(nn_heuristic_)) {
+          mcts_random.search(mcts_state);
+          best_action = mcts_random.returnBestAction();
+          num_iterations = mcts_random.numIterations();
+          search_time = mcts_random.searchTime();
+          if (dump_tree_) {
+              std::stringstream filename;
+              filename << "tree_dot_file_" << delta_time;
+              mcts_random.printTreeToDotFile(filename.str());}
+      } elseif(!(random_heuristic_)&&(nn_heuristic_)) {
+          mcts_nn.search(mcts_state);
+          best_action = mcts_nn.returnBestAction();
+          num_iterations = mcts_nn.numIterations();
+          search_time = mcts_nn.searchTime();
+          if (dump_tree_) {
+              std::stringstream filename;
+              filename << "tree_dot_file_" << delta_time;
+              mcts_nn.printTreeToDotFile(filename.str());}
+      } elseif(!(random_heuristic_)&&!(nn_heuristic_)) {
+          mcts_domain.search(mcts_state);
+          best_action = mcts_domain.returnBestAction();
+          num_iterations = mcts_domain.numIterations();
+          search_time = mcts_domain.searchTime();
+          if (dump_tree_) {
+              std::stringstream filename;
+              filename << "tree_dot_file_" << delta_time;
+              mcts_domain.printTreeToDotFile(filename.str());}
+      }
+            
   }
 
   SetLastAction(DiscreteAction(best_action));

@@ -38,6 +38,7 @@ class BehaviorUCTSingleAgentBase : public BehaviorModel {
   double prediction_time_span_;
   bool dump_tree_;
   bool random_heuristic_;
+  bool nn_heuristic_;
 
   // MCTS PARAMETERS
   mcts::MctsParameters mcts_parameters_;

@@ -4,8 +4,8 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 // ========================================================
 
-#ifndef DOMAIN_BASED_HEURISTIC_HPP
-#define DOMAIN_BASED_HEURISTIC_HPP
+#ifndef NEURALNETWORK_BASED_HEURISTIC_HPP
+#define NEURALNETWORK_BASED_HEURISTIC_HPP
 
 #include "mcts/mcts.h"
 #include <iostream>
@@ -44,7 +44,7 @@ public:
         // generate an extra node statistic for each agent
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
         
-        observed_world = node->get_state()->GetObservedWorld(); //<- dp as we did with get nearest distance
+        observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
         EigenVector output = observer_.Observe(observed_world);
         std::vector<double> model_output = model.EvaluateModel(output)
         
@@ -74,4 +74,4 @@ public:
 }  // namespace models
 }  // namespace modules
 
-#endif // DOMAIN_BASED_HEURISTIC_HPP
+#endif // NEURALNETWORK_BASED_HEURISTIC_HPP
