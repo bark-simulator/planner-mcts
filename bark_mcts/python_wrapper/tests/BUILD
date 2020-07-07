@@ -30,12 +30,6 @@ cc_binary(
   linkstatic = 1
 )
 
-py_test(
-  name = "python_import_test",
-  srcs = ["python_import_test.py"],
-  data = ['//bark_mcts/python_wrapper/tests:planner_uct.so'],
-  imports = ['../python/'],
-)
 
 py_test(
   name = "pickle_unpickle_test",
