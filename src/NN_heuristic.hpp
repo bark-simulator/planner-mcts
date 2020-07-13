@@ -12,6 +12,7 @@
 #include <chrono>
 #include <math.h>
 #include <cmath>
+#include "src/observers/nearest_observer_new.hpp"
 
 namespace modules {
 namespace models {
@@ -21,7 +22,10 @@ class NNHeuristic :  public mcts::Heuristic<NNHeuristic>
 {
 public:
     NNHeuristic(const mcts::MctsParameters& mcts_parameters) :
-            mcts::Heuristic<NNHeuristic>(mcts_parameters) {}
+            mcts::Heuristic<NNHeuristic>(mcts_parameters) {
+                NearestObserver Observer1();
+            }
+    static void InitializeModelLoader(std::string model_directory)
 
     template<class S, class SE, class SO, class H>
     std::pair<SE, std::unordered_map<mcts::AgentIdx, SO>> calculate_heuristic_values(const std::shared_ptr<mcts::StageNode<S,SE,SO,H>> &node) {
@@ -45,10 +49,16 @@ public:
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
         
         observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
-        EigenVector output = observer_.Observe(observed_world);
-        std::vector<double> model_output = model.EvaluateModel(output)
+        ObservedState output = Observer1.observe(observed_world); //call observe method        
+        std::vector<float> model_output = model_loader_ptr->Evaluator(output);
         
-        mcts::Reward ego_all_reward = ########;
+        double num_actions = model_output.size(); //num actions //use model.output size
+        double value = std::accumulate(model_output.begin(), model_output.end(), 0);
+            
+            
+            
+
+        mcts::Reward ego_all_reward = (1/num_actions)*value;
 
 
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
@@ -64,7 +74,15 @@ public:
         }
         return std::pair<SE, std::unordered_map<mcts::AgentIdx, SO>>(ego_heuristic, other_heuristic_estimates);
     }  
+    static void InitializeModelLoader();
+        void InitializeModelLoader() {
+            model_loader_ptr = new ModelLoader();
+            //model_loader_ptr->LoadModel();
+        }
+
     private:
+
+    static ModelLoader* model_loader_ptr;
 
 
 };

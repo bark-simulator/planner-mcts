@@ -39,6 +39,7 @@ cc_library(
     ],
     copts = ["-Iexternal/bark_project"],
     deps= [
+        "@bark_ml//src/observers:nearest_observer",
         "@bark_project//modules:include",
         "@mamcts_project//mcts:mamcts",
     ],

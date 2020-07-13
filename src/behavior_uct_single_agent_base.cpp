@@ -11,6 +11,7 @@
 #include "mcts/statistics/uct_statistic.h"
 #include "src/mcts_state_single_agent.hpp"
 #include "src/domain_heuristic.hpp"
+#include "src/NN_heuristic.hpp"
 
 #include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
 #include "modules/models/behavior/idm/idm_classic.hpp"
@@ -43,7 +44,9 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
       prediction_time_span_(GetParams()->AddChild("BehaviorUctSingleAgent")
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",
-          "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {}
+          "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {
+              NNHeuristic::InitializeModelLoader()
+          }
 
 dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
