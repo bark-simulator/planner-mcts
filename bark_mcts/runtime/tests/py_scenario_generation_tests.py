@@ -17,7 +17,7 @@ from bark.runtime.scenario.scenario_generation.scenario_generation\
   import ScenarioGeneration
 
 from bark.runtime.scenario.scenario_generation.configurable_scenario_generation \
-  import ConfigurableScenarioGeneration
+  import ConfigurableScenarioGeneration, add_config_reader_module
 from bark.runtime.commons import ParameterServer
 
 
@@ -42,6 +42,7 @@ class ScenarioGenerationTests(unittest.TestCase):
 
     params = ParameterServer()
     params["Scenario"]["Generation"]["ConfigurableScenarioGeneration"]["SinksSources"] = [sink_source_dict]
+    add_config_reader_module("bark_mcts.runtime.scenario.behavior_space_sampling")
     scenario_generation = ConfigurableScenarioGeneration(num_scenarios=2,params=params)
     scenario_generation.dump_scenario_list("test.scenario")
 
