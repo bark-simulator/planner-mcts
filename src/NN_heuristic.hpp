@@ -48,7 +48,7 @@ public:
         // generate an extra node statistic for each agent
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
         
-        observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
+        modules::world::ObservedWorldPtr observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
         ObservedState output = Observer1.observe(observed_world); //call observe method        
         std::vector<float> model_output = model_loader_ptr->Evaluator(output);
         
@@ -58,7 +58,7 @@ public:
             
             
 
-        mcts::Reward ego_all_reward = (1/num_actions)*value;
+        mcts::Reward ego_all_reward = 5*(1/num_actions)*value;
 
 
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
@@ -83,6 +83,7 @@ public:
     private:
 
     static ModelLoader* model_loader_ptr;
+    NearestObserver Observer1;
 
 
 };
