@@ -25,7 +25,7 @@ namespace models {
 namespace behavior {
 
 
-class BehaviorHypothesis : public virtual BehaviorModel {
+class BehaviorHypothesis : public virtual BehaviorModel, public PriorKnowledgeRegion {
   public:
     BehaviorHypothesis(const commons::ParamsPtr& params) : BehaviorModel(params) {}
     virtual ~BehaviorHypothesis() {}
