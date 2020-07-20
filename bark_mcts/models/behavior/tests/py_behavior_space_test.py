@@ -65,6 +65,9 @@ class PyBehaviorSpaceTests(unittest.TestCase):
       self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["UpperBound", "", 0.2] >= lb+0.1)
       self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["UpperBound", "", 0.1] <= lb+0.3)
 
+  def test_partition_sampling(self):
+    # todo test to check sampling is in selected partition
+
   def test_default_config_hypothesis_creation(self):
     param_server = ParameterServer()
     space = BehaviorSpace(param_server)

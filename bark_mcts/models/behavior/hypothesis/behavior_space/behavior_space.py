@@ -85,6 +85,12 @@ class BehaviorSpace:
     _ = hypothesis_parameters["HypothesisModel", "Model used as behavior model for hypothesis", "BehaviorHypothesisIDM"]
     return hypothesis_parameters.clone()
 
+  def _get_param_range_partition(self, param_range, partition_num, which_partition):
+    param_range_width = param_range[1] - param_range[0]
+    lower_bound = param_range[0] + float(which_partition)*param_range_width/partition_num
+    upper_bound = param_range[0] + float(which_partition+1)*param_range_width/partition_num
+    return [lower_bound, upper_bound]
+
   def create_hypothesis_set(self, hypothesis_parameters=None):
     hypothesis_parameters = hypothesis_parameters or self.get_default_hypothesis_parameters()
     partition_parameters = hypothesis_parameters.AddChild("Partitions")
@@ -104,12 +110,9 @@ class BehaviorSpace:
           param_range = range_params[split_param]
           # uniform distribution type
           if len(param_range) == 2:
-            param_range_width = param_range[1] - param_range[0]
             partitions = []
             for idx in range(0, partition_num):
-              lower_bound = param_range[0] + float(idx)*param_range_width/partition_num
-              upper_bound = param_range[0] + float(idx+1)*param_range_width/partition_num
-              partitions.append([lower_bound, upper_bound])
+                partitions.append(self._get_param_range_partition(param_range, partition_num, idx))
             param_partitions.append(partitions)
           # distribution type fixed value
           elif len(param_range) == 1:
@@ -180,6 +183,11 @@ class BehaviorSpace:
       if "Distribution" in key:
         distribution_type = sampling_params[key]["DistributionType", "Distribution type for sampling", "UniformDistribution1D"]
         parameter_range = value
+        if len(parameter_range) > 1:
+          partitions = sampling_params[key]["Partitions", "Into how many equal parameter range partitions is this range partitioned", 5]
+          if partitions :
+            selected_partition = sampling_params[key]["SelectedPartition", "Which of these partitions is selected for sampling", 0]
+            parameter_range = self._get_param_range_partition(parameter_range, partitions, selected_partition)
         if "Uniform" in distribution_type and len(parameter_range) == 2:
           param_dict[key] = self._sample_uniform_dist_params(parameter_range, child)
         elif "Normal" in distribution_type and len(parameter_range) == 2:
