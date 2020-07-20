@@ -13,15 +13,15 @@ cc_library(
     includes = ["include/python3.6m", "include", "include/python3.7m", "include/python3.5m"], 
     visibility = ["//visibility:public"],
 )
-    """
+"""
     )
 
-   # _maybe(
-   # git_repository,
-   # name = "bark_project",
-   # commit="c82d193c6155358a0fbaade635dccaae35278e86",
-   # remote = "https://github.com/bark-simulator/bark",
-   # )
+    _maybe(
+        git_repository,
+        name = "bark_project",
+        commit="24f9937f6574f63fd955dd497497dfc68f47f2da",
+        remote = "https://github.com/bark-simulator/bark",
+    )
 
     _maybe(
     git_repository,
