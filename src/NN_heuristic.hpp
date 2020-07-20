@@ -13,6 +13,7 @@
 #include <math.h>
 #include <cmath>
 #include "src/observers/nearest_observer_new.hpp"
+#include "src/model_loader/ModelLoader.hpp"
 
 namespace modules {
 namespace models {
@@ -25,7 +26,7 @@ public:
             mcts::Heuristic<NNHeuristic>(mcts_parameters) {
                 NearestObserver Observer1();
             }
-    static void InitializeModelLoader(std::string model_directory)
+    
 
     template<class S, class SE, class SO, class H>
     std::pair<SE, std::unordered_map<mcts::AgentIdx, SO>> calculate_heuristic_values(const std::shared_ptr<mcts::StageNode<S,SE,SO,H>> &node) {
@@ -48,7 +49,7 @@ public:
         // generate an extra node statistic for each agent
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
         
-        modules::world::ObservedWorldPtr observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
+        const std::shared_ptr<const modules::world::ObservedWorld> observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
         ObservedState output = Observer1.observe(observed_world); //call observe method        
         std::vector<float> model_output = model_loader_ptr->Evaluator(output);
         
@@ -62,7 +63,7 @@ public:
 
 
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
-        LOG_EVERY_N(INFO, 100) << "Calculating domain value=" << ego_all_reward << ", for dist. to. goal=" << goal_distance;//30
+        LOG_EVERY_N(INFO, 100) << "Calculating domain value=" << ego_all_reward;//30
         std::unordered_map<mcts::AgentIdx, SO> other_heuristic_estimates;
         mcts::AgentIdx reward_idx=1;
         for (auto agent_idx : node->get_state()->get_other_agent_idx())
@@ -74,8 +75,7 @@ public:
         }
         return std::pair<SE, std::unordered_map<mcts::AgentIdx, SO>>(ego_heuristic, other_heuristic_estimates);
     }  
-    static void InitializeModelLoader();
-        void InitializeModelLoader() {
+    static void InitializeModelLoader() {
             model_loader_ptr = new ModelLoader();
             //model_loader_ptr->LoadModel();
         }
@@ -83,7 +83,7 @@ public:
     private:
 
     static ModelLoader* model_loader_ptr;
-    NearestObserver Observer1;
+    observes::NearestObserver Observer1;
 
 
 };

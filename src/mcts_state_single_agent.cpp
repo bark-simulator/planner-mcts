@@ -116,7 +116,7 @@ float MctsStateSingleAgent::get_distance_to_goal() const {
   return EvaluatorDistanceToGoal::DistanceToGoal(observed_world_->GetEgoAgent());
 }
 
-const modules::world::ObservedWorldPtr MctsStateSingleAgent::get_observed_world() const {
+const std::shared_ptr<const modules::world::ObservedWorld> MctsStateSingleAgent::get_observed_world() const {
   return observed_world_;
 }
 

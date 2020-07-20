@@ -45,7 +45,7 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",
           "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {
-              NNHeuristic::InitializeModelLoader()
+              NNHeuristic::InitializeModelLoader();
           }
 
 dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
@@ -57,9 +57,9 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
   mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic,
              mcts::RandomHeuristic> mcts_random (mcts_parameters_);
   mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic,
-             mcts::DomainHeuristic> mcts_domain(mcts_parameters_);
+             DomainHeuristic> mcts_domain(mcts_parameters_);
   mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic,
-             mcts::NNHeuristic> mcts_nn(mcts_parameters_);
+             NNHeuristic> mcts_nn(mcts_parameters_);
 
   std::shared_ptr<BehaviorMotionPrimitives> ego_model =
       std::dynamic_pointer_cast<BehaviorMotionPrimitives>(
@@ -80,7 +80,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
   if((random_heuristic_)&&(nn_heuristic_)) {
       LOG(ERROR) << "Can't use random_heuristic and nn_heuristic at same time.";
       throw;
-      } elseif((random_heuristic_)&&!(nn_heuristic_)) {
+      } else if((random_heuristic_)&&!(nn_heuristic_)) {
           mcts_random.search(mcts_state);
           best_action = mcts_random.returnBestAction();
           num_iterations = mcts_random.numIterations();
@@ -89,7 +89,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
               std::stringstream filename;
               filename << "tree_dot_file_" << delta_time;
               mcts_random.printTreeToDotFile(filename.str());}
-      } elseif(!(random_heuristic_)&&(nn_heuristic_)) {
+      } else if(!(random_heuristic_)&&(nn_heuristic_)) {
           mcts_nn.search(mcts_state);
           best_action = mcts_nn.returnBestAction();
           num_iterations = mcts_nn.numIterations();
@@ -98,7 +98,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
               std::stringstream filename;
               filename << "tree_dot_file_" << delta_time;
               mcts_nn.printTreeToDotFile(filename.str());}
-      } elseif(!(random_heuristic_)&&!(nn_heuristic_)) {
+      } else{
           mcts_domain.search(mcts_state);
           best_action = mcts_domain.returnBestAction();
           num_iterations = mcts_domain.numIterations();
@@ -109,7 +109,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
               mcts_domain.printTreeToDotFile(filename.str());}
       }
             
-  }
+  
 
   SetLastAction(DiscreteAction(best_action));
   LOG(INFO) << "BehaviorUCTSingleAgent, iterations: " << num_iterations

@@ -11,8 +11,15 @@ def planner_uct_rules_dependencies():
     _maybe(
     git_repository,
     name = "bark_ml",
-    commit="e5800846d58c91dbdf6274f55e89abbbb1e68b12",
+    commit="e136b70fba629a8b0bc8bf5a7611c2078d56f837",
     remote = "https://github.com/SebastianGra/bark-ml_MCTS_RL",
+    )
+
+    _maybe(
+    git_repository,
+    name = "libtensorflow-RL-MCTS",
+    commit="9b13b789405ad82d717fac0f1e15957510280beb",
+    remote = "https://github.com/wejdene14/libtensorflow-RL-MCTS",
     )
 
     _maybe(

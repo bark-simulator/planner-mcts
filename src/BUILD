@@ -35,13 +35,15 @@ cc_library(
         "mcts_state_single_agent.hpp",
         "behavior_uct_single_agent_base.hpp",
         "mcts_parameters_from_param_server.hpp",
-        "domain_heuristic.hpp"
+        "domain_heuristic.hpp",
+        "NN_heuristic.hpp"
     ],
     copts = ["-Iexternal/bark_project"],
     deps= [
         "@bark_ml//src/observers:nearest_observer",
         "@bark_project//modules:include",
         "@mamcts_project//mcts:mamcts",
+        "@bark_ml//src/model_loader:ModelLoader",
     ],
     visibility = ["//visibility:public"],
 )
