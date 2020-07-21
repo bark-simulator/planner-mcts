@@ -64,13 +64,13 @@ public:
         
         const std::shared_ptr<modules::world::ObservedWorld> observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
         ObservedState output = Observer1_ptr->observe(observed_world); //call observe method 
-        std::vector<float> output1;
+        std::vector<float> output_vector;
+        
         for (int i=0; i< output.cols(); i++){
-            auto output2 = output.block(0, i, 1, 1);
-            output1.push_back(output2);
+            output_vector[i] = output(0, i);
             }
         
-        std::vector<float> model_output = model_loader_ptr->Evaluator(output1,4);
+        std::vector<float> model_output = model_loader_ptr->Evaluator(output_vector,4);
         
         double num_actions = model_output.size(); //num actions //use model.output size
         double value = std::accumulate(model_output.begin(), model_output.end(), 0);
