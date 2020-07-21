@@ -184,7 +184,7 @@ class BehaviorSpace:
         distribution_type = sampling_params[key]["DistributionType", "Distribution type for sampling", "UniformDistribution1D"]
         parameter_range = value
         if len(parameter_range) > 1:
-          partitions = sampling_params[key]["Partitions", "Into how many equal parameter range partitions is this range partitioned", 5]
+          partitions = sampling_params[key]["Partitions", "Into how many equal parameter range partitions is this range partitioned", None]
           if partitions :
             selected_partition = sampling_params[key]["SelectedPartition", "Which of these partitions is selected for sampling", 0]
             parameter_range = self._get_param_range_partition(parameter_range, partitions, selected_partition)
@@ -218,7 +218,7 @@ class BehaviorSpace:
     uni_width = sampling_params["Width", "What minimum and maximum width should sampled distribution have", [0.1, 0.3]]
 
     lower_bound = self.random_state.uniform(range[0], range[1] - uni_width[0])
-    upper_bound = self.random_state.uniform(lower_bound + uni_width[0],  lower_bound + uni_width[1])
+    upper_bound = self.random_state.uniform(lower_bound + uni_width[0], min(range[1], lower_bound + uni_width[1]))
 
     sampled_params = ParameterServer(log_if_default = True)
     sampled_params["DistributionType"] = "UniformDistribution1D"
@@ -242,6 +242,6 @@ class BehaviorSpace:
     sampled_params = ParameterServer(log_if_default = True)
     sampled_params["DistributionType"] = "NormalDistribution1D"
     sampled_params["Mean"] = mean
-    sampled_params["Std"] = std
+    sampled_params["StdDev"] = std
     sampled_params["RandomSeed"] = sampling_params["RandomSeed", "Seed for stochastic behavior", 1000]
     return sampled_params

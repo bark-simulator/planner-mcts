@@ -97,8 +97,9 @@ py_test(
           '//bark_mcts/models/behavior/hypothesis/behavior_space:behavior_space'],
   imports = ['../../../python/'],
   deps = [
-      "@bark_project//bark/runtime/commons:commons"
-         ],
+      "@bark_project//bark/runtime/commons:commons",
+      "//util/debug:debug_settings",
+    ],
 )
 
 cc_test(

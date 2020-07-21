@@ -56,8 +56,8 @@ class PyBehaviorSpaceTests(unittest.TestCase):
       self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["ComftBrakingDistribution"]["FixedValue", "", 1.2], [20])
       
       self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["DistributionType", "", ""], "NormalDistribution1D")
-      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["Std", "", 0.2] <= 0.4)
-      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["Std", "", 0.1] >= 0.2)
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["StdDev", "", 0.2] <= 0.4)
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["StdDev", "", 0.1] >= 0.2)
 
       self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["DistributionType", "", ""], "UniformDistribution1D")
       self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["LowerBound", "", 1.0]>= 4.5)
@@ -66,7 +66,57 @@ class PyBehaviorSpaceTests(unittest.TestCase):
       self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["UpperBound", "", 0.1] <= lb+0.3)
 
   def test_partition_sampling(self):
-    # todo test to check sampling is in selected partition
+    param_server = ParameterServer()
+    space = BehaviorSpace(param_server)
+    sampled_parameters, model_type = space.sample_behavior_parameters()
+    print(model_type)
+    behavior = eval("{}(sampled_parameters)".format(model_type))
+    print(sampled_parameters.ConvertToDict())
+    param_server.Save("behavior_space_partition_sampling.json")
+
+    params_loaded = ParameterServer(filename="behavior_space_partition_sampling.json")
+
+    params_loaded["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["SpacingDistribution"] = [2.5, 3.5]
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["SpacingDistribution"]["StdRange"] = [0.2, 0.4]
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["SpacingDistribution"]["DistributionType"] = "NormalDistribution1D"
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["SpacingDistribution"]["Partitions"] = 4
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["SpacingDistribution"]["SelectedPartition"] = 2
+
+    params_loaded["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["DesiredVelDistribution"] = [4.8, 6.0]
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["Width"] = [0.1, 0.3]
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["DistributionType"] = "UniformDistribution1D"
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["Partitions"] =  12
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["SelectedPartition"] = 7
+    
+
+    params_loaded["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["MaxAccDistribution"] = [1.7]
+
+    params_loaded["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["ComftBrakingDistribution"] = [20]
+    space = BehaviorSpace(params_loaded) 
+
+    num_sampled_parameters = 100
+    for _ in range(0, num_sampled_parameters):
+      sampled_parameters, model_type = space.sample_behavior_parameters()
+      behavior = eval("{}(sampled_parameters)".format(model_type))
+
+      self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["MaxAccDistribution"]["DistributionType", "", ""], "FixedValue")
+      self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["MaxAccDistribution"]["FixedValue", "", 1.0], [1.7]) 
+
+      self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["ComftBrakingDistribution"]["DistributionType", "", ""], "FixedValue")
+      self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["ComftBrakingDistribution"]["FixedValue", "", 1.2], [20])
+      
+      self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["DistributionType", "", ""], "NormalDistribution1D")
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["StdDev", "", 0.5] <= 0.4)
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["StdDev", "", 0.1] >= 0.2)
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["Mean", "", 0.1] >= 3.0)
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["Mean", "", 0.1] <= 3.25)
+
+      self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["DistributionType", "", ""], "UniformDistribution1D")
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["LowerBound", "", 1.0]>= 5.5)
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["UpperBound", "", 1.0]<= 5.6)
+      lb = sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["LowerBound", "", 1.0]
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["UpperBound", "", 0.2] >= lb+0.1)
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["UpperBound", "", 0.1] <= lb+0.3)
 
   def test_default_config_hypothesis_creation(self):
     param_server = ParameterServer()
@@ -89,7 +139,7 @@ class PyBehaviorSpaceTests(unittest.TestCase):
     _,_ = space.create_hypothesis_set()
 
   def test_cover_hypothesis_creation(self):
-    param_server = ParameterServer(log_if_default=True)
+    param_server = ParameterServer(log_if_default=False)
     behavior_space_range1 = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["HeadwayDistribution"] = [5.34, 10.0]
     behavior_space_range2 = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["SpacingDistribution"] = [1.3434, 10.0]
     behavior_space_fixed_val = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["DesiredVelDistribution"] = [3.4545]
