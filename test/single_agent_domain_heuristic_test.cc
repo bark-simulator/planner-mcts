@@ -22,6 +22,7 @@
 #include "modules/world/goal_definition/goal_definition_state_limits.hpp"
 
 #include "src/domain_heuristic.hpp"
+#include "src/NN_heuristic.hpp"
 
 
 using namespace modules::models::behavior;

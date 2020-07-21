@@ -14,17 +14,30 @@
 #include <cmath>
 #include "src/observers/nearest_observer_new.hpp"
 #include "src/model_loader/ModelLoader.hpp"
+#include "modules/commons/params/params.hpp"
+#include "modules/geometry/geometry.hpp"
+#include "modules/commons/params/default_params.hpp"
+#include "modules/commons/params/setter_params.hpp"
+
+using observers::NearestObserver;
+using observers::ObservedState;
+using ObservedState = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>;
+using namespace modules::commons;
 
 namespace modules {
 namespace models {
 namespace behavior {
+
 // assumes all agents have equal number of actions and the same node statistic
 class NNHeuristic :  public mcts::Heuristic<NNHeuristic>
 {
 public:
     NNHeuristic(const mcts::MctsParameters& mcts_parameters) :
             mcts::Heuristic<NNHeuristic>(mcts_parameters) {
-                NearestObserver Observer1();
+                auto params = std::make_shared<DefaultParams>();   
+                int nearest_agent_num_ = 3;
+                params->SetInt("ML::Observer::n_nearest_agents", nearest_agent_num_);
+                Observer1_ptr = new NearestObserver(params);
             }
     
 
@@ -49,14 +62,18 @@ public:
         // generate an extra node statistic for each agent
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
         
-        const std::shared_ptr<const modules::world::ObservedWorld> observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
-        ObservedState output = Observer1.observe(observed_world); //call observe method        
-        std::vector<float> model_output = model_loader_ptr->Evaluator(output);
+        const std::shared_ptr<modules::world::ObservedWorld> observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
+        ObservedState output = Observer1_ptr->observe(observed_world); //call observe method 
+        std::vector<float> output1;
+        for (int i=0; i< output.cols(); i++){
+            auto output2 = output.block(0, i, 1, 1);
+            output1.push_back(output2);
+            }
+        
+        std::vector<float> model_output = model_loader_ptr->Evaluator(output1,4);
         
         double num_actions = model_output.size(); //num actions //use model.output size
         double value = std::accumulate(model_output.begin(), model_output.end(), 0);
-            
-            
             
 
         mcts::Reward ego_all_reward = 5*(1/num_actions)*value;
@@ -80,10 +97,11 @@ public:
             //model_loader_ptr->LoadModel();
         }
 
-    private:
+
+private:
 
     static ModelLoader* model_loader_ptr;
-    observes::NearestObserver Observer1;
+    static NearestObserver* Observer1_ptr;
 
 
 };

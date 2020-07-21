@@ -45,7 +45,7 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",
           "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {
-              NNHeuristic::InitializeModelLoader();
+              
           }
 
 dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
@@ -81,6 +81,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
       LOG(ERROR) << "Can't use random_heuristic and nn_heuristic at same time.";
       throw;
       } else if((random_heuristic_)&&!(nn_heuristic_)) {
+          NNHeuristic::InitializeModelLoader();
           mcts_random.search(mcts_state);
           best_action = mcts_random.returnBestAction();
           num_iterations = mcts_random.numIterations();
