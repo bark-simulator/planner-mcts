@@ -82,6 +82,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
       throw;
       } else if((random_heuristic_)&&!(nn_heuristic_)) {
           NNHeuristic::InitializeModelLoader();
+          NNHeuristic::InitializeObserver();
           mcts_random.search(mcts_state);
           best_action = mcts_random.returnBestAction();
           num_iterations = mcts_random.numIterations();

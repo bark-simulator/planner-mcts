@@ -34,10 +34,6 @@ class NNHeuristic :  public mcts::Heuristic<NNHeuristic>
 public:
     NNHeuristic(const mcts::MctsParameters& mcts_parameters) :
             mcts::Heuristic<NNHeuristic>(mcts_parameters) {
-                auto params = std::make_shared<DefaultParams>();   
-                int nearest_agent_num_ = 3;
-                params->SetInt("ML::Observer::n_nearest_agents", nearest_agent_num_);
-                Observer1_ptr = new NearestObserver(params);
             }
     
 
@@ -63,7 +59,7 @@ public:
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
         
         const std::shared_ptr<modules::world::ObservedWorld> observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
-        ObservedState output = Observer1_ptr->observe(observed_world); //call observe method 
+        ObservedState output = Observer_ptr->observe(observed_world); //call observe method 
         std::vector<float> output_vector;
         
         for (int i=0; i< output.cols(); i++){
@@ -94,12 +90,18 @@ public:
             model_loader_ptr = new ModelLoader();
             //model_loader_ptr->LoadModel();
         }
+    static void InitializeObserver() {
+           auto params = std::make_shared<DefaultParams>();   
+            int nearest_agent_num_ = 3;
+            params->SetInt("ML::Observer::n_nearest_agents", nearest_agent_num_);
+            Observer_ptr = new NearestObserver(params);
+   }
 
 
 private:
 
     static ModelLoader* model_loader_ptr;
-    static NearestObserver* Observer1_ptr;
+    static NearestObserver* Observer_ptr;
 
 
 };
