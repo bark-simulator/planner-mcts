@@ -1,2 +1,2 @@
 #!/bin/bash
-source bark/python_wrapper/venv/bin/activate
+source bark_mcts/python_wrapper/venv/bin/activate
