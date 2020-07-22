@@ -44,8 +44,7 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
       prediction_time_span_(GetParams()->AddChild("BehaviorUctSingleAgent")
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",
-          "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {
-              
+          "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {      
           }
 
 dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
