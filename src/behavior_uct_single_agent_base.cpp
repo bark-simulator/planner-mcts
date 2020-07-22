@@ -19,6 +19,7 @@
 #include "modules/models/dynamic/single_track.hpp"
 #include "modules/world/observed_world.hpp"
 
+
 namespace modules {
 namespace models {
 namespace behavior {
@@ -27,6 +28,7 @@ using modules::models::dynamic::Input;
 using modules::models::dynamic::SingleTrackModel;
 using modules::world::ObservedWorldPtr;
 using modules::world::prediction::PredictionSettings;
+using observers::NearestObserver;
 
 BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
     const commons::ParamsPtr& params)
@@ -44,7 +46,10 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
       prediction_time_span_(GetParams()->AddChild("BehaviorUctSingleAgent")
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",
-          "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {      
+          "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {     
+
+              NNHeuristic::InitializeModelLoader();
+              NNHeuristic::InitializeObserver();
           }
 
 dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
@@ -80,8 +85,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
       LOG(ERROR) << "Can't use random_heuristic and nn_heuristic at same time.";
       throw;
       } else if((random_heuristic_)&&!(nn_heuristic_)) {
-          NNHeuristic::InitializeModelLoader();
-          NNHeuristic::InitializeObserver();
+          
           mcts_random.search(mcts_state);
           best_action = mcts_random.returnBestAction();
           num_iterations = mcts_random.numIterations();

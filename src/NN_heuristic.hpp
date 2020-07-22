@@ -27,6 +27,8 @@ using namespace modules::commons;
 namespace modules {
 namespace models {
 namespace behavior {
+                  
+
 
 // assumes all agents have equal number of actions and the same node statistic
 class NNHeuristic :  public mcts::Heuristic<NNHeuristic>
@@ -91,7 +93,7 @@ public:
             //model_loader_ptr->LoadModel();
         }
     static void InitializeObserver() {
-           auto params = std::make_shared<DefaultParams>();   
+            auto params = std::make_shared<DefaultParams>();   
             int nearest_agent_num_ = 3;
             params->SetInt("ML::Observer::n_nearest_agents", nearest_agent_num_);
             Observer_ptr = new NearestObserver(params);
@@ -105,6 +107,9 @@ private:
 
 
 };
+
+ModelLoader* NNHeuristic::model_loader_ptr = NULL;
+NearestObserver* NNHeuristic::Observer_ptr = NULL;
 
 
 }  // namespace behavior
