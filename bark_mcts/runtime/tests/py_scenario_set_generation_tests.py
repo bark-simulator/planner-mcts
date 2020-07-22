@@ -70,14 +70,14 @@ class ScenarioGenerationTests(unittest.TestCase):
         "BehaviorIDMStochastic::MaxAccDistribution": None,
         "BehaviorIDMStochastic::DesiredVelDistribution": None,
         "BehaviorIDMStochastic::ComftBrakingDistribution": None,
-        "BehaviorIDMStochastic::CoolnessFactorDistribution": 2
+        "BehaviorIDMStochastic::CoolnessFactorDistribution": 4
     }
     hierarchy_param_name = "Scenario::Generation::ConfigurableScenarioGeneration::SinksSources::ConfigBehaviorModels::BehaviorSpace::Sampling"
     set_generation = BehaviorHypothesisScenarioSetGeneration(params,
                                                partition_specs = partition_specs,
                                               hierarchy_param_name = hierarchy_param_name)
     scenario_sets_dict = set_generation.GetSets("hypothesis_sets")
-    self.assertEqual(len(scenario_sets_dict), 40)
+    self.assertEqual(len(scenario_sets_dict), 80)
 
 
     combinations_selected_partitions = list(itertools.product(*[list(range(0, spec)) for spec in partition_specs.values() if spec]))
