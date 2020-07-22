@@ -72,7 +72,7 @@ public:
         
         std::vector<float> model_output = model_loader_ptr->Evaluator(output_vector,4);
         
-        double num_actions = model_output.size(); //num actions //use model.output size
+        int num_actions = model_output.size(); //num actions //use model.output size
         double value = std::accumulate(model_output.begin(), model_output.end(), 0);
             
         mcts::Reward ego_all_reward = 5*(1/num_actions)*value;

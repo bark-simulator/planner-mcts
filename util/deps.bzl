@@ -18,7 +18,7 @@ def planner_uct_rules_dependencies():
     _maybe(
     git_repository,
     name = "libtensorflow-RL-MCTS",
-    commit="e27b40a912ee8d5207606b990e08a8c66077a3d7",
+    commit="9b13b789405ad82d717fac0f1e15957510280beb",
     remote = "https://github.com/wejdene14/libtensorflow-RL-MCTS",
     )
 
