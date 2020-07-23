@@ -35,13 +35,12 @@ cc_library(
     hdrs = [
         "behavior_uct_single_agent_base.hpp",
     ],
-    copts = ["-Iexternal/bark_project"],
     deps= [
         "//bark_mcts/models/behavior/param_config:param_config",
         "//bark_mcts/models/behavior/mcts_state:mcts_state_single_agent",
+        "//bark_mcts/models/behavior/heuristics:heuristics",
         "@bark_project//bark:include",
         "@bark_ml//src/observers:nearest_observer",
-        "@bark_project//modules:include",
         "@mamcts_project//mcts:mamcts",
         "@bark_ml//src/model_loader:ModelLoader"
     ],

@@ -14,17 +14,16 @@
 #include <cmath>
 #include "src/observers/nearest_observer_new.hpp"
 #include "src/model_loader/ModelLoader.hpp"
-#include "modules/commons/params/params.hpp"
-#include "modules/geometry/geometry.hpp"
-#include "modules/commons/params/default_params.hpp"
-#include "modules/commons/params/setter_params.hpp"
+#include "bark/commons/params/params.hpp"
+#include "bark/geometry/geometry.hpp"
+#include "bark/commons/params/setter_params.hpp"
 
 using observers::NearestObserver;
 using observers::ObservedState;
 using ObservedState = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>;
-using namespace modules::commons;
+using namespace bark::commons;
 
-namespace modules {
+namespace bark {
 namespace models {
 namespace behavior {
                   
@@ -60,7 +59,7 @@ public:
         // generate an extra node statistic for each agent
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
         
-        const std::shared_ptr<modules::world::ObservedWorld> observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
+        const std::shared_ptr<bark::world::ObservedWorld> observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
         ObservedState output = Observer_ptr->observe(observed_world); //call observe method 
         std::vector<float> output_vector;
         
@@ -93,7 +92,7 @@ public:
             //model_loader_ptr->LoadModel();
         }
     static void InitializeObserver() {
-            auto params = std::make_shared<DefaultParams>();   
+            auto params = std::make_shared<SetterParams>();   
             int nearest_agent_num_ = 3;
             params->SetInt("ML::Observer::n_nearest_agents", nearest_agent_num_);
             Observer_ptr = new NearestObserver(params);
@@ -114,6 +113,6 @@ NearestObserver* NNHeuristic::Observer_ptr = NULL;
 
 }  // namespace behavior
 }  // namespace models
-}  // namespace modules
+}  // namespace bark
 
 #endif // NEURALNETWORK_BASED_HEURISTIC_HPP

@@ -1,6 +1,9 @@
 cc_library(
     name = "heuristics",
-    hdrs = ["domain_heuristic.hpp"],
+    hdrs = [
+        "domain_heuristic.hpp",
+        "nn_heuristic.hpp"
+    ],
     copts = ["-Iexternal/bark_project"],
     deps= [
         "@bark_project//bark:include",

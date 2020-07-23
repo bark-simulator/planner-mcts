@@ -19,7 +19,7 @@
 #include "bark/world/goal_definition/goal_definition_polygon.hpp"
 #include "bark/world/goal_definition/goal_definition_state_limits.hpp"
 
-#include "bark/models/behavior/heuristics/domain_heuristic.hpp"
+#include "bark_mcts/models/behavior/heuristics/domain_heuristic.hpp"
 
 using namespace bark::models::behavior;
 using namespace mcts;
@@ -30,7 +30,6 @@ using bark::models::dynamic::SingleTrackModel;
 using bark::models::execution::ExecutionModelPtr;
 using bark::models::dynamic::Input;
 using bark::world::ObservedWorldPtr;
-using bark::commons::DefaultParams;
 using bark::commons::SetterParams;
 using bark::geometry::Polygon;
 using bark::geometry::Point2d;

@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Julian Bernhard
+// Copyright (c) 2019 fortiss GmbH
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
@@ -17,8 +17,6 @@ typedef std::shared_ptr<ObservedWorld> ObservedWorldPtr;
 }  // namespace world
 namespace models {
 namespace behavior {
-using modules::world::ObservedWorld;
-using modules::world::ObservedWorldPtr;
 
 // A simple environment with a 1D state, only if both agents select different
 // actions, they get nearer to the terminal state
@@ -27,7 +25,8 @@ class MctsStateSingleAgent : public mcts::StateInterface<MctsStateSingleAgent> {
   MctsStateSingleAgent(const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
-                       const float& prediction_time_span);
+                       const float& prediction_time_span,
+                       const mcts::AgentIdx& ego_agent_id);
   ~MctsStateSingleAgent() {}
 
   std::shared_ptr<MctsStateSingleAgent> clone() const;
@@ -49,14 +48,17 @@ class MctsStateSingleAgent : public mcts::StateInterface<MctsStateSingleAgent> {
   float get_distance_to_goal() const;
 
   bool get_collision_happen() const;
-  
-  const ObservedWorldPtr get_observed_world() const;
 
  private:
-  const std::shared_ptr<modules::world::ObservedWorld> observed_world_;
+  std::vector<mcts::AgentIdx> update_other_agent_ids() const;
+
+  const std::shared_ptr<const bark::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
   const mcts::ActionIdx num_ego_actions_;
   const float prediction_time_span_;
+
+  const std::vector<mcts::AgentIdx> other_agent_ids_;
+  const mcts::AgentIdx ego_agent_id_;
 };
 
 }  // namespace behavior

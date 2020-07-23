@@ -3,32 +3,34 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "src/behavior_uct_single_agent_base.hpp"
-#include "src/mcts_parameters_from_param_server.hpp"
+#include "bark_mcts/models/behavior/behavior_uct_single_agent_base.hpp"
+#include "bark_mcts/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
 #define MCTS_EXPECT_TRUE(cond) BARK_EXPECT_TRUE(cond)
 #include "mcts/heuristics/random_heuristic.h"
 #include "mcts/mcts.h"
 #include "mcts/statistics/uct_statistic.h"
-#include "src/mcts_state_single_agent.hpp"
-#include "src/domain_heuristic.hpp"
-#include "src/NN_heuristic.hpp"
+#include "bark_mcts/models/behavior/mcts_state/mcts_state_single_agent.hpp"
+#include "bark_mcts/models/behavior/heuristics/domain_heuristic.hpp"
 
-#include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
-#include "modules/models/behavior/idm/idm_classic.hpp"
-#include "modules/models/behavior/motion_primitives/continuous_actions.hpp"
-#include "modules/models/dynamic/single_track.hpp"
-#include "modules/world/observed_world.hpp"
+// Todo: Integrate Changes in BARKML to new bark version
+//#include "bark_mcts/models/behavior/heuristics/nn_heuristic.hpp"
+
+#include "bark/models/behavior/constant_velocity/constant_velocity.hpp"
+#include "bark/models/behavior/idm/idm_classic.hpp"
+#include "bark/models/behavior/motion_primitives/continuous_actions.hpp"
+#include "bark/models/dynamic/single_track.hpp"
+#include "bark/world/observed_world.hpp"
 
 
-namespace modules {
+namespace bark {
 namespace models {
 namespace behavior {
 
-using modules::models::dynamic::Input;
-using modules::models::dynamic::SingleTrackModel;
-using modules::world::ObservedWorldPtr;
-using modules::world::prediction::PredictionSettings;
-using observers::NearestObserver;
+using bark::models::dynamic::Input;
+using bark::models::dynamic::SingleTrackModel;
+using bark::world::ObservedWorldPtr;
+using bark::world::prediction::PredictionSettings;
+//using observers::NearestObserver; // Todo: Uncomment
 
 BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
     const commons::ParamsPtr& params)
@@ -48,8 +50,8 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
                                         ->GetReal("TimeSpan",
           "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {     
 
-              NNHeuristic::InitializeModelLoader();
-              NNHeuristic::InitializeObserver();
+            //  NNHeuristic::InitializeModelLoader(); // Todo: Uncomment
+            //  NNHeuristic::InitializeObserver();
           }
 
 dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
@@ -62,8 +64,8 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
              mcts::RandomHeuristic> mcts_random (mcts_parameters_);
   mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic,
              DomainHeuristic> mcts_domain(mcts_parameters_);
-  mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic,
-             NNHeuristic> mcts_nn(mcts_parameters_);
+ /* mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic, // Todo: Uncomment
+             NNHeuristic> mcts_nn(mcts_parameters_); */
 
   std::shared_ptr<BehaviorMotionPrimitives> ego_model =
       std::dynamic_pointer_cast<BehaviorMotionPrimitives>(
@@ -74,7 +76,8 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
   BehaviorMotionPrimitives::MotionIdx num =
       ego_model->GetNumMotionPrimitives(const_mcts_observed_world);
 
-  MctsStateSingleAgent mcts_state(mcts_observed_world, false, num, prediction_time_span_);
+  MctsStateSingleAgent mcts_state(mcts_observed_world, false, num, prediction_time_span_,
+                                                 const_mcts_observed_world->GetEgoAgentId());
   
  
   mcts::ActionIdx best_action;
@@ -94,7 +97,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
               std::stringstream filename;
               filename << "tree_dot_file_" << delta_time;
               mcts_random.printTreeToDotFile(filename.str());}
-      } else if(!(random_heuristic_)&&(nn_heuristic_)) {
+      /*} else if(!(random_heuristic_)&&(nn_heuristic_)) { // Todo: Uncomment
           mcts_nn.search(mcts_state);
           best_action = mcts_nn.returnBestAction();
           num_iterations = mcts_nn.numIterations();
@@ -102,7 +105,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
           if (dump_tree_) {
               std::stringstream filename;
               filename << "tree_dot_file_" << delta_time;
-              mcts_nn.printTreeToDotFile(filename.str());}
+              mcts_nn.printTreeToDotFile(filename.str());} */
       } else{
           mcts_domain.search(mcts_state);
           best_action = mcts_domain.returnBestAction();
@@ -130,4 +133,4 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
 
 }  // namespace behavior
 }  // namespace models
-}  // namespace modules
+}  // namespace bark

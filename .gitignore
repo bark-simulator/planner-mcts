@@ -142,11 +142,11 @@ venv.bak/
 
 tests/environment/hello-test\.cc
 
-modules/example_module/proto/tutorial/
+bark/example_module/proto/tutorial/
 
 python/venv
-node_modules
-web/node_modules
+node_bark
+web/node_bark
 
 .DS_Store
 .gitkeep

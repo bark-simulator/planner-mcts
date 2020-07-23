@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Julian Bernhard
+// Copyright (c) 2019 fortiss GmbH
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
@@ -68,7 +68,7 @@ TEST(single_agent_mcts_state, execute) {
   observed_world->SetupPrediction(prediction_settings);
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
   const auto num_ego_actions = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->GetNumMotionPrimitives(const_observed_world);
-  MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span);
+  MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span, observed_world->GetEgoAgentId());
   
   std::vector<mcts::Reward> rewards;
   mcts::Cost cost;
@@ -133,7 +133,7 @@ TEST(single_agent_mcts_state, execute_goal_reached_state_limits) {
   observed_world->SetupPrediction(prediction_settings);
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
   const auto num_ego_actions = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->GetNumMotionPrimitives(const_observed_world);
-  MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span);
+  MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span, observed_world->GetEgoAgentId());
   
   // Checking goal reached: Do multiple steps and expect that goal is reached
   std::vector<mcts::Reward> rewards;
@@ -154,13 +154,13 @@ TEST(single_agent_mcts_state, execute_goal_reached_state_limits) {
 
 TEST(behavior_uct_single_agent, no_agent_in_front_accelerate) {
   // Test if uct planner accelerates if there is no agent in front
-  auto params = std::make_shared<SetterParams>(true);
+  auto params = std::make_shared<SetterParams>(false);
   params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 10000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 20000);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 1000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
   params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {5,0}, {0,-1}, {0, 1}, {-3,0}}); 
-  params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.95);
+  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {20,0}, {0,-1}, {0, 1}, {-3,0}}); 
+  params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.6);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 10000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 10);
@@ -184,12 +184,12 @@ TEST(behavior_uct_single_agent, no_agent_in_front_accelerate) {
 
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
-  auto params = std::make_shared<SetterParams>(true);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 1000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 20000);
+  auto params = std::make_shared<SetterParams>(false);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 10000);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 1000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
   params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {5,0}, {0,-1}, {0, 1}, {-3,0}}); 
+  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {5,0}, {0,-1}, {0, 1}, {-10,0}}); 
   params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.9);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 10);
@@ -197,7 +197,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
 
-  float ego_velocity = 5.0, rel_distance = 7.0, velocity_difference=2.0, prediction_time_span=0.2f;
+  float ego_velocity = 5.0, rel_distance = 3.0, velocity_difference = 4.0, prediction_time_span=0.2f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(100,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
@@ -215,8 +215,8 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
 TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
   auto params = std::make_shared<SetterParams>();
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 1000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 2000);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 10000);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 100);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
   params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
   params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {5,0}, {0,-1}, {0, 1}, {-3,0}}); 
@@ -260,15 +260,15 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
 TEST(behavior_uct_single_agent, change_lane) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
   auto params = std::make_shared<SetterParams>();
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 2000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 40000);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 10000);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 1000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
   params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0},{3,0}, {5,0}, {0,-0.27}, {0,-0.17}, {-5,0}}); 
+  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {1,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
   params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.9);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 20000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 10);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 100);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
 
@@ -287,7 +287,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->GetAgents().begin()->second->GetAgentId());
 
   bool goal_reached = false;
-  for(int i =0; i<30; ++i) {
+  for(int i =0; i<1000; ++i) {
     world->Step(prediction_time_span);
     bool outside_drivable_area = boost::get<bool>(evaluator_drivable_area.Evaluate(*world));
     bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));

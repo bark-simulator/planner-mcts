@@ -13,7 +13,7 @@
 #include <math.h>
 #include <cmath>
 
-namespace modules {
+namespace bark {
 namespace models {
 namespace behavior {
 // assumes all agents have equal number of actions and the same node statistic
@@ -69,6 +69,6 @@ public:
 
 }  // namespace behavior
 }  // namespace models
-}  // namespace modules
+}  // namespace bark
 
 #endif // DOMAIN_BASED_HEURISTIC_HPP
