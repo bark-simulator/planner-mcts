@@ -30,7 +30,7 @@ public:
             const auto ego_agent_idx = node->get_state()->get_ego_agent_idx();
             const mcts::ActionIdx num_ego_actions = node->get_state()->get_num_actions(ego_agent_idx); 
             SE ego_heuristic(num_ego_actions, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
-            ego_heuristic.set_heuristic_estimate(100.0f, 0.0f);//(0.0f, 0.0f)
+            ego_heuristic.set_heuristic_estimate(0.0f, 0.0f);//(0.0f, 0.0f)
             std::unordered_map<mcts::AgentIdx, SO> other_heuristic_estimates;
             for (const auto& ai : node->get_state()->get_other_agent_idx())
             { 

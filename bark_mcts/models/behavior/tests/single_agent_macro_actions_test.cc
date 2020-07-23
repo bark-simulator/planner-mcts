@@ -6,7 +6,7 @@
 #include "gtest/gtest.h"
 #include "mcts/mcts.h"
 #include "bark_mcts/models/behavior/mcts_state/mcts_state_single_agent.hpp"
-#include "bark_mcts/models/behavior//behavior_uct_single_agent_macro_actions.hpp"
+#include "bark_mcts/models/behavior/behavior_uct_single_agent_macro_actions.hpp"
 #include "bark/world/tests/make_test_world.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
 #include "bark/models/behavior/motion_primitives/macro_actions.hpp"
@@ -86,6 +86,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
   params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", true);
 
+
   float ego_velocity = 5.0, rel_distance = 3.0, velocity_difference=2.0, prediction_time_span=0.2f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(100,0)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
@@ -113,6 +114,7 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
   params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", true);
+
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
@@ -161,6 +163,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
   params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", true);
+
 
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;

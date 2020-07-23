@@ -20,6 +20,9 @@ def pickle_unpickle(object):
 
 class PickleTests(unittest.TestCase):
     def test_behavior_uct_pickle(self):
+        params = ParameterServer()
+        behavior = BehaviorUCTSingleAgentMacroActions()
+        behavior_unpickled = pickle_unpickle(behavior)
         
 
 
