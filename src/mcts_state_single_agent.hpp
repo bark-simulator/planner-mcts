@@ -25,7 +25,8 @@ class MctsStateSingleAgent : public mcts::StateInterface<MctsStateSingleAgent> {
   MctsStateSingleAgent(const modules::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
-                       const float& prediction_time_span);
+                       const float& prediction_time_span,
+                       const mcts::AgentIdx& ego_agent_id);
   ~MctsStateSingleAgent() {}
 
   std::shared_ptr<MctsStateSingleAgent> clone() const;
@@ -49,10 +50,15 @@ class MctsStateSingleAgent : public mcts::StateInterface<MctsStateSingleAgent> {
   bool get_collision_happen() const;
 
  private:
+  std::vector<mcts::AgentIdx> update_other_agent_ids() const;
+
   const std::shared_ptr<const modules::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
   const mcts::ActionIdx num_ego_actions_;
   const float prediction_time_span_;
+
+  const std::vector<mcts::AgentIdx> other_agent_ids_;
+  const mcts::AgentIdx ego_agent_id_;
 };
 
 }  // namespace behavior

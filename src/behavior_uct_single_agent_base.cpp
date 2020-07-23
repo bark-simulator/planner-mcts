@@ -63,7 +63,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
   BehaviorMotionPrimitives::MotionIdx num =
       ego_model->GetNumMotionPrimitives(const_mcts_observed_world);
 
-  MctsStateSingleAgent mcts_state(mcts_observed_world, false, num, prediction_time_span_);
+  MctsStateSingleAgent mcts_state(mcts_observed_world, false, num, prediction_time_span_, const_mcts_observed_world->GetEgoAgentId());
   
  
   mcts::ActionIdx best_action;

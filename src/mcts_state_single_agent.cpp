@@ -28,17 +28,20 @@ using modules::world::evaluation::EvaluatorDistanceToGoal;
 
 MctsStateSingleAgent::MctsStateSingleAgent(
     const ObservedWorldPtr& observed_world, bool is_terminal_state,
-    const mcts::ActionIdx& num_ego_actions, const float& prediction_time_span)
+    const mcts::ActionIdx& num_ego_actions, const float& prediction_time_span,
+    const mcts::AgentIdx& ego_agent_id)
     : observed_world_(observed_world),
       is_terminal_state_(is_terminal_state),
       num_ego_actions_(num_ego_actions),
-      prediction_time_span_(prediction_time_span) {}
+      prediction_time_span_(prediction_time_span),
+      other_agent_ids_(update_other_agent_ids()),
+      ego_agent_id_(ego_agent_id) {}
 
 std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::clone() const {
   auto worldptr =
       std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
   return std::make_shared<MctsStateSingleAgent>(
-      worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_);
+      worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_, ego_agent_id_);
 }
 
 std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::execute(
@@ -84,7 +87,7 @@ std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::execute(
       (collision_drivable_area || collision_ego || goal_reached || out_of_map);
 
   return std::make_shared<MctsStateSingleAgent>(
-      predicted_world, is_terminal, num_ego_actions_, prediction_time_span_);
+      predicted_world, is_terminal, num_ego_actions_, prediction_time_span_, ego_agent_id_);
 }
 
 mcts::ActionIdx MctsStateSingleAgent::get_num_actions(
@@ -102,12 +105,21 @@ bool MctsStateSingleAgent::get_collision_happen() const{
        return collision_ego;
 }
 
+std::vector<mcts::AgentIdx> MctsStateSingleAgent::update_other_agent_ids() const {
+  world::AgentMap agent_map = observed_world_->GetOtherAgents();
+  std::vector<mcts::AgentIdx> ids;
+  for (const auto &agent : agent_map) {
+    ids.push_back(agent.first);
+  }
+  return ids;
+}
+
 const std::vector<mcts::AgentIdx> MctsStateSingleAgent::get_other_agent_idx() const {
-  return std::vector<mcts::AgentIdx>{0};
+  return other_agent_ids_;
 }
 
 const mcts::AgentIdx MctsStateSingleAgent::get_ego_agent_idx() const {
-  return 0;
+  return ego_agent_id_;
 }
 
 std::string MctsStateSingleAgent::sprintf() const { return std::string(); }

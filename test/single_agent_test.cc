@@ -71,7 +71,7 @@ TEST(single_agent_mcts_state, execute) {
   observed_world->SetupPrediction(prediction_settings);
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
   const auto num_ego_actions = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->GetNumMotionPrimitives(const_observed_world);
-  MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span);
+  MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span, observed_world->GetEgoAgentId());
   
   std::vector<mcts::Reward> rewards;
   mcts::Cost cost;
@@ -136,7 +136,7 @@ TEST(single_agent_mcts_state, execute_goal_reached_state_limits) {
   observed_world->SetupPrediction(prediction_settings);
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
   const auto num_ego_actions = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_prediction_model)->GetNumMotionPrimitives(const_observed_world);
-  MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span);
+  MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span, observed_world->GetEgoAgentId());
   
   // Checking goal reached: Do multiple steps and expect that goal is reached
   std::vector<mcts::Reward> rewards;
