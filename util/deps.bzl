@@ -22,6 +22,20 @@ cc_library(
         commit="37f0ba29da964f4f94bfca3b04ec7311ddd81a17",
         remote = "https://github.com/bark-simulator/bark",
     )
+    
+    _maybe(
+    git_repository,
+    name = "bark_ml",
+    commit="e136b70fba629a8b0bc8bf5a7611c2078d56f837",
+    remote = "https://github.com/SebastianGra/bark-ml_MCTS_RL",
+    )
+
+    _maybe(
+    git_repository,
+    name = "libtensorflow-RL-MCTS",
+    commit="9b13b789405ad82d717fac0f1e15957510280beb",
+    remote = "https://github.com/wejdene14/libtensorflow-RL-MCTS",
+    )
 
     _maybe(
     git_repository,
@@ -33,3 +47,4 @@ cc_library(
 def _maybe(repo_rule, name, **kwargs):
     if name not in native.existing_rules():
         repo_rule(name = name, **kwargs)
+

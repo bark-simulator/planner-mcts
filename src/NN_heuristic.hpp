@@ -4,24 +4,40 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 // ========================================================
 
-#ifndef DOMAIN_BASED_HEURISTIC_HPP
-#define DOMAIN_BASED_HEURISTIC_HPP
+#ifndef NEURALNETWORK_BASED_HEURISTIC_HPP
+#define NEURALNETWORK_BASED_HEURISTIC_HPP
 
 #include "mcts/mcts.h"
 #include <iostream>
 #include <chrono>
 #include <math.h>
 #include <cmath>
+#include "src/observers/nearest_observer_new.hpp"
+#include "src/model_loader/ModelLoader.hpp"
+#include "modules/commons/params/params.hpp"
+#include "modules/geometry/geometry.hpp"
+#include "modules/commons/params/default_params.hpp"
+#include "modules/commons/params/setter_params.hpp"
+
+using observers::NearestObserver;
+using observers::ObservedState;
+using ObservedState = Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic>;
+using namespace modules::commons;
 
 namespace modules {
 namespace models {
 namespace behavior {
+                  
+
+
 // assumes all agents have equal number of actions and the same node statistic
-class DomainHeuristic :  public mcts::Heuristic<DomainHeuristic>
+class NNHeuristic :  public mcts::Heuristic<NNHeuristic>
 {
 public:
-    DomainHeuristic(const mcts::MctsParameters& mcts_parameters) :
-            mcts::Heuristic<DomainHeuristic>(mcts_parameters) {}
+    NNHeuristic(const mcts::MctsParameters& mcts_parameters) :
+            mcts::Heuristic<NNHeuristic>(mcts_parameters) {
+            }
+    
 
     template<class S, class SE, class SO, class H>
     std::pair<SE, std::unordered_map<mcts::AgentIdx, SO>> calculate_heuristic_values(const std::shared_ptr<mcts::StageNode<S,SE,SO,H>> &node) {
@@ -43,15 +59,24 @@ public:
     
         // generate an extra node statistic for each agent
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
-        auto goal_distance = node->get_state()->get_distance_to_goal();
-        //mcts::Reward ego_all_reward = 105-5*exp(0.3*goal_distance);
-        //mcts::Reward ego_all_reward = 1/(0.01 + goal_distance);
-        //mcts::Reward ego_all_reward = 100-80*goal_distance;
-        mcts::Reward ego_all_reward = 100-100*log(goal_distance+1);
-
+        
+        const std::shared_ptr<modules::world::ObservedWorld> observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
+        ObservedState output = Observer_ptr->observe(observed_world); //call observe method 
+        std::vector<float> output_vector;
+        
+        for (int i=0; i< output.cols(); i++){
+            output_vector[i] = output(0, i);
+            }
+        
+        std::vector<float> model_output = model_loader_ptr->Evaluator(output_vector,4);
+        
+        int num_actions = model_output.size(); //num actions //use model.output size
+        double value = std::accumulate(model_output.begin(), model_output.end(), 0);
+            
+        mcts::Reward ego_all_reward = 5*(1/num_actions)*value;
 
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
-        LOG_EVERY_N(INFO, 100) << "Calculating domain value=" << ego_all_reward << ", for dist. to. goal=" << goal_distance;//30
+        LOG_EVERY_N(INFO, 100) << "Calculating domain value=" << ego_all_reward;//30
         std::unordered_map<mcts::AgentIdx, SO> other_heuristic_estimates;
         mcts::AgentIdx reward_idx=1;
         for (auto agent_idx : node->get_state()->get_other_agent_idx())
@@ -63,12 +88,32 @@ public:
         }
         return std::pair<SE, std::unordered_map<mcts::AgentIdx, SO>>(ego_heuristic, other_heuristic_estimates);
     }  
+    static void InitializeModelLoader() {
+            model_loader_ptr = new ModelLoader();
+            //model_loader_ptr->LoadModel();
+        }
+    static void InitializeObserver() {
+            auto params = std::make_shared<DefaultParams>();   
+            int nearest_agent_num_ = 3;
+            params->SetInt("ML::Observer::n_nearest_agents", nearest_agent_num_);
+            Observer_ptr = new NearestObserver(params);
+   }
+
+
+private:
+
+    static ModelLoader* model_loader_ptr;
+    static NearestObserver* Observer_ptr;
+
 
 };
+
+ModelLoader* NNHeuristic::model_loader_ptr = NULL;
+NearestObserver* NNHeuristic::Observer_ptr = NULL;
 
 
 }  // namespace behavior
 }  // namespace models
 }  // namespace modules
 
-#endif // DOMAIN_BASED_HEURISTIC_HPP
+#endif // NEURALNETWORK_BASED_HEURISTIC_HPP

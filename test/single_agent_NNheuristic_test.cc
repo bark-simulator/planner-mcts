@@ -5,44 +5,47 @@
 
 #include "gtest/gtest.h"
 #include "mcts/mcts.h"
-#include "bark_mcts/models/behavior/mcts_state/mcts_state_single_agent.hpp"
-#include "bark_mcts/models/behavior/behavior_uct_single_agent_macro_actions.hpp"
-#include "bark/world/tests/make_test_world.hpp"
-#include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
-#include "bark/models/behavior/motion_primitives/macro_actions.hpp"
-#include "bark/models/behavior/constant_velocity/constant_velocity.hpp"
-#include "bark/models/dynamic/single_track.hpp"
-#include "bark/commons/params/setter_params.hpp"
-#include "bark/world/evaluation/evaluator_drivable_area.hpp"
-#include "bark/world/evaluation/evaluator_collision_ego_agent.hpp"
-#include "bark/world/evaluation/evaluator_goal_reached.hpp"
-#include "bark/world/goal_definition/goal_definition_polygon.hpp"
-#include "bark/world/goal_definition/goal_definition_state_limits.hpp"
+#include "src/mcts_state_single_agent.hpp"
+#include "src/behavior_uct_single_agent_macro_actions.hpp"
+#include "modules/commons/params/default_params.hpp"
+#include "modules/world/tests/make_test_world.hpp"
+#include "modules/models/behavior/motion_primitives/motion_primitives.hpp"
+#include "modules/models/behavior/motion_primitives/macro_actions.hpp"
+#include "modules/models/behavior/constant_velocity/constant_velocity.hpp"
+#include "modules/models/dynamic/single_track.hpp"
+#include "modules/commons/params/default_params.hpp"
+#include "modules/commons/params/setter_params.hpp"
+#include "modules/world/evaluation/evaluator_drivable_area.hpp"
+#include "modules/world/evaluation/evaluator_collision_ego_agent.hpp"
+#include "modules/world/evaluation/evaluator_goal_reached.hpp"
+#include "modules/world/goal_definition/goal_definition_polygon.hpp"
+#include "modules/world/goal_definition/goal_definition_state_limits.hpp"
 
-#include "bark/models/behavior/heuristics/domain_heuristic.hpp"
+#include "src/NN_heuristic.hpp"
 
-using namespace bark::models::behavior;
+
+using namespace modules::models::behavior;
 using namespace mcts;
-using bark::world::tests::make_test_observed_world;
-using bark::world::tests::make_test_world;
-using bark::world::prediction::PredictionSettings;
-using bark::models::dynamic::SingleTrackModel;
-using bark::models::execution::ExecutionModelPtr;
-using bark::models::dynamic::Input;
-using bark::world::ObservedWorldPtr;
-using bark::commons::DefaultParams;
-using bark::commons::SetterParams;
-using bark::geometry::Polygon;
-using bark::geometry::Point2d;
-using bark::geometry::Pose;
-using bark::geometry::Distance;
-using bark::world::goal_definition::GoalDefinitionPtr;
-using bark::world::goal_definition::GoalDefinitionPolygon;
-using bark::world::goal_definition::GoalDefinitionStateLimits;
-using bark::models::dynamic::Trajectory;
-using bark::world::evaluation::EvaluatorDrivableArea;
-using bark::world::evaluation::EvaluatorGoalReached;
-using bark::world::evaluation::EvaluatorCollisionEgoAgent;
+using modules::world::tests::make_test_observed_world;
+using modules::world::tests::make_test_world;
+using modules::world::prediction::PredictionSettings;
+using modules::models::dynamic::SingleTrackModel;
+using modules::models::execution::ExecutionModelPtr;
+using modules::models::dynamic::Input;
+using modules::world::ObservedWorldPtr;
+using modules::commons::DefaultParams;
+using modules::commons::SetterParams;
+using modules::geometry::Polygon;
+using modules::geometry::Point2d;
+using modules::geometry::Pose;
+using modules::geometry::Distance;
+using modules::world::goal_definition::GoalDefinitionPtr;
+using modules::world::goal_definition::GoalDefinitionPolygon;
+using modules::world::goal_definition::GoalDefinitionStateLimits;
+using modules::models::dynamic::Trajectory;
+using modules::world::evaluation::EvaluatorDrivableArea;
+using modules::world::evaluation::EvaluatorGoalReached;
+using modules::world::evaluation::EvaluatorCollisionEgoAgent;
 
 
 
@@ -57,12 +60,12 @@ TEST(behavior_uct_single_agent, change_lane_random_heuristic) {
   params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.95);//0.9/0.95
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);//0.7/0.6
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 20000);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 100);//10
+  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 10);
 
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -50000);//-1000
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);//100
   params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", false);
-  params->SetBool("BehaviorUctSingleAgent::NNHeuristic", false);
+  params->SetBool("BehaviorUctSingleAgent::UseNNHeuristic", true);
 
 
   float ego_velocity = 10.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;//ego_velocity = 5.0

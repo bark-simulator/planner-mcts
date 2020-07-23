@@ -17,6 +17,8 @@ typedef std::shared_ptr<ObservedWorld> ObservedWorldPtr;
 }  // namespace world
 namespace models {
 namespace behavior {
+using modules::world::ObservedWorld;
+using modules::world::ObservedWorldPtr;
 
 // A simple environment with a 1D state, only if both agents select different
 // actions, they get nearer to the terminal state
@@ -44,8 +46,14 @@ class MctsStateSingleAgent : public mcts::StateInterface<MctsStateSingleAgent> {
 
   std::string sprintf() const;
 
+  float get_distance_to_goal() const;
+
+  bool get_collision_happen() const;
+  
+  const ObservedWorldPtr get_observed_world() const;
+
  private:
-  const std::shared_ptr<const bark::world::ObservedWorld> observed_world_;
+  const std::shared_ptr<modules::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
   const mcts::ActionIdx num_ego_actions_;
   const float prediction_time_span_;
