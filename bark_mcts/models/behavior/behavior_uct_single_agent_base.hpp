@@ -1,4 +1,4 @@
-// Copyright (c) 2019 fortiss GmbH
+// Copyright (c) 2020 Julian Bernhard
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
@@ -9,10 +9,10 @@
 #include <memory>
 #include "mcts/mcts_parameters.h"
 
-#include "modules/models/behavior/behavior_model.hpp"
-#include "modules/world/prediction/prediction_settings.hpp"
+#include "bark/models/behavior/behavior_model.hpp"
+#include "bark/world/prediction/prediction_settings.hpp"
 
-namespace modules {
+namespace bark {
 namespace world {
 class ObservedWorld;
 }
@@ -28,16 +28,14 @@ class BehaviorUCTSingleAgentBase : public BehaviorModel {
   virtual Trajectory Plan(float delta_time,
                           const world::ObservedWorld& observed_world);
 
-  virtual modules::world::prediction::PredictionSettings
+  virtual bark::world::prediction::PredictionSettings
   SetupPredictionSettings(const commons::ParamsPtr& params) = 0;
 
   virtual std::shared_ptr<BehaviorModel> Clone() const = 0;
 
  protected:
-  modules::world::prediction::PredictionSettings prediction_settings_;
-  double prediction_time_span_;
+  bark::world::prediction::PredictionSettings prediction_settings_;
   bool dump_tree_;
-  bool random_heuristic_;
 
   // MCTS PARAMETERS
   mcts::MctsParameters mcts_parameters_;
@@ -45,6 +43,6 @@ class BehaviorUCTSingleAgentBase : public BehaviorModel {
 
 }  // namespace behavior
 }  // namespace models
-}  // namespace modules
+}  // namespace bark
 
 #endif  // MODULES_MODELS_BEHAVIOR_SINGLE_AGENT_MCTS_BASE_HPP_

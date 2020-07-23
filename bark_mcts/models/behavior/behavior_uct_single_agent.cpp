@@ -1,21 +1,21 @@
-// Copyright (c) 2019 fortiss GmbH
+// Copyright (c) 2020 Julian Bernhard
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "src/behavior_uct_single_agent.hpp"
+#include "bark_mcts/models/behavior/behavior_uct_single_agent.hpp"
 
-#include "modules/models/behavior/idm/idm_classic.hpp"
-#include "modules/models/behavior/motion_primitives/continuous_actions.hpp"
-#include "modules/models/dynamic/single_track.hpp"
+#include "bark/models/behavior/idm/idm_classic.hpp"
+#include "bark/models/behavior/motion_primitives/continuous_actions.hpp"
+#include "bark/models/dynamic/single_track.hpp"
 
-namespace modules {
+namespace bark {
 namespace models {
 namespace behavior {
 
-using modules::models::dynamic::Input;
-using modules::models::dynamic::SingleTrackModel;
-using modules::world::prediction::PredictionSettings;
+using bark::models::dynamic::Input;
+using bark::models::dynamic::SingleTrackModel;
+using bark::world::prediction::PredictionSettings;
 
 PredictionSettings BehaviorUCTSingleAgent::SetupPredictionSettings(
     const commons::ParamsPtr& params) {
@@ -44,4 +44,4 @@ PredictionSettings BehaviorUCTSingleAgent::SetupPredictionSettings(
 
 }  // namespace behavior
 }  // namespace models
-}  // namespace modules
+}  // namespace bark

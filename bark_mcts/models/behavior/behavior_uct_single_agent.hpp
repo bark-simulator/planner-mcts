@@ -1,4 +1,4 @@
-// Copyright (c) 2019 fortiss GmbH
+// Copyright (c) 2020 Julian Bernhard
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
@@ -7,9 +7,9 @@
 #define MODULES_MODELS_BEHAVIOR_SINGLE_AGENT_MCTS_HPP_
 
 #include <memory>
-#include "src/behavior_uct_single_agent_base.hpp"
+#include "bark_mcts/models/behavior/behavior_uct_single_agent_base.hpp"
 
-namespace modules {
+namespace bark {
 namespace models {
 namespace behavior {
 
@@ -18,12 +18,12 @@ class BehaviorUCTSingleAgent : public BehaviorUCTSingleAgentBase {
   BehaviorUCTSingleAgent(const commons::ParamsPtr& params)
       : BehaviorUCTSingleAgentBase(params) {
     prediction_settings_ = SetupPredictionSettings(
-      GetParams()->AddChild("BehaviorUctSingleAgent")->AddChild("PredictionSettings"));
+      GetParams()->AddChild("PredictionSettings"));
   }
 
   virtual ~BehaviorUCTSingleAgent() {}
 
-  virtual modules::world::prediction::PredictionSettings
+  virtual bark::world::prediction::PredictionSettings
   SetupPredictionSettings(const commons::ParamsPtr& params);
 
   virtual std::shared_ptr<BehaviorModel> Clone() const;
@@ -37,6 +37,6 @@ inline std::shared_ptr<BehaviorModel> BehaviorUCTSingleAgent::Clone() const {
 
 }  // namespace behavior
 }  // namespace models
-}  // namespace modules
+}  // namespace bark
 
 #endif  // MODULES_MODELS_BEHAVIOR_SINGLE_AGENT_MCTS_HPP_
