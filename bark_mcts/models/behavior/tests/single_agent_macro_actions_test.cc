@@ -44,7 +44,7 @@ using bark::world::evaluation::EvaluatorCollisionEgoAgent;
 
 TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   // Test if uct planner accelerates if there is no agent in front
-  auto params = std::make_shared<SetterParams>(true);
+  auto params = std::make_shared<SetterParams>(false);
   params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 100000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 1000);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
@@ -56,6 +56,7 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 10);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -10000);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 10000);
+  params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", true);
 
   float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
@@ -83,6 +84,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 100);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
+  params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", true);
 
   float ego_velocity = 5.0, rel_distance = 3.0, velocity_difference=2.0, prediction_time_span=0.2f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
@@ -110,6 +112,7 @@ TEST(behavior_uct_single_agent, agent_in_front_reach_goal) {
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 100);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
+  params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", true);
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-5, -5), Point2d(-5, 5), Point2d(5, 5), Point2d(5, -5), Point2d(-5, -5)});
@@ -157,6 +160,7 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 10);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -1000);
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);
+  params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", true);
 
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;

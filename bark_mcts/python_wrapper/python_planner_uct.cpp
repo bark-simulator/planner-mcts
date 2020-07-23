@@ -7,7 +7,7 @@
 #include "bark/python_wrapper/polymorphic_conversion.hpp"
 #include <memory>
 #include "bark_mcts/models/behavior/behavior_uct_single_agent.hpp"
-//#include "bark/models/behavior/behavior_uct_single_agent_macro_actions.hpp"
+#include "bark_mcts/models/behavior/behavior_uct_single_agent_macro_actions.hpp"
 
 #include "mcts/random_generator.h"
 
