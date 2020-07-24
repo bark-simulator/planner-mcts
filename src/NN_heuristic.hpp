@@ -68,12 +68,12 @@ public:
             output_vector[i] = output(0, i);
             }
         
-        std::vector<float> model_output = model_loader_ptr->Evaluator(output_vector,4);
+        std::vector<float> model_output = model_loader_ptr->Evaluator(output_vector,8);
         
         int num_actions = model_output.size(); //num actions //use model.output size
         double value = std::accumulate(model_output.begin(), model_output.end(), 0);
             
-        mcts::Reward ego_all_reward = 5*(1/num_actions)*value;
+        mcts::Reward ego_all_reward = (1/num_actions)*value;
 
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
         LOG_EVERY_N(INFO, 100) << "Calculating domain value=" << ego_all_reward;//30
@@ -93,8 +93,8 @@ public:
             //model_loader_ptr->LoadModel();
         }
     static void InitializeObserver() {
-            auto params = std::make_shared<DefaultParams>();   
-            int nearest_agent_num_ = 3;
+            auto params = std::make_shared<SetterParams>(false);//auto params = std::make_shared<DefaultParams>();   
+            int nearest_agent_num_ = 4;
             params->SetInt("ML::Observer::n_nearest_agents", nearest_agent_num_);
             Observer_ptr = new NearestObserver(params);
    }
