@@ -66,6 +66,7 @@ TEST(behavior_uct_single_agent, change_lane_random_heuristic) {
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);//100
   params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", false);
   params->SetBool("BehaviorUctSingleAgent::UseNNHeuristic", true);
+  params->SetString("BehaviorUctSingleAgent::Savedmodeldirectory", "/home/guoyujian/model/model/");
 
 
   float ego_velocity = 10.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;//ego_velocity = 5.0

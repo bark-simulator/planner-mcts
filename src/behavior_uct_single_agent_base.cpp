@@ -39,6 +39,9 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
       dump_tree_(GetParams()->AddChild("BehaviorUctSingleAgent")->GetBool(
           "DumpTree",
           "If true, tree is dumped to dot file after planning", false)),
+      model_dir_(GetParams()->AddChild("BehaviorUctSingleAgent")->GetString(
+          "Savedmodeldirectory",
+          "give the directory of saved model","/home/model/")),
       random_heuristic_(GetParams()->AddChild("BehaviorUctSingleAgent")->GetBool(
           "UseRandomHeuristic", "True if random heuristic shall be used, otherwise domain heuristic is applied", false)),
       nn_heuristic_(GetParams()->AddChild("BehaviorUctSingleAgent")->GetBool(
@@ -48,7 +51,7 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
                                         ->GetReal("TimeSpan",
           "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {     
 
-              NNHeuristic::InitializeModelLoader();
+              NNHeuristic::InitializeModelLoader(model_dir_);
               NNHeuristic::InitializeObserver();
           }
 

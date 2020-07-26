@@ -88,8 +88,9 @@ public:
         }
         return std::pair<SE, std::unordered_map<mcts::AgentIdx, SO>>(ego_heuristic, other_heuristic_estimates);
     }  
-    static void InitializeModelLoader() {
-            model_loader_ptr = new ModelLoader();
+    static void InitializeModelLoader(const std::string& model_dir) {
+            const char* model_dir_0 = &model_dir[0];
+            model_loader_ptr = new ModelLoader(model_dir_0);
             //model_loader_ptr->LoadModel();
         }
     static void InitializeObserver() {
