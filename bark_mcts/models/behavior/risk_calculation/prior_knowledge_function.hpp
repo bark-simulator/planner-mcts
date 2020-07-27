@@ -24,7 +24,7 @@ class PriorKnowledgeFunction : public bark::commons::BaseType {
     public:
       PriorKnowledgeFunction(PriorKnowledgeRegion &prior_knowledge_region,
                             const KnowledgeFunction& knowledge_function_,
-                            const bark::commons::ParamsPtr& params) : BaseType(params) {
+                            const bark::commons::ParamsPtr& params) : bark::commons::BaseType(params) {
         num_partitions_integration_=params->GetInt("PriorKnowledgeFunction::NumPartitionsIntegration", 
             "Specifies into how many cells the knowledge region is partitioned for integral calculation", 1000);
         }
