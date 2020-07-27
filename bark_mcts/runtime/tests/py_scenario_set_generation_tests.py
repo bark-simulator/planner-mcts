@@ -1,7 +1,4 @@
-# Copyright (c) 2020 fortiss GmbH
-#
-# Authors: Julian Bernhard, Klemens Esterle, Patrick Hart and
-# Tobias Kessler
+# Copyright (c) 2019 Julian Bernhard
 #
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT

@@ -1,4 +1,4 @@
-# Copyright (c) 2019 fortiss GmbH
+# Copyright (c) 2019 Julian Bernhard
 #
 # This software is released under the MIT License.
 # https://opensource.org/licenses/MIT

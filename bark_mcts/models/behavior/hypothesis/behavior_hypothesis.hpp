@@ -1,10 +1,7 @@
-// Copyright (c) 2020 fortiss GmbH
-//
-// Author: Julian Bernhard
+// Copyright (c) 2020 Julian Bernhard
 //
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
-
 
 #ifndef MODULES_MODELS_BEHAVIOR_BEHAVIOR_HYPOTHESIS_HPP_
 #define MODULES_MODELS_BEHAVIOR_BEHAVIOR_HYPOTHESIS_HPP_

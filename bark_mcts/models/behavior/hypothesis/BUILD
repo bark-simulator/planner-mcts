@@ -5,7 +5,8 @@ cc_library(
     ],
     deps = [
         "@bark_project//bark/models/behavior:behavior",
-        "@bark_project//bark/commons/distribution:distribution"
+        "@bark_project//bark/commons/distribution:distribution",
+        "//bark_mcts/models/behavior/risk_calculation:risk_calculation",
     ],
     visibility = ["//visibility:public"],
 )

@@ -1,5 +1,15 @@
+// Copyright (c) 2020 Julian Bernhard
+//
+// This work is licensed under the terms of the MIT license.
+// For a copy, see <https://opensource.org/licenses/MIT>.
 
 
+#ifndef MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_FUNCTION_HPP_
+#define MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_FUNCTION_HPP_
+
+namespace bark {
+namespace models {
+namespace behavior {
 namespace prior_knowledge {
 
 typedef std::function<KnowledgeValue(std::unordered_map<DimensionName, KnowledgeRegion>)> KnowledgeFunction;
@@ -38,5 +48,9 @@ class PriorKnowledgeFunction : public BaseType {
 
 typdef std::shared_ptr<PriorKnowledgeFunction> PriorKnowledgeFunctionPtr;
 
+} // namespace risk calculation
+} // namespace behavior
+} // namespace models
+} // namespace bark
 
-}
+#endif // MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_FUNCTION_HPP_
