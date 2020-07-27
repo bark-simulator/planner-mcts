@@ -42,7 +42,7 @@ cc_library(
         "@bark_project//bark:include",
         "@bark_ml//src/observers:nearest_observer",
         "@mamcts_project//mcts:mamcts",
-       # "@bark_ml//src/model_loader:ModelLoader" # Todo: uncomment
+        "@bark_ml//src/model_loader:ModelLoader" # Todo: uncomment
     ],
     copts = ["-Iexternal/bark_project"],
     visibility = ["//visibility:public"],

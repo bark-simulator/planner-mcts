@@ -43,6 +43,7 @@ class BehaviorUCTSingleAgentBase : public BehaviorModel {
   double prediction_time_span_;
   bool random_heuristic_;
   bool nn_heuristic_;
+  std::string model_dir_;
 };
 
 }  // namespace behavior

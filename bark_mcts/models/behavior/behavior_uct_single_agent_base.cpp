@@ -13,7 +13,7 @@
 #include "bark_mcts/models/behavior/heuristics/domain_heuristic.hpp"
 
 // Todo: Integrate Changes in BARKML to new bark version
-//#include "bark_mcts/models/behavior/heuristics/nn_heuristic.hpp"
+#include "bark_mcts/models/behavior/heuristics/nn_heuristic.hpp"
 
 #include "bark/models/behavior/constant_velocity/constant_velocity.hpp"
 #include "bark/models/behavior/idm/idm_classic.hpp"
@@ -30,7 +30,7 @@ using bark::models::dynamic::Input;
 using bark::models::dynamic::SingleTrackModel;
 using bark::world::ObservedWorldPtr;
 using bark::world::prediction::PredictionSettings;
-//using observers::NearestObserver; // Todo: Uncomment
+using observers::NearestObserver; // Todo: Uncomment
 
 BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
     const commons::ParamsPtr& params)
@@ -45,13 +45,16 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
           "UseRandomHeuristic", "True if random heuristic shall be used, otherwise domain heuristic is applied", false)),
       nn_heuristic_(GetParams()->AddChild("BehaviorUctSingleAgent")->GetBool(
           "UseNNHeuristic", "True if nn heuristic shall be used, otherwise domain heuristic is applied", false)),
+      model_dir_(GetParams()->AddChild("BehaviorUctSingleAgent")->GetString(
+          "Savedmodeldirectory",
+          "give the directory of saved model","/home/model/")),
       prediction_time_span_(GetParams()->AddChild("BehaviorUctSingleAgent")
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",
           "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {     
 
-            //  NNHeuristic::InitializeModelLoader(); // Todo: Uncomment
-            //  NNHeuristic::InitializeObserver();
+              NNHeuristic::InitializeModelLoader(model_dir_); // Todo: Uncomment
+              NNHeuristic::InitializeObserver();
           }
 
 dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
@@ -64,8 +67,8 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
              mcts::RandomHeuristic> mcts_random (mcts_parameters_);
   mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic,
              DomainHeuristic> mcts_domain(mcts_parameters_);
- /* mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic, // Todo: Uncomment
-             NNHeuristic> mcts_nn(mcts_parameters_); */
+  mcts::Mcts<MctsStateSingleAgent, mcts::UctStatistic, mcts::UctStatistic, // Todo: Uncomment
+             NNHeuristic> mcts_nn(mcts_parameters_); 
 
   std::shared_ptr<BehaviorMotionPrimitives> ego_model =
       std::dynamic_pointer_cast<BehaviorMotionPrimitives>(
@@ -97,7 +100,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
               std::stringstream filename;
               filename << "tree_dot_file_" << delta_time;
               mcts_random.printTreeToDotFile(filename.str());}
-      /*} else if(!(random_heuristic_)&&(nn_heuristic_)) { // Todo: Uncomment
+      } else if(!(random_heuristic_)&&(nn_heuristic_)) { // Todo: Uncomment
           mcts_nn.search(mcts_state);
           best_action = mcts_nn.returnBestAction();
           num_iterations = mcts_nn.numIterations();
@@ -105,7 +108,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
           if (dump_tree_) {
               std::stringstream filename;
               filename << "tree_dot_file_" << delta_time;
-              mcts_nn.printTreeToDotFile(filename.str());} */
+              mcts_nn.printTreeToDotFile(filename.str());} 
       } else{
           mcts_domain.search(mcts_state);
           best_action = mcts_domain.returnBestAction();

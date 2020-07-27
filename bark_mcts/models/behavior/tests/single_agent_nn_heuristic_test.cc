@@ -20,7 +20,7 @@
 #include "bark/world/goal_definition/goal_definition_state_limits.hpp"
 
 
-#include "bark_mcts/models/behavior/heuristics/NN_heuristic.hpp"
+#include "bark_mcts/models/behavior/heuristics/nn_heuristic.hpp"
 
 
 using namespace bark::models::behavior;
@@ -54,16 +54,17 @@ TEST(behavior_uct_single_agent, change_lane_random_heuristic) {
   params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 200);//100
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
   params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
-  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {1,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
+  params->SetListListFloat("BehaviorUctSingleAgent::MotionPrimitiveInputs", {{0,0}, {1,0}, {3,0}, {0,-0.27}, {0, 0.27}, {0,-0.17}, {0, 0.17}, {-1,0}}); 
   params->SetReal("BehaviorUctSingleAgent::Mcts::DiscountFactor", 0.95);//0.9/0.95
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ExplorationConstant", 0.7);//0.7/0.6
-  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 20000);
+  params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 200);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 10);
 
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -50000);//-1000
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);//100
   params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", false);
   params->SetBool("BehaviorUctSingleAgent::UseNNHeuristic", true);
+  params->SetString("BehaviorUctSingleAgent::Savedmodeldirectory", "/home/guoyujian/model/model/");
 
 
   float ego_velocity = 10.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;//ego_velocity = 5.0

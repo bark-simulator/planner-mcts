@@ -127,6 +127,9 @@ std::string MctsStateSingleAgent::sprintf() const { return std::string(); }
 float MctsStateSingleAgent::get_distance_to_goal() const {
   return EvaluatorDistanceToGoal::DistanceToGoal(observed_world_->GetEgoAgent());
 }
+const ObservedWorldPtr MctsStateSingleAgent::get_observed_world() const {
+  return observed_world_;
+}
 
 }  // namespace behavior
 }  // namespace models

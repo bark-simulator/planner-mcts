@@ -92,26 +92,27 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
+
+cc_test(
+    name = "single_agent_nn_heuristic_test",
+    srcs = [
+        "single_agent_nn_heuristic_test.cc"
+    ],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        "//bark_mcts/models/behavior:planner_uct_single_agent_macro_actions",
+        "@bark_project//bark/world:world",
+        "@bark_project//bark/world/tests:make_test_world",
+        "@bark_project//bark/models/behavior:behavior",
+        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
+        "@bark_project//bark/models/behavior/rule_based:lane_change_behavior",
+        "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
+        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
+        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
+        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
+        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
+        "@bark_project//bark/world/goal_definition:goal_definition",
+        "@gtest//:gtest_main",
+    ],
+)
 # Todo: uncomment
-#cc_test(
-#    name = "single_agent_nn_heuristic_test",
-#    srcs = [
-#        "single_agent_nn_heuristic_test.cc"
-#    ],
-#    copts = ["-Iexternal/gtest/include"],
-#    deps = [
-#        "//bark_mcts/models/behavior:planner_uct_single_agent_macro_actions",
-#        "@bark_project//bark/world:world",
-#        "@bark_project//bark/world/tests:make_test_world",
-#        "@bark_project//bark/models/behavior:behavior",
-#        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
-#        "@bark_project//bark/models/behavior/rule_based:lane_change_behavior",
-#        "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
-#        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
-#        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
-#        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
-#        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
-#        "@bark_project//bark/world/goal_definition:goal_definition",
-#        "@gtest//:gtest_main",
-#    ],
-#)
