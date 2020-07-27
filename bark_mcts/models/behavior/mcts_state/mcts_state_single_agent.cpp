@@ -34,7 +34,6 @@ MctsStateSingleAgent::MctsStateSingleAgent(
       is_terminal_state_(is_terminal_state),
       num_ego_actions_(num_ego_actions),
       prediction_time_span_(prediction_time_span),
-      other_agent_ids_(update_other_agent_ids()),
       ego_agent_id_(ego_agent_id) {}
 
 std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::clone() const {
@@ -105,17 +104,8 @@ bool MctsStateSingleAgent::get_collision_happen() const{
        return collision_ego;
 }
 
-std::vector<mcts::AgentIdx> MctsStateSingleAgent::update_other_agent_ids() const {
-  world::AgentMap agent_map = observed_world_->GetOtherAgents();
-  std::vector<mcts::AgentIdx> ids;
-  for (const auto &agent : agent_map) {
-    ids.push_back(agent.first);
-  }
-  return ids;
-}
-
 const std::vector<mcts::AgentIdx> MctsStateSingleAgent::get_other_agent_idx() const {
-  return other_agent_ids_;
+  return std::vector<mcts::AgentIdx>{};
 }
 
 const mcts::AgentIdx MctsStateSingleAgent::get_ego_agent_idx() const {

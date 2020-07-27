@@ -55,7 +55,6 @@ class MctsStateSingleAgent : public mcts::StateInterface<MctsStateSingleAgent> {
 
 
  private:
-  std::vector<mcts::AgentIdx> update_other_agent_ids() const;
 
   const std::shared_ptr<bark::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
