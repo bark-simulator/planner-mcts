@@ -40,6 +40,8 @@ class PriorKnowledgeRegion : public KnowledgeRegion {
     RegionBoundaries region_definition_;
 };
 
+typedef std::function<KnowledgeValue(std::unordered_map<DimensionName, KnowledgeRegion>)> KnowledgeFunction;
+
 
 } // namespace risk calculation
 } // namespace behavior

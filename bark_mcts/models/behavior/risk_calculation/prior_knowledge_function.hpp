@@ -7,9 +7,12 @@
 #ifndef MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_FUNCTION_HPP_
 #define MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_FUNCTION_HPP_
 
-#include <function>
-#include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
+#include <functional>
 
+#include "bark/commons/params/params.hpp"
+
+#include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
+#include "bark_mcts/models/behavior/risk_calculation/scenario_risk_function.hpp"
 
 
 namespace bark {
@@ -17,39 +20,26 @@ namespace models {
 namespace behavior {
 namespace risk_calculation {
 
-typedef std::function<KnowledgeValue(std::unordered_map<DimensionName, KnowledgeRegion>)> KnowledgeFunction;
-
-class PriorKnowledgeFunction : public BaseType {
+class PriorKnowledgeFunction : public bark::commons::BaseType {
     public:
-     PriorKnowledgeFunction(PriorKnowledgeRegion &prior_knowledge_region,
+      PriorKnowledgeFunction(PriorKnowledgeRegion &prior_knowledge_region,
                             const KnowledgeFunction& knowledge_function_,
-                            const ParamsPtr& params) : BaseType(params) {
+                            const bark::commons::ParamsPtr& params) : BaseType(params) {
         num_partitions_integration_=params->GetInt("PriorKnowledgeFunction::NumPartitionsIntegration", 
             "Specifies into how many cells the knowledge region is partitioned for integral calculation", 1000);
-    }
-
-    KnowledgeValue GetKnowledeValue(const& RegionValue) const;
-    KnowledgeValue GetIntegralKnowledeValue(const& KnowledgeRegion) const;
-
-    ScenarioRiskFunction CalculateScenarioRiskFunction(const KnowledgeFunction& template_function_scenario_risk) const {
-        // idea we give a template function as lambda with fixed parameters depending on
-        // the region value, e.g (1*x +2) or (x + 0.1x*x), the normalization scaling c is then calcuated that
-        // the integral gets 1
-        double integration_sum = 0.0f;
-        for(const auto&region : prior_knowledge_function_->GetKnowledgeRegion()->Partition(num_partitions_integration_)) {
-            auto prior_knowledge_value = prior_knowledge_function_->GetIntegralKnowledeValue()
-            auto template_scenario_integral_value = template_function_scenario_risk(region);
-            sum += prior_knowledge_value*template_scenario_integral_value;
         }
 
-        double normalization_factor = 1/sum;
-        return ScenarioRiskFunction()
-    }
+    KnowledgeValue GetKnowledeValue(const RegionValue& value) const;
+    KnowledgeValue GetIntegralKnowledeValue(const KnowledgeRegion& knowledge_region) const;
+
+    ScenarioRiskFunction CalculateScenarioRiskFunction(const KnowledgeFunction& template_function_scenario_risk) const;
+
     private:
-    unsigned int num_partitions_integration_;
-    KnowledgeRegion knowledge_region_;
-    KnowledgeFunction knowledge_function;
+      unsigned int num_partitions_integration_;
+      PriorKnowledgeRegion knowledge_region_;
+      KnowledgeFunction knowledge_function;
 }
+
 
 typdef std::shared_ptr<PriorKnowledgeFunction> PriorKnowledgeFunctionPtr;
 
