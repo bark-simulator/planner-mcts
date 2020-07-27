@@ -120,7 +120,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
   
 
   SetLastAction(DiscreteAction(best_action));
-  LOG(INFO) << "BehaviorUCTSingleAgent, iterations: " << num_iterations
+  V_LOG(4) << "BehaviorUCTSingleAgent, iterations: " << num_iterations
             << ", search time " << search_time
             << ", best action: " << best_action;
 

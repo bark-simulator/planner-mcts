@@ -50,7 +50,6 @@ class MctsStateSingleAgent : public mcts::StateInterface<MctsStateSingleAgent> {
   bool get_collision_happen() const;
 
  private:
-  std::vector<mcts::AgentIdx> update_other_agent_ids() const;
 
   const std::shared_ptr<const bark::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
