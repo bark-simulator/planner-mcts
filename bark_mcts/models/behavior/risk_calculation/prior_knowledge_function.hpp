@@ -7,10 +7,15 @@
 #ifndef MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_FUNCTION_HPP_
 #define MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_FUNCTION_HPP_
 
+#include <function>
+#include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
+
+
+
 namespace bark {
 namespace models {
 namespace behavior {
-namespace prior_knowledge {
+namespace risk_calculation {
 
 typedef std::function<KnowledgeValue(std::unordered_map<DimensionName, KnowledgeRegion>)> KnowledgeFunction;
 

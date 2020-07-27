@@ -122,6 +122,10 @@ bark::commons::Probability BehaviorHypothesisIDM::GetProbability(
   return static_cast<double>(sample_count) / static_cast<double>(num_samples_);
 }
 
+risk_calculation::RegionBoundaries BehaviorHypothesisIDM::GetDefinition() const {
+  return static_cast<risk_calculation::RegionBoundaries>(BehaviorIDMStochastic::GetParameterRegions());
+}
+
 } // namespace behavior
 } // namespace models
 } // namespace bark

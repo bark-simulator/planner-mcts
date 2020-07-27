@@ -9,6 +9,8 @@
 #include "bark/models/behavior/behavior_model.hpp"
 #include "bark/commons/distribution/distribution.hpp"
 
+#include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
+
 namespace bark {
 namespace world {
 namespace objects {
@@ -22,7 +24,7 @@ namespace models {
 namespace behavior {
 
 
-class BehaviorHypothesis : public virtual BehaviorModel, public PriorKnowledgeRegion {
+class BehaviorHypothesis : public virtual BehaviorModel, public risk_calculation::KnowledgeRegion {
   public:
     BehaviorHypothesis(const commons::ParamsPtr& params) : BehaviorModel(params) {}
     virtual ~BehaviorHypothesis() {}

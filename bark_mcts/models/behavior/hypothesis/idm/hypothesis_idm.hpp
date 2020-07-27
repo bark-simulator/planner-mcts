@@ -38,6 +38,8 @@ class BehaviorHypothesisIDM : public BehaviorIDMStochastic, public BehaviorHypot
     return BehaviorIDMStochastic::Plan(delta_time, observed_world);
   };
 
+  virtual risk_calculation::RegionBoundaries GetDefinition() const;
+
   private: 
     const unsigned int num_samples_;
     const unsigned int num_buckets_;
