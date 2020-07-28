@@ -102,10 +102,11 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     area = abs(indef_int(0.0) - indef_int(-3.0)) + abs(indef_int(7.0)- indef_int(0.0))
     desired_normalization_const = 1.0/(uniform_prob*area)
     self.assertAlmostEqual(scenario_risk_function.normalization_constant,
-              desired_normalization_const, 5)
+              desired_normalization_const, 8)
 
   def test_1D_functions_complex(self):
     param_server = ParameterServer()
+    param_server["PriorKnowledgeFunction"]["NumPartitionsIntegration"] = 1000
     prior_knowledge_region = PriorKnowledgeRegion({"1DDimensionName" : (-3.0, 7.0)})
 
     def knowledge_function_1D_squared(region_boundaries):
@@ -117,13 +118,14 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
       c1 = 2.0
       indef_int = lambda x : a1/3.0*x**3 + b1*x**2/2.0 + c1*x
       region_range = region_boundaries["1DDimensionName"]
-      if region_range[1] > 0 and region_range[0] < 0:
-        return abs(indef_int(0) - indef_int(region_range[0])) + \
-              abs(indef_int(region_range[1]) - indef_int(0))
+      int0 = indef_int(region_range[0])
+      int1 = indef_int(region_range[1])
+      if (int0 < 0 and int1 > 0) or (int0 > 0 and int1 < 0):
+        return abs(int0) + abs(int1)
       else:
         return abs(indef_int(region_range[1]) - indef_int(region_range[0]))
 
-    def scenario_risk_templ_func_1D_squared(region_boundaries):
+    def scenario_risk_templ_func_1D_linear(region_boundaries):
       if not len(region_boundaries) == 1:
         raise ValueError("Only 1D scenario risk function provided")
        # template function is a*x^2+ b*x + c then indefinite integral is a/3.0*x^3 + b*x^2/2.0 + c*x
@@ -131,9 +133,10 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
       b2= 1.0
       indef_int = lambda x : a2/2.0*x**2 + b2*x
       region_range = region_boundaries["1DDimensionName"]
-      if region_range[1] > 0 and region_range[0] < 0:
-        return abs(indef_int(0) - indef_int(region_range[0])) + \
-              abs(indef_int(region_range[1]) - indef_int(0))
+      int0 = indef_int(region_range[0])
+      int1 = indef_int(region_range[1])
+      if (int0 < 0 and int1 > 0) or (int0 > 0 and int1 < 0):
+        return abs(int0) + abs(int1)
       else:
         return abs(indef_int(region_range[1]) - indef_int(region_range[0]))
 
@@ -142,7 +145,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
                                                     param_server)
 
     scenario_risk_function = prior_knowledge_function.CalculateScenarioRiskFunction(
-                              scenario_risk_templ_func_1D_squared)
+                              scenario_risk_templ_func_1D_linear)
 
     a1 = 10.0
     b1 = 3.0
@@ -152,11 +155,48 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     indef_int = lambda x : a1*a2*x**4/4 + a1*b2*x**3/3 + b1*a2*x**3/3 + b1*b2*x**2/2 + c1*a2*x**2/2 + c1*b2*x
     area = abs(indef_int(0.0) - indef_int(-3.0)) + abs(indef_int(7.0)- indef_int(0.0))
     desired_normalization_const = 1.0/(area)
+    # only precision 5 working here!!!!
     self.assertAlmostEqual(scenario_risk_function.normalization_constant,
               desired_normalization_const, 5)
 
+  def test_2D_functions_complex(self):
+    param_server = ParameterServer()
+    prior_knowledge_region = PriorKnowledgeRegion({"DimensionName1" : (1.0, 5.0), "DimensionName2" : (2.0, 8.0)})
 
+    def knowledge_function_2D_complex(region_boundaries):
+      if not len(region_boundaries) == 2:
+        raise ValueError("Only 2D knowledge function provided")
+      # template function is a1*x*y then indefinite integral is a1*x''^2*y''^2/4 - a1*
+      a1 = 10.0
+      indef_int = lambda x1, x2, y1, y2: a1/4*x2**2*y2**2 - a1/4*x1**2*y2**2 - a1/4*x2**2*y1**2 + a1/4*x1**2*y1**2
+      r1 = region_boundaries["DimensionName1"]
+      r2 = region_boundaries["DimensionName2"]
+      return abs(indef_int(r1[0], r1[1], r2[0], r2[1]))
 
+    def scenario_risk_templ_func_2D_linear(region_boundaries):
+      if not len(region_boundaries) == 2:
+        raise ValueError("Only 2D scenario risk function provided")
+       # template function is a*x^2+ b*x + c then indefinite integral is a/3.0*x^3 + b*x^2/2.0 + c*x
+      a2 = -0.5
+      indef_int = lambda x : a2/2.0*x**2 
+      r1 = region_boundaries["DimensionName1"]
+      r2 = region_boundaries["DimensionName2"]
+      return abs(indef_int(r1[1]) - indef_int(r1[0]))*(r2[1] - r2[0])
+
+    prior_knowledge_function = PriorKnowledgeFunction(prior_knowledge_region, 
+                                                    knowledge_function_2D_complex,
+                                                    param_server)
+
+    scenario_risk_function = prior_knowledge_function.CalculateScenarioRiskFunction(
+                              scenario_risk_templ_func_2D_linear)
+
+    a1 = 10.0
+    a2 = -0.5
+    indef_int = lambda x1, x2, y1, y2: a1*a2/6*x2**3*y2**2 - a1*a2/6*x1**3*y2**2 - a1*a2/6*x2**3*y1**2 + a1*a2/6*x1**3*y1**2
+    area = indef_int(1.0, 5.0, 2.0, 8.0)
+    desired_normalization_const = 1.0/(abs(area))
+    self.assertAlmostEqual(scenario_risk_function.normalization_constant,
+              desired_normalization_const, 8)
 
 
 
