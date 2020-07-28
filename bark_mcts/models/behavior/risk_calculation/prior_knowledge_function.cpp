@@ -11,18 +11,18 @@ KnowledgeValue PriorKnowledgeFunction::GetIntegralKnowledeValue(const RegionBoun
   return knowledge_function_(knowledge_region);
 }
 
-ScenarioRiskFunctionPtr PriorKnowledgeFunction::CalculateScenarioRiskFunction() const {
+ScenarioRiskFunctionPtr PriorKnowledgeFunction::CalculateScenarioRiskFunction(const KnowledgeFunction& template_scenario_risk_function) const {
     // idea we give a template function as lambda with fixed parameters depending on
     // the region value, e.g (1*x +2) or (x + 0.1x*x), the normalization scaling c is then calcuated that
     // the integral gets 1
     double integration_sum = 0.0f;
     for(const auto&region : prior_knowledge_region_.Partition(num_partitions_integration_)) {
         auto prior_knowledge_value = GetIntegralKnowledeValue(region.GetDefinition());
-        auto template_scenario_integral_value = knowledge_function_(region.GetDefinition());
+        auto template_scenario_integral_value = template_scenario_risk_function(region.GetDefinition());
         integration_sum += prior_knowledge_value*template_scenario_integral_value;
     }
 
     double normalization_factor = 1/integration_sum;
-    return std::make_shared<ScenarioRiskFunction>(knowledge_function_, normalization_factor);
+    return std::make_shared<ScenarioRiskFunction>(template_scenario_risk_function, normalization_factor);
 }
 

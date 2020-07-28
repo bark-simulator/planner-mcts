@@ -5,6 +5,8 @@
 
 #ifndef PYTHON_PYTHON_RISK_CALCULATION_HPP_
 #define PYTHON_PYTHON_RISK_CALCULATION_HPP_
+
+#include <pybind11/functional.h>
 #include "bark/python_wrapper/common.hpp"
 
 namespace py = pybind11;
