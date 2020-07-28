@@ -6,7 +6,8 @@ cc_library(
         "scenario_risk_function.hpp",
     ],
     srcs = [
-        "prior_knowledge_function.cpp"
+        "prior_knowledge_function.cpp",
+        "prior_knowledge_region.cpp"
     ],
     deps = [
         "@bark_project//bark/commons/params:params"

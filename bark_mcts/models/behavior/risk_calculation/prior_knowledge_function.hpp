@@ -7,8 +7,6 @@
 #ifndef MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_FUNCTION_HPP_
 #define MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_FUNCTION_HPP_
 
-#include <functional>
-
 #include "bark/commons/params/params.hpp"
 
 #include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
@@ -29,7 +27,7 @@ class PriorKnowledgeFunction : public bark::commons::BaseType {
                             prior_knowledge_region_(prior_knowledge_region),
                             knowledge_function_(knowledge_function) {
         num_partitions_integration_=params->GetInt("PriorKnowledgeFunction::NumPartitionsIntegration", 
-            "Specifies into how many cells the knowledge region is partitioned for integral calculation", 1000);
+            "Specifies into how many cells the knowledge region is partitioned for integral calculation", 100);
         }
 
     KnowledgeValue GetIntegralKnowledeValue(const RegionBoundaries& knowledge_region) const;

@@ -24,6 +24,7 @@ void python_risk_calculation(py::module m) {
       return "bark.behavior.PriorKnowledgeRegion";
     })
     .def_property_readonly("region_boundaries", &PriorKnowledgeRegion::GetDefinition)
+    .def("Partition", &PriorKnowledgeRegion::Partition)
     .def(py::pickle(
       [](const PriorKnowledgeRegion& pkr) {
         // We throw away other information such as last trajectories
