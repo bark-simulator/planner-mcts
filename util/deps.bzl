@@ -26,7 +26,7 @@ cc_library(
     _maybe(
     git_repository,
     name = "bark_ml",
-    commit="89df2055f5b304374351c1da6bdc5efae7309ee7",
+    commit="ddee7be8ab24f310b6b09238b453630576d46925",
     remote = "https://github.com/SebastianGra/bark-ml_MCTS_RL",
     )
 

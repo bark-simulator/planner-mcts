@@ -61,21 +61,21 @@ public:
         
         const std::shared_ptr<bark::world::ObservedWorld> observed_world = node->get_state()->get_observed_world(); //<- dp as we did with get nearest distance
         ObservedState output = Observer_ptr->observe(observed_world); //call observe method 
-        std::vector<float> output_vector;
+        std::vector<float> output_vector(output.cols());
         
         for (int i=0; i< output.cols(); i++){
             output_vector[i] = output(0, i);
-            }
+            }   
         
         std::vector<float> model_output = model_loader_ptr->Evaluator(output_vector,4);
         
-        int num_actions = model_output.size(); //num actions //use model.output size
+        double num_actions = model_output.size(); //num actions //use model.output size
         double value = std::accumulate(model_output.begin(), model_output.end(), 0);
-            
+
         mcts::Reward ego_all_reward = 5*(1/num_actions)*value;
 
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
-        LOG_EVERY_N(INFO, 100) << "Calculating domain value=" << ego_all_reward;//30
+        LOG_EVERY_N(INFO, 100) << "Calculating nn_heuristic value=" << ego_all_reward;//30
         std::unordered_map<mcts::AgentIdx, SO> other_heuristic_estimates;
         mcts::AgentIdx reward_idx=1;
         for (auto agent_idx : node->get_state()->get_other_agent_idx())

@@ -50,7 +50,7 @@ using bark::world::evaluation::EvaluatorCollisionEgoAgent;
 TEST(behavior_uct_single_agent, change_lane_random_heuristic) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
   auto params = std::make_shared<SetterParams>(false);
-  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 30000);//10000
+  params->SetInt("BehaviorUctSingleAgent::Mcts::MaxNumIterations", 300);//10000
   params->SetInt("BehaviorUctSingleAgent::Mcts::MaxSearchTime", 200);//100
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomSeed", 1000);
   params->SetBool("BehaviorUctSingleAgent::DumpTree", true);
@@ -60,8 +60,8 @@ TEST(behavior_uct_single_agent, change_lane_random_heuristic) {
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxSearchTime", 200);
   params->SetInt("BehaviorUctSingleAgent::Mcts::RandomHeuristic::MaxNumIterations", 10);
 
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -50000);//-1000
-  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 100);//100
+  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -10000);//-1000
+  params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 10000);//100
   params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", false);
   params->SetBool("BehaviorUctSingleAgent::UseNNHeuristic", true);
   params->SetString("BehaviorUctSingleAgent::Savedmodeldirectory", "/home/guoyujian/model/model/");
