@@ -30,17 +30,18 @@ class KnowledgeRegion {
 };
 
 class PriorKnowledgeRegion : public KnowledgeRegion {
-   PriorKnowledgeRegion(const RegionBoundaries& region_definition)
-       : region_definition_(region_definition) {}
-   virtual RegionBoundaries GetDefinition() const { return region_definition_;}
+  public:
+    PriorKnowledgeRegion(const RegionBoundaries& region_definition)
+        : region_definition_(region_definition) {}
+    virtual RegionBoundaries GetDefinition() const { return region_definition_;}
 
-   std::vector<KnowledgeRegion> Partition(unsigned int num_partitions) {};
+    std::vector<PriorKnowledgeRegion> Partition(unsigned int num_partitions) const {};
 
    private:
-    RegionBoundaries region_definition_;
+      RegionBoundaries region_definition_;
 };
 
-typedef std::function<KnowledgeValue(std::unordered_map<DimensionName, KnowledgeRegion>)> KnowledgeFunction;
+typedef std::function<KnowledgeValue(RegionBoundaries)> KnowledgeFunction;
 
 
 } // namespace risk calculation

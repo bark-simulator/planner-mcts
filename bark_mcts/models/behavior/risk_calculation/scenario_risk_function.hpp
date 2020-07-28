@@ -17,6 +17,7 @@ namespace behavior {
 namespace risk_calculation {
 
 class ScenarioRiskFunction {
+  public:
     ScenarioRiskFunction(const KnowledgeFunction& risk_function_unnormalized,
                         const double& normalization_constant) : 
                 risk_function_unnormalized_(risk_function_unnormalized),
@@ -30,13 +31,14 @@ class ScenarioRiskFunction {
     KnowledgeValue GetIntegralValueTemplateFunction(const KnowledgeRegion& region) const {
     }
 
-    private:
+  private:
     // Holds a lambda passed from python of the indefinite integral function
     // e.g. if the scenario risk template is 0.1*x^2 then the lambda must be 0.1/3*x^3 
     const KnowledgeFunction risk_function_unnormalized_;
     double normalization_constant_;
 };
 
+typedef std::shared_ptr<ScenarioRiskFunction> ScenarioRiskFunctionPtr;
 
 } // namespace risk calculation
 } // namespace behavior

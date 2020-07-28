@@ -23,8 +23,11 @@ namespace risk_calculation {
 class PriorKnowledgeFunction : public bark::commons::BaseType {
     public:
       PriorKnowledgeFunction(PriorKnowledgeRegion &prior_knowledge_region,
-                            const KnowledgeFunction& knowledge_function_,
-                            const bark::commons::ParamsPtr& params) : bark::commons::BaseType(params) {
+                            const KnowledgeFunction& knowledge_function,
+                            const bark::commons::ParamsPtr& params) : 
+                            bark::commons::BaseType(params),
+                            prior_knowledge_region_(prior_knowledge_region),
+                            knowledge_function_(knowledge_function) {
         num_partitions_integration_=params->GetInt("PriorKnowledgeFunction::NumPartitionsIntegration", 
             "Specifies into how many cells the knowledge region is partitioned for integral calculation", 1000);
         }
@@ -32,16 +35,16 @@ class PriorKnowledgeFunction : public bark::commons::BaseType {
     KnowledgeValue GetKnowledeValue(const RegionValue& value) const;
     KnowledgeValue GetIntegralKnowledeValue(const KnowledgeRegion& knowledge_region) const;
 
-    ScenarioRiskFunction CalculateScenarioRiskFunction(const KnowledgeFunction& template_function_scenario_risk) const;
+    ScenarioRiskFunctionPtr CalculateScenarioRiskFunction(const KnowledgeFunction& template_function_scenario_risk) const;
 
     private:
       unsigned int num_partitions_integration_;
-      PriorKnowledgeRegion knowledge_region_;
-      KnowledgeFunction knowledge_function;
-}
+      PriorKnowledgeRegion prior_knowledge_region_;
+      KnowledgeFunction knowledge_function_;
+};
 
 
-typdef std::shared_ptr<PriorKnowledgeFunction> PriorKnowledgeFunctionPtr;
+typedef std::shared_ptr<PriorKnowledgeFunction> PriorKnowledgeFunctionPtr;
 
 } // namespace risk calculation
 } // namespace behavior
