@@ -102,6 +102,19 @@ py_test(
     ],
 )
 
+py_test(
+  name = "py_scenario_risk_function_test",
+  srcs = ["py_scenario_risk_function_test.py"],
+  data = ['@bark_project//bark:generate_core',
+          '//bark_mcts/models/behavior/hypothesis/behavior_space:behavior_space'
+        ],
+  imports = ['../../../python/'],
+  deps = [
+      "@bark_project//bark/runtime/commons:commons",
+      "//util/debug:debug_settings",
+    ],
+)
+
 cc_test(
     name = "behavior_uct_hypothesis_test",
     srcs = [

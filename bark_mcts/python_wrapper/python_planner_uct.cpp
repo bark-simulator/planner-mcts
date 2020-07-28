@@ -4,6 +4,7 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
 #include "bark_mcts/python_wrapper/python_planner_uct.hpp"
+#include "bark_mcts/python_wrapper/python_risk_calculation.hpp"
 #include "bark/python_wrapper/polymorphic_conversion.hpp"
 #include <memory>
 #include "bark_mcts/models/behavior/behavior_uct_single_agent.hpp"
@@ -107,5 +108,7 @@ void python_planner_uct(py::module m) {
           throw std::runtime_error("Invalid behavior model state!");
         return new BehaviorHypothesisIDM(PythonToParams(t[0].cast<py::tuple>()));
       }));
+
+      python_risk_calculation(m.def_submodule("risk_calculation"));
 
 }

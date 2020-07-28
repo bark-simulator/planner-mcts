@@ -22,7 +22,7 @@ namespace risk_calculation {
 
 class PriorKnowledgeFunction : public bark::commons::BaseType {
     public:
-      PriorKnowledgeFunction(PriorKnowledgeRegion &prior_knowledge_region,
+      PriorKnowledgeFunction(const PriorKnowledgeRegion& prior_knowledge_region,
                             const KnowledgeFunction& knowledge_function,
                             const bark::commons::ParamsPtr& params) : 
                             bark::commons::BaseType(params),
@@ -32,10 +32,13 @@ class PriorKnowledgeFunction : public bark::commons::BaseType {
             "Specifies into how many cells the knowledge region is partitioned for integral calculation", 1000);
         }
 
-    KnowledgeValue GetKnowledeValue(const RegionValue& value) const;
-    KnowledgeValue GetIntegralKnowledeValue(const KnowledgeRegion& knowledge_region) const;
+    KnowledgeValue GetIntegralKnowledeValue(const RegionBoundaries& knowledge_region) const;
 
-    ScenarioRiskFunctionPtr CalculateScenarioRiskFunction(const KnowledgeFunction& template_function_scenario_risk) const;
+    ScenarioRiskFunctionPtr CalculateScenarioRiskFunction() const;
+
+    PriorKnowledgeRegion GetPriorKnowledgeRegion() const { return prior_knowledge_region_; }
+
+    KnowledgeFunction GetKnowledgeFunction() const { return knowledge_function_; }
 
     private:
       unsigned int num_partitions_integration_;
