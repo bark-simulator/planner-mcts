@@ -32,6 +32,8 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
       self.assertAlmostEqual(width, desired_width, 4)
       total_range += width
     self.assertAlmostEqual(total_range, 5.0)
+    self.assertAlmostEqual(partitions[0].region_boundaries["1DDimensionName"][0], -2.0)
+    self.assertAlmostEqual(partitions[-1].region_boundaries["1DDimensionName"][1],  5.0)
 
 
   def test_1D_functions_uniform(self):
@@ -81,8 +83,12 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
         raise ValueError("Only 1D scenario risk function provided")
       # template function is a*x+ b then indefinite integral is a*x^2 + b*x
       region_range = region_boundaries["1DDimensionName"]
-      indef_int = lambda x : 2*x**2 + 3*x 
-      return indef_int(region_range[1]) - indef_int(region_range[0])
+      indef_int = lambda x : -1.0/2.0*x**2 + 10*x 
+      if region_range[1] > 0 and region_range[0] < 0:
+        return abs(indef_int(0) - indef_int(region_range[0])) + \
+              abs(indef_int(region_range[1]) - indef_int(0))
+      else:
+        return abs(indef_int(region_range[1]) - indef_int(region_range[0]))
 
     prior_knowledge_function = PriorKnowledgeFunction(prior_knowledge_region, 
                                                     knowledge_function_1D_uniform,
@@ -91,11 +97,12 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     scenario_risk_function = prior_knowledge_function.CalculateScenarioRiskFunction(
                               scenario_risk_templ_func_1D)
 
-    indef_int = lambda x : 2*x**2 + 3*x
+    indef_int = lambda x : -1.0/2.0*x**2 + 10*x 
     uniform_prob = 1.0/10.0
-    desired_normalization_const = 1.0/(uniform_prob*(indef_int(7.0)- indef_int(-3.0)))
+    area = abs(indef_int(0.0) - indef_int(-3.0)) + abs(indef_int(7.0)- indef_int(0.0))
+    desired_normalization_const = 1.0/(uniform_prob*area)
     self.assertAlmostEqual(scenario_risk_function.normalization_constant,
-              desired_normalization_const, 1000)
+              desired_normalization_const, 5)
 
 
 

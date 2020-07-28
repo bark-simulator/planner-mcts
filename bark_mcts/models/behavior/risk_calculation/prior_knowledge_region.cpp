@@ -15,8 +15,8 @@ std::vector<PriorKnowledgeRegion> PriorKnowledgeRegion::Partition(unsigned int n
     const auto& part_width = dim_range/num_partitions_per_dimension;
     for(unsigned int i = 0; i < num_partitions_per_dimension; ++i) {
         dimension_partitions[dim_name].push_back(std::make_pair(
-                     dimension.second.second + part_width*i,
-                     dimension.second.second + part_width*(i+1)));
+                     dimension.second.first + part_width*i,
+                     dimension.second.first + part_width*(i+1)));
     }
   }
 

@@ -19,6 +19,8 @@ ScenarioRiskFunctionPtr PriorKnowledgeFunction::CalculateScenarioRiskFunction(co
     for(const auto&region : prior_knowledge_region_.Partition(num_partitions_integration_)) {
         auto prior_knowledge_value = GetIntegralKnowledeValue(region.GetDefinition());
         auto template_scenario_integral_value = template_scenario_risk_function(region.GetDefinition());
+        BARK_EXPECT_TRUE(prior_knowledge_value > 0);
+        BARK_EXPECT_TRUE(template_scenario_integral_value > 0);
         // correct for double ds due to multiplication
         integration_sum += (prior_knowledge_value*template_scenario_integral_value) / region.CalculateArea();
     }
