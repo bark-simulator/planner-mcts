@@ -17,6 +17,7 @@ cc_test(
         "@bark_project//bark/world/evaluation:evaluator_drivable_area",
         "@bark_project//bark/world/goal_definition:goal_definition",
         "@gtest//:gtest_main",
+        "@libtensorflow-RL-MCTS//libtensorflow:tensorflowlib",
     ],
 )
 
@@ -39,6 +40,7 @@ cc_test(
         "@bark_project//bark/world/evaluation:evaluator_drivable_area",
         "@bark_project//bark/world/goal_definition:goal_definition",
         "@gtest//:gtest_main",
+        "@libtensorflow-RL-MCTS//libtensorflow:tensorflowlib",
     ],
 )
 
@@ -62,6 +64,7 @@ cc_test(
         "@bark_project//bark/world/evaluation:evaluator_drivable_area",
         "@bark_project//bark/world/goal_definition:goal_definition",
         "@gtest//:gtest_main",
+        "@libtensorflow-RL-MCTS//libtensorflow:tensorflowlib",
     ],
 )
 

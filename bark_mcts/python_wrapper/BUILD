@@ -8,6 +8,7 @@ cc_library(
     "@bark_project//bark/python_wrapper:common",
     "//bark_mcts/models/behavior:planner_uct_single_agent",
     "//bark_mcts/models/behavior:planner_uct_single_agent_macro_actions",
+    "@libtensorflow-RL-MCTS//libtensorflow:tensorflowlib",
     "@python_linux//:python-lib",
     "@pybind11//:pybind11",
     "@com_github_eigen_eigen//:eigen", 
