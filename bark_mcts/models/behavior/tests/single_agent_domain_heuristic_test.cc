@@ -61,7 +61,7 @@ TEST(behavior_uct_single_agent, change_lane_random_heuristic) {
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnLowerBound", -10000);//-1000
   params->SetReal("BehaviorUctSingleAgent::Mcts::UctStatistic::ReturnUpperBound", 10000);//100
   params->SetBool("BehaviorUctSingleAgent::UseRandomHeuristic", false);
-  params->SetBool("BehaviorUctSingleAgent::NNHeuristic", false);
+  params->SetBool("BehaviorUctSingleAgent::UseNNHeuristic", false);
 
 
   float ego_velocity = 10.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.2f;//ego_velocity = 5.0

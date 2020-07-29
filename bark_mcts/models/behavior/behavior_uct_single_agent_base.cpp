@@ -51,11 +51,12 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
       prediction_time_span_(GetParams()->AddChild("BehaviorUctSingleAgent")
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",
-          "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {     
+          "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)) {   
 
+              if(!(random_heuristic_)&&(nn_heuristic_)) { // Todo: Uncomment
               NNHeuristic::InitializeModelLoader(model_dir_); // Todo: Uncomment
-              NNHeuristic::InitializeObserver();
-          }
+              NNHeuristic::InitializeObserver();}           
+     }
 
 dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
