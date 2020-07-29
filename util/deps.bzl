@@ -26,14 +26,14 @@ cc_library(
     _maybe(
     git_repository,
     name = "bark_ml",
-    commit="ddee7be8ab24f310b6b09238b453630576d46925",
+    commit="76ca84645a50836521683cb336e3fa2063df4a96",
     remote = "https://github.com/SebastianGra/bark-ml_MCTS_RL",
     )
 
     _maybe(
     git_repository,
     name = "libtensorflow-RL-MCTS",
-    commit="84845b655f7bf6d3263dcddf465446edb192e21b",
+    commit="31adfc2112ce41b81574b6f44192ec47f0853fbc",
     remote = "https://github.com/steven-guo94/libtensorflow_so",
     )
 
