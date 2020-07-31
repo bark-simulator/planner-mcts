@@ -11,14 +11,26 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
 
 from bark.core.models.behavior import *
+from bark.core.models.behavior.risk_calculation import *
 from bark.runtime.commons.parameters import ParameterServer
+
+class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
+  def __init__(self, supporting_region):
+    super().__init__(supporting_region)
+    self.supporting_region = supporting_region
+
+  def CalculateIntegral(self, region_boundaries):
+    if not len(region_boundaries) == 1:
+      raise ValueError("Only 1D knowledge function provided")
+    region_range = region_boundaries["1DDimensionName"]
+    uniform_prob = 1.0/10.0
+    return uniform_prob*(region_range[1] - region_range[0])
 
 class BehaviorSpace:
   def __init__(self, params):
     self._params = params.AddChild("BehaviorSpace")
     self._behavior_space_definition = self._params.AddChild("Definition")
     self._config_behavior_space()
-    
 
   def sample_behavior_parameters(self, random_state = None):
     self._sampling_parameters = self._params.AddChild("Sampling")
@@ -69,7 +81,7 @@ class BehaviorSpace:
           add_default_partition_params(self._behavior_space_range_params[param], part_params[param])
         if "Distribution" in param:
           _ = part_params[param, "Number of partitions", 1]
-    
+
     def clean_default_partition_params(part_params):
       for param, value in part_params.store.copy().items():
         if isinstance(value, ParameterServer):
@@ -149,6 +161,8 @@ class BehaviorSpace:
   def _config_behavior_space(self):
     self.model_type = self._behavior_space_definition["ModelType", "Model type over which behavior space is defined", \
         "BehaviorIDMStochastic"]
+
+    # Space Boundary Parameters
     self._behavior_space_range_params = self._behavior_space_definition.AddChild("SpaceBoundaries")
     model_params = ParameterServer()
     _, _ = self._model_from_model_type(self.model_type, model_params)
@@ -165,9 +179,46 @@ class BehaviorSpace:
 
     replace_with_ranges(model_params, self._behavior_space_range_params)
 
+    # Prior Knowledge Parameters
+    self._prior_knowledge_function_params = self._behavior_space_definition.AddChild("PriorKnowledgeFunction")
+    prior_knowledge_definition_name = self._prior_knowledge_function_params["FunctionDefinition",
+             "Specifies which class derived of PriorKnowledgeFunctionDefinition should be used to define priior knowledge", \
+                "DefaultKnowledgeFunctionDefinition"]
+    ranges, _ = self._divide_distribution_ranges_and_fixed()
+    self._prior_knowledge_region = PriorKnowledgeRegion(ranges)
+    self._prior_knowledge_function_definition = eval("{}(self._prior_knowledge_region)".format(prior_knowledge_definition_name))
+    self._prior_knowledge_function = PriorKnowledgeFunction(self._prior_knowledge_region, 
+                                                    self._prior_knowledge_function_definition,
+                                                    self._prior_knowledge_function_params)
+  def _divide_distribution_ranges_and_fixed(self):
+    def filter_distributions(dct):
+      found_ranges = {}
+      found_fixed = {}
+      for key, val in dct.items():
+        if "Distribution" in key:
+          if len(val) == 2:
+            found_ranges[key] = tuple(val)
+          else:
+            found_fixed[key] = val
+        elif isinstance(val, dict):
+          found_sub_range, found_sub_fixed = filter_distributions(val)
+          for k, v in found_sub_range.items():
+            found_ranges["{}::{}".format(key, k)] = v
+          found_fixed[key] = {}
+          for k, v in found_sub_fixed.items():
+            found_fixed[key][k] = v
+      return found_ranges, found_fixed
+    return filter_distributions(self._behavior_space_range_params.ConvertToDict())
+
   def _model_from_model_type(self, model_type, params):
     bark_model = eval("{}(params)".format(model_type))
     return bark_model, params
+
+  def get_prior_knowledge_function(self):
+    return 
+
+  def _sample_params_from_prior_knowledge_function(self, space_params):
+    pass
 
   def _sample_params_from_param_ranges(self, space_params, sampling_params):
     """
@@ -212,7 +263,7 @@ class BehaviorSpace:
       param_sampled = range
     return param_sampled
 
-  def _sample_uniform_dist_params(self, range, sampling_params):
+  def _sample_uniform_dist_params(self, range, sampling_params, ):
     uni_width = sampling_params["Width", "What minimum and maximum width should sampled distribution have", [0.1, 0.3]]
 
     lower_bound = self.random_state.uniform(range[0], range[1] - uni_width[0])

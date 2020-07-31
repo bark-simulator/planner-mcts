@@ -18,8 +18,8 @@ void python_risk_calculation(py::module m) {
 
   py::class_<PriorKnowledgeFunctionDefinition, PyPriorKnowledgeFunctionDefinition,
              std::shared_ptr<PriorKnowledgeFunctionDefinition>>(m,
-    "ScenarioRiskFunctionDefinition")
-    .def(py::init<const RegionBoundaries& >())
+    "PriorKnowledgeFunctionDefinition")
+    .def(py::init<const PriorKnowledgeRegion& >())
     .def("__repr__", [](const PriorKnowledgeFunctionDefinition &m) {
       return "bark.behavior.PriorKnowledgeFunctionDefinition";
     })

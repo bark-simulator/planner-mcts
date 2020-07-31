@@ -7,7 +7,7 @@
 #ifndef MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_KNOWLEDGE_FUNCTION_TEMPLATE_HPP_
 #define MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_KNOWLEDGE_FUNCTION_TEMPLATE_HPP_
 
-#include "bark_mcts/models/behavior/risk_calculation/common.hpp"
+#include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
 #include "bark/commons/distribution/distribution.hpp"
 
 namespace bark {
@@ -18,7 +18,7 @@ namespace risk_calculation {
 
 class PriorKnowledgeFunctionDefinition {
   public:
-     PriorKnowledgeFunctionDefinition(const RegionBoundaries& supporting_region) : 
+     PriorKnowledgeFunctionDefinition(const PriorKnowledgeRegion& supporting_region) : 
         supporting_region_(supporting_region) {}
 
     virtual KnowledgeValue CalculateIntegral(const RegionBoundaries& integral_region) const = 0;
@@ -27,7 +27,7 @@ class PriorKnowledgeFunctionDefinition {
     virtual KnowledgeSample Sample() const = 0;
 
     private:
-      RegionBoundaries supporting_region_;
+      PriorKnowledgeRegion supporting_region_;
 };
 
 typedef std::shared_ptr<PriorKnowledgeFunctionDefinition> PriorKnowledgeFunctionDefinitionPtr;

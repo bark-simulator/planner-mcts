@@ -40,7 +40,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     param_server = ParameterServer()
     prior_knowledge_region = PriorKnowledgeRegion({"1DDimensionName" : (-3.0, 7.0)})
 
-    class TestKnowledgeFunctionDef(ScenarioRiskFunctionDefinition):
+    class TestKnowledgeFunctionDef(PriorKnowledgeFunctionDefinition):
       def __init__(self, supporting_region):
         super().__init__(supporting_region)
         self.supporting_region = supporting_region
@@ -60,7 +60,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
       uniform_prob = 0.5
       return uniform_prob*(region_range[1] - region_range[0])
 
-    knowledge_function_def = TestKnowledgeFunctionDef(prior_knowledge_region.definition)
+    knowledge_function_def = TestKnowledgeFunctionDef(prior_knowledge_region)
     prior_knowledge_function = PriorKnowledgeFunction(prior_knowledge_region, 
                                                     knowledge_function_def,
                                                     param_server)
@@ -77,7 +77,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     param_server = ParameterServer()
     prior_knowledge_region = PriorKnowledgeRegion({"1DDimensionName" : (-3.0, 7.0)})
 
-    class TestKnowledgeFunctionDef(ScenarioRiskFunctionDefinition):
+    class TestKnowledgeFunctionDef(PriorKnowledgeFunctionDefinition):
       def __init__(self, supporting_region):
         super().__init__(supporting_region)
         self.supporting_region = supporting_region
@@ -101,7 +101,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
       else:
         return abs(indef_int(region_range[1]) - indef_int(region_range[0]))
 
-    knowledge_function_def = TestKnowledgeFunctionDef(prior_knowledge_region.definition)
+    knowledge_function_def = TestKnowledgeFunctionDef(prior_knowledge_region)
     prior_knowledge_function = PriorKnowledgeFunction(prior_knowledge_region, 
                                                     knowledge_function_def,
                                                     param_server)
@@ -121,7 +121,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     param_server["PriorKnowledgeFunction"]["NumPartitionsIntegration"] = 1000
     prior_knowledge_region = PriorKnowledgeRegion({"1DDimensionName" : (-3.0, 7.0)})
 
-    class TestKnowledgeFunctionDef(ScenarioRiskFunctionDefinition):
+    class TestKnowledgeFunctionDef(PriorKnowledgeFunctionDefinition):
       def __init__(self, supporting_region):
         super().__init__(supporting_region)
         self.supporting_region = supporting_region
@@ -157,7 +157,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
       else:
         return abs(indef_int(region_range[1]) - indef_int(region_range[0]))
 
-    knowledge_function_def = TestKnowledgeFunctionDef(prior_knowledge_region.definition)
+    knowledge_function_def = TestKnowledgeFunctionDef(prior_knowledge_region)
     prior_knowledge_function = PriorKnowledgeFunction(prior_knowledge_region, 
                                                     knowledge_function_def,
                                                     param_server)
@@ -181,7 +181,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     param_server = ParameterServer()
     prior_knowledge_region = PriorKnowledgeRegion({"DimensionName1" : (1.0, 5.0), "DimensionName2" : (2.0, 8.0)})
 
-    class TestKnowledgeFunctionDef(ScenarioRiskFunctionDefinition):
+    class TestKnowledgeFunctionDef(PriorKnowledgeFunctionDefinition):
       def __init__(self, supporting_region):
         super().__init__(supporting_region)
         self.supporting_region = supporting_region
@@ -206,7 +206,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
       r2 = region_boundaries["DimensionName2"]
       return abs(indef_int(r1[1]) - indef_int(r1[0]))*(r2[1] - r2[0])
 
-    knowledge_function_def = TestKnowledgeFunctionDef(prior_knowledge_region.definition)
+    knowledge_function_def = TestKnowledgeFunctionDef(prior_knowledge_region)
     prior_knowledge_function = PriorKnowledgeFunction(prior_knowledge_region, 
                                                     knowledge_function_def,
                                                     param_server)
