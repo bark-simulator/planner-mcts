@@ -215,16 +215,33 @@ class BehaviorSpace:
     return bark_model, params
 
   def get_prior_knowledge_function(self):
-    return 
+    return self._prior_knowledge_function 
 
-  def _sample_params_from_prior_knowledge_function(self, space_params):
+  def _sample_mean_params_from_prior_knowledge_function(self):
+    #todo
     pass
 
-  def _sample_params_from_param_ranges(self, space_params, sampling_params):
+  def _sample_mean_params_from_uniform_function(self):
+    #todo
+    pass
+
+  def _sample_means_params(self):
+    if not self._prior_knowledge_function:
+      return self._sample_mean_params_from_uniform_function()
+    else:
+      return self._sample_mean_params_from_prior_knowledge_function()
+
+  def _sample_param_variations_from_param_means(self, space_params, sampling_params):
     """
     searches through param server to find distribution keys,
     adds by default to all distribution types a range parameter
     """
+
+    # todo: add prior knowledge function definitiion: None
+    mean_space_params = self._sample_mean_params()
+    # todo: idea to support prior knowledge, instead of paramter ranges sample from ... functions change to parameter mean signature
+    # todo: sample from functions use mean and then calculation widths (they only consider variations around mean, fixed distributions are then also possible
+    # giving no variations at all)
 
     param_dict = ParameterServer(log_if_default=True)
     for key, value in space_params.store.items():
@@ -263,7 +280,7 @@ class BehaviorSpace:
       param_sampled = range
     return param_sampled
 
-  def _sample_uniform_dist_params(self, range, sampling_params, ):
+  def _sample_uniform_dist_params(self, range, sampling_params):
     uni_width = sampling_params["Width", "What minimum and maximum width should sampled distribution have", [0.1, 0.3]]
 
     lower_bound = self.random_state.uniform(range[0], range[1] - uni_width[0])
