@@ -1,9 +1,11 @@
 cc_library(
     name = "risk_calculation",
     hdrs = [
+        "common.hpp",
         "prior_knowledge_function.hpp",
         "prior_knowledge_region.hpp",
         "scenario_risk_function.hpp",
+        "knowledge_function_template.hpp"
     ],
     srcs = [
         "prior_knowledge_function.cpp",

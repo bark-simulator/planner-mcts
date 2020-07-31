@@ -7,23 +7,13 @@
 #ifndef MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_REGION_HPP_
 #define MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_PRIOR_KNOWLEDGE_REGION_HPP_
 
-#include <unordered_map>
-#include <functional>
-#include <vector>
+#include "bark_mcts/models/behavior/risk_calculation/common.hpp"
 
 namespace bark {
 namespace models {
 namespace behavior {
 namespace risk_calculation {
 
-
-typedef float KnowledgeValue;
-typedef float RegionValueType;
-typedef std::string DimensionName;
-typedef std::unordered_map<DimensionName, RegionValueType> RegionValue;
-typedef std::unordered_map<DimensionName, std::pair<RegionValueType, RegionValueType>> RegionBoundaries;
-
-// to do -> do we need this actually
 class KnowledgeRegion {
   public:
     KnowledgeRegion() {}
@@ -43,8 +33,6 @@ class PriorKnowledgeRegion : public KnowledgeRegion {
    private:
       RegionBoundaries region_definition_;
 };
-
-typedef std::function<KnowledgeValue(RegionBoundaries)> KnowledgeFunction;
 
 
 } // namespace risk calculation

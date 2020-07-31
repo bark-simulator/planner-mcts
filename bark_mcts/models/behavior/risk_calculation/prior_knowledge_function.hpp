@@ -9,9 +9,10 @@
 
 #include "bark/commons/params/params.hpp"
 
+#include "bark_mcts/models/behavior/risk_calculation/common.hpp"
 #include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
+#include "bark_mcts/models/behavior/risk_calculation/knowledge_function_template.hpp"
 #include "bark_mcts/models/behavior/risk_calculation/scenario_risk_function.hpp"
-
 
 namespace bark {
 namespace models {
@@ -21,7 +22,7 @@ namespace risk_calculation {
 class PriorKnowledgeFunction : public bark::commons::BaseType {
     public:
       PriorKnowledgeFunction(const PriorKnowledgeRegion& prior_knowledge_region,
-                            const KnowledgeFunction& knowledge_function,
+                            const  KnowledgeFunctionDefinitionPtr& knowledge_function,
                             const bark::commons::ParamsPtr& params) : 
                             bark::commons::BaseType(params),
                             prior_knowledge_region_(prior_knowledge_region),
@@ -32,16 +33,16 @@ class PriorKnowledgeFunction : public bark::commons::BaseType {
 
     KnowledgeValue GetIntegralKnowledeValue(const RegionBoundaries& knowledge_region) const;
 
-    ScenarioRiskFunctionPtr CalculateScenarioRiskFunction(const KnowledgeFunction& template_scenario_risk_function) const;
+    ScenarioRiskFunctionPtr CalculateScenarioRiskFunction(const ScenarioRiskFunctionTemplate& template_scenario_risk_function) const;
 
     PriorKnowledgeRegion GetPriorKnowledgeRegion() const { return prior_knowledge_region_; }
 
-    KnowledgeFunction GetKnowledgeFunction() const { return knowledge_function_; }
+     KnowledgeFunctionDefinitionPtr GetKnowledgeFunction() const { return knowledge_function_; }
 
     private:
       unsigned int num_partitions_integration_;
       PriorKnowledgeRegion prior_knowledge_region_;
-      KnowledgeFunction knowledge_function_;
+       KnowledgeFunctionDefinitionPtr knowledge_function_;
 };
 
 

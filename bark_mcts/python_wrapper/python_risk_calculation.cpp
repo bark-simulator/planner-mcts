@@ -16,6 +16,16 @@ using namespace bark::models::behavior::risk_calculation;
 
 void python_risk_calculation(py::module m) {
 
+  py::class_<KnowledgeFunctionDefinition, PyKnowledgeFunctionDefinition,
+             std::shared_ptr<KnowledgeFunctionDefinition>>(m,
+    "KnowledgeFunctionDefinition")
+    .def(py::init<const RegionBoundaries& >())
+    .def("__repr__", [](const KnowledgeFunctionDefinition &m) {
+      return "bark.behavior.KnowledgeFunctionDefinition";
+    })
+    .def("Sample", &KnowledgeFunctionDefinition::Sample)
+    .def("CalculateIntegral", &KnowledgeFunctionDefinition::CalculateIntegral);
+
   py::class_<PriorKnowledgeRegion,
              std::shared_ptr<PriorKnowledgeRegion>>(m,
     "PriorKnowledgeRegion")
@@ -23,7 +33,7 @@ void python_risk_calculation(py::module m) {
     .def("__repr__", [](const PriorKnowledgeRegion &m) {
       return "bark.behavior.PriorKnowledgeRegion";
     })
-    .def_property_readonly("region_boundaries", &PriorKnowledgeRegion::GetDefinition)
+    .def_property_readonly("definition", &PriorKnowledgeRegion::GetDefinition)
     .def("Partition", &PriorKnowledgeRegion::Partition)
     .def(py::pickle(
       [](const PriorKnowledgeRegion& pkr) {
@@ -40,7 +50,7 @@ void python_risk_calculation(py::module m) {
              std::shared_ptr<PriorKnowledgeFunction>>(m,
     "PriorKnowledgeFunction")
     .def(py::init<const PriorKnowledgeRegion&, 
-             const KnowledgeFunction&,
+             const KnowledgeFunctionDefinitionPtr&,
               const bark::commons::ParamsPtr&>())
     .def("__repr__", [](const PriorKnowledgeFunction &m) {
       return "bark.behavior.PriorKnowledgeFunction";
@@ -57,31 +67,31 @@ void python_risk_calculation(py::module m) {
         if (t.size() != 3)
           throw std::runtime_error("Invalid PriorKnowledgeFunction state!");
         return new PriorKnowledgeFunction(t[0].cast<PriorKnowledgeRegion>(),
-                                      t[1].cast<KnowledgeFunction>(),
+                                      t[1].cast<KnowledgeFunctionDefinitionPtr>(),
                                       PythonToParams(t[2].cast<py::tuple>()));
       }));
 
   py::class_<ScenarioRiskFunction,
              std::shared_ptr<ScenarioRiskFunction>>(m,
     "ScenarioRiskFunction")
-    .def(py::init<const KnowledgeFunction&, 
+    .def(py::init<const ScenarioRiskFunctionTemplate&, 
              const double&>())
     .def("__repr__", [](const ScenarioRiskFunction &m) {
       return "bark.behavior.ScenarioRiskFunction";
     })
     .def_property_readonly("normalization_constant", &ScenarioRiskFunction::GetNormalizationConstant)
-    .def_property_readonly("unnormalized_knowledge_function", &ScenarioRiskFunction::GetUnormalizedKnowledgeFunction)
+    .def_property_readonly("scenario_risk_function_template", &ScenarioRiskFunction::GetScenarioRiskFunctionTemplate)
     .def("CalculateMeanAvailableScenarioRisk", &ScenarioRiskFunction::CalculateMeanAvailableScenarioRisk)
     .def(py::pickle(
       [](const ScenarioRiskFunction& srf) {
         // We throw away other information such as last trajectories
-        return py::make_tuple(srf.GetUnormalizedKnowledgeFunction(),
+        return py::make_tuple(srf.GetScenarioRiskFunctionTemplate(),
                             srf.GetNormalizationConstant());
       },
       [](py::tuple t) {
         if (t.size() != 2)
           throw std::runtime_error("Invalid ScenarioRiskFunction state!");
-        return new ScenarioRiskFunction(t[0].cast<KnowledgeFunction>(),
+        return new ScenarioRiskFunction(t[0].cast<ScenarioRiskFunctionTemplate>(),
                                       t[1].cast<double>());
       }));
 
