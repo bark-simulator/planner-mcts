@@ -8,7 +8,7 @@
 #define MODULES_MODELS_BEHAVIOR_RISK_CALCULATION_SCENARIO_RISK_FUNCTION_HPP_
 
 #include "bark/commons/distribution/distribution.hpp"
-#include "bark_mcts/models/behavior/risk_calculation/knowledge_function_template.hpp"
+#include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_function_definition.hpp"
 #include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
 
 

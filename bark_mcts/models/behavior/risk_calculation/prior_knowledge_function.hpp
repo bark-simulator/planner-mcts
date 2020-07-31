@@ -11,7 +11,7 @@
 
 #include "bark_mcts/models/behavior/risk_calculation/common.hpp"
 #include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
-#include "bark_mcts/models/behavior/risk_calculation/knowledge_function_template.hpp"
+#include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_function_definition.hpp"
 #include "bark_mcts/models/behavior/risk_calculation/scenario_risk_function.hpp"
 
 namespace bark {

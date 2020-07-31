@@ -8,7 +8,7 @@
 
 #include <pybind11/functional.h>
 #include "bark/python_wrapper/common.hpp"
-#include "bark_mcts/models/behavior/risk_calculation/knowledge_function_template.hpp"
+#include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_function_definition.hpp"
 
 namespace py = pybind11;
 
