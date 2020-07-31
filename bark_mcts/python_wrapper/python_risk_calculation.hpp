@@ -12,23 +12,23 @@
 
 namespace py = pybind11;
 
-using bark::models::behavior::risk_calculation::KnowledgeFunctionDefinition;
+using bark::models::behavior::risk_calculation::PriorKnowledgeFunctionDefinition;
 using bark::models::behavior::risk_calculation::RegionValue;
 using bark::models::behavior::risk_calculation::KnowledgeValue;
 using bark::models::behavior::risk_calculation::RegionBoundaries;
 using bark::commons::Probability;
 
-class PyKnowledgeFunctionDefinition : public  KnowledgeFunctionDefinition {
+class PyPriorKnowledgeFunctionDefinition : public  PriorKnowledgeFunctionDefinition {
  public:
-  using  KnowledgeFunctionDefinition:: KnowledgeFunctionDefinition;
+  using PriorKnowledgeFunctionDefinition:: PriorKnowledgeFunctionDefinition;
 
   KnowledgeValue CalculateIntegral(const RegionBoundaries& integral_region) const {
-    PYBIND11_OVERLOAD_PURE(KnowledgeValue,  KnowledgeFunctionDefinition,
+    PYBIND11_OVERLOAD_PURE(KnowledgeValue,  PriorKnowledgeFunctionDefinition,
                            CalculateIntegral, integral_region);
   }
 
-  KnowledgeFunctionDefinition::KnowledgeSample Sample() const {
-    PYBIND11_OVERLOAD_PURE(KnowledgeFunctionDefinition::KnowledgeSample,  KnowledgeFunctionDefinition,
+  PriorKnowledgeFunctionDefinition::KnowledgeSample Sample() const {
+    PYBIND11_OVERLOAD_PURE(PriorKnowledgeFunctionDefinition::KnowledgeSample,  PriorKnowledgeFunctionDefinition,
                            Sample);
   }
 

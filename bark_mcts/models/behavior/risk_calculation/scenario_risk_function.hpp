@@ -17,13 +17,13 @@ namespace models {
 namespace behavior {
 namespace risk_calculation {
 
-typedef std::function<KnowledgeValue(RegionBoundaries)> ScenarioRiskFunctionTemplate;
+typedef std::function<KnowledgeValue(RegionBoundaries)> ScenarioRiskFunctionDefinition;
 
 class ScenarioRiskFunction {
   public:
-    ScenarioRiskFunction(const ScenarioRiskFunctionTemplate& risk_function_unnormalized,
+    ScenarioRiskFunction(const ScenarioRiskFunctionDefinition& risk_function_definition,
                         const double& normalization_constant) : 
-                risk_function_unnormalized_(risk_function_unnormalized),
+                risk_function_definition_(risk_function_definition),
                 normalization_constant_(normalization_constant) {}
 
     bark::commons::Probability CalculateMeanAvailableScenarioRisk(const KnowledgeRegion& region) const {
@@ -36,12 +36,12 @@ class ScenarioRiskFunction {
 
     double GetNormalizationConstant() const { return normalization_constant_;}
 
-    ScenarioRiskFunctionTemplate GetScenarioRiskFunctionTemplate() const { return risk_function_unnormalized_;}
+    ScenarioRiskFunctionDefinition GetScenarioRiskFunctionDefinition() const { return risk_function_definition_;}
 
   private:
     // Holds a lambda passed from python of the indefinite integral function
     // e.g. if the scenario risk template is 0.1*x^2 then the lambda must be 0.1/3*x^3 
-    const ScenarioRiskFunctionTemplate risk_function_unnormalized_;
+    ScenarioRiskFunctionDefinition risk_function_definition_;
     double normalization_constant_;
 };
 

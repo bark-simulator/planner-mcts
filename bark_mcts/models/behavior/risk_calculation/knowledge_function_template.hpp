@@ -16,9 +16,9 @@ namespace behavior {
 namespace risk_calculation {
 
 
-class  KnowledgeFunctionDefinition {
+class PriorKnowledgeFunctionDefinition {
   public:
-     KnowledgeFunctionDefinition(const RegionBoundaries& supporting_region) : 
+     PriorKnowledgeFunctionDefinition(const RegionBoundaries& supporting_region) : 
         supporting_region_(supporting_region) {}
 
     virtual KnowledgeValue CalculateIntegral(const RegionBoundaries& integral_region) const = 0;
@@ -30,7 +30,7 @@ class  KnowledgeFunctionDefinition {
       RegionBoundaries supporting_region_;
 };
 
-typedef std::shared_ptr< KnowledgeFunctionDefinition>  KnowledgeFunctionDefinitionPtr;
+typedef std::shared_ptr<PriorKnowledgeFunctionDefinition> PriorKnowledgeFunctionDefinitionPtr;
 
 } // namespace risk calculation
 } // namespace behavior
