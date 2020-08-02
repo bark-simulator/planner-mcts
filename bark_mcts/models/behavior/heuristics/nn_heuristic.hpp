@@ -67,11 +67,11 @@ public:
             output_vector[i] = output(0, i);
             }   
         
-        std::vector<float> model_output = model_loader_ptr->Evaluator(output_vector,4);
+        std::vector<float> model_output = model_loader_ptr->Evaluator(output_vector,8);
         
         double num_actions = model_output.size(); //num actions //use model.output size
         double value = std::accumulate(model_output.begin(), model_output.end(), 0);
-
+        
         mcts::Reward ego_all_reward = (1/num_actions)*value;
 
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
