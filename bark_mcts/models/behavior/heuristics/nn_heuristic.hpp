@@ -73,7 +73,9 @@ public:
         double value = std::accumulate(model_output.begin(), model_output.end(), 0);
         
         mcts::Reward ego_all_reward = (1/num_actions)*value;
-
+        for (int i=0; i< num_actions; i++){
+           LOG_EVERY_N(INFO, 100) << "q_value for action" << i << "=" <<model_output[i];
+            }
 
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
         LOG_EVERY_N(INFO, 100) << "Calculating nn_heuristic value=" << ego_all_reward;//30
