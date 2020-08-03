@@ -72,7 +72,7 @@ public:
         std::vector<float> model_output = model_loader_ptr->Evaluator(output_vector,8);
         
         float num_actions = model_output.size(); //num actions //use model.output size
-        float value = std::accumulate(model_output.begin(), model_output.end(), 0);
+        float value = std::accumulate(model_output.begin(), model_output.end(), 0.0);
         float scalar = 1000.0;
         LOG(INFO) << "value=" << value;
         LOG(INFO) << "1/number of actions=" << (1/num_actions);
