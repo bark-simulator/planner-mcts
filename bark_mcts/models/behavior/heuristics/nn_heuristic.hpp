@@ -77,7 +77,7 @@ public:
         LOG(INFO) << "value=" << value;
         LOG(INFO) << "1/number of actions=" << (1/num_actions);
         LOG(INFO) << "number of actions=" << num_actions;
-        mcts::Reward ego_all_reward = scalar*(1/num_actions)*value*scalar;
+        mcts::Reward ego_all_reward = scalar*(1/num_actions)*value;
         for (int i=0; i< num_actions; i++){
            LOG(INFO) << "q_value for action" << i << "=" <<model_output[i];
             }
