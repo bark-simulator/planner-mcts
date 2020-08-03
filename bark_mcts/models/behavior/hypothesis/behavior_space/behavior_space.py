@@ -22,18 +22,21 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
     self.supporting_region = supporting_region
     self.SetDefaultDistributionParams(self.supporting_region.definition)
 
+
   def SetDefaultDistributionParams(self, supporting_region):
-    for range_desc, _ in supporting_region.items():
-      _ = self.params[range_desc]["Shape", "Shape of Weibull", 5]
-      _ = self.params[range_desc]["Scale", "Scale of Weibull", 1]
-      _ = self.params[range_desc]["Loc", "Location of Weibull", 2]
+    self._dist_funcs = {}
+    for reg_desc, region in supporting_region.items():
+      mean = self.params[reg_desc]["Mean", "Shape of Weibull", 5]
+      std = self.params[reg_desc]["Std", "Scale of Weibull", 1]
+      a, b = (region[0] - mean) / std, (region[1] - mean) / std
+      self._dist_funcs[reg_desc] = scipy.stats.truncnorm(a=a, b=b, loc=mean, scale=std)
 
   def CalculateIntegral(self, region_boundaries):
+    #todo improve with mean
     pdf_product = 1.0
     for reg_desc, reg_range in region_boundaries:
       reg_center = reg_range[1] -reg_range[0]
-      pdf_val = scipy.stats.weibull_min.pdf(reg_center, c=self.params[reg_desc]["Shape"], \
-        scale=self.params[reg_desc]["Scale"], loc=self.params[reg_desc]["Loc"])
+      pdf_val = self._dist_funcs[reg_desc].pdf(reg_center)
       pdf_product *= pdf_val
     return pdf_product*CalculateRegionBoundariesArea(region_boundaries)
 
@@ -42,8 +45,7 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
     total_values_prob = 1.0
     for reg_desc, reg_range in sampling_region.items():
       sampled_val = self.random_state.uniform(low=reg_range[0], high=reg_range[1])
-      val_prob = scipy.stats.weibull_min.pdf(sampled_val, c=self.params[reg_desc]["Shape"], \
-        scale=self.params[reg_desc]["Scale"], loc=self.params[reg_desc]["Loc"])
+      val_prob = self._dist_funcs[reg_desc].pdf(sampled_val)
       total_values_prob *= val_prob
       sampled_values[reg_desc] = sampled_val
     return sampled_values, total_values_prob, 1/CalculateRegionBoundariesArea(sampling_region)
@@ -52,12 +54,10 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
     sampled_values = {}
     total_values_prob = 1.0
     for reg_desc, reg_range in self.supporting_region.definition.items():
-      sampled_val = scipy.stats.weibull_min.rvs(size=1, c=self.params[reg_desc]["Shape"], \
-        scale=self.params[reg_desc]["Scale"], loc=self.params[reg_desc]["Loc"])
-      val_prob = scipy.stats.weibull_min.pdf(sampled_val, c=self.params[reg_desc]["Shape"], \
-        scale=self.params[reg_desc]["Scale"], loc=self.params[reg_desc]["Loc"])
-      total_values_prob *= val_prob
-      sampled_values[reg_desc] = sampled_val
+      sampled_val = self._dist_funcs[reg_desc].rvs(size=1)
+      val_prob = self._dist_funcs[reg_desc].pdf(sampled_val)
+      total_values_prob *= val_prob[0]
+      sampled_values[reg_desc] = sampled_val[0]
     return sampled_values, total_values_prob, total_values_prob
 
   def Sample(self, sampling_region, random_state):
@@ -83,7 +83,9 @@ class BehaviorSpace:
     partitioned, partitioned_behavior_space_range_params = self._check_and_apply_partitioning(
                 self._behavior_space_range_params, self._sampling_parameters)
     sampling_region_boundaries = None
+    behavior_space_range_params = self._behavior_space_range_params
     if partitioned:
+      behavior_space_range_params = partitioned_behavior_space_range_params
       sampling_region_boundaries, _ = \
           self._divide_distribution_ranges_and_fixed(partitioned_behavior_space_range_params)
 
@@ -91,7 +93,7 @@ class BehaviorSpace:
     mean_space_params, knowledge_probability, \
       importance_sampling_probability = \
            self._sample_mean_params_from_prior_knowledge_function(sampling_region_boundaries)
-    return self._sample_param_variations_from_param_means(mean_space_params, \
+    return self._sample_param_variations_from_param_means(mean_space_params, behavior_space_range_params, \
           self._sampling_parameters), self.model_type, knowledge_probability, \
           importance_sampling_probability
 
@@ -310,33 +312,32 @@ class BehaviorSpace:
             partitioned = True
     return partitioned, paritioned_params
 
-  def _sample_param_variations_from_param_means(self, mean_space_params, sampling_params):
+  def _sample_param_variations_from_param_means(self, mean_space_params, behavior_space_range_params, sampling_params):
     """
     searches through param server to find distribution keys,
     adds by default to all distribution types a range parameter
     """
     param_dict = ParameterServer(log_if_default=True)
-    for key, value in mean_space_params.store.items():
+    for key, sampled_value in mean_space_params.store.items():
       child = sampling_params[key]
+      param_range = behavior_space_range_params[key]
       if "Distribution" in key:
         distribution_type = sampling_params[key]["DistributionType", "Distribution type for sampling", "UniformDistribution1D"]
-        parameter_range = value
-        if "Uniform" in distribution_type and len(parameter_range) == 2:
-          param_dict[key] = self._sample_uniform_dist_params(parameter_range, child)
-        elif "Normal" in distribution_type and len(parameter_range) == 2:
-          param_dict[key] = self._sample_normal_dist_params(parameter_range, child)
-        elif "Fixed" in distribution_type or len(parameter_range) == 1:
-          param_dict[key] = self._get_fixed_dist_params(parameter_range, child)
-      elif isinstance(value, ParameterServer):
-        param_dict[key] = self._sample_param_variations_from_param_means(value, child)
+        if "Uniform" in distribution_type:
+          param_dict[key] = self._sample_uniform_dist_params(sampled_value, param_range, child)
+        elif "Normal" in distribution_type:
+          param_dict[key] = self._sample_normal_dist_params(sampled_value, param_range, child)
+        elif "Fixed" in distribution_type:
+          param_dict[key] = self._get_fixed_dist_params(sampled_value, param_range, child)
+      elif isinstance(sampled_value, ParameterServer):
+        param_dict[key] = self._sample_param_variations_from_param_means(sampled_value, param_range, child)
       else:
-        parameter_range = value
-        param_dict[key] = self._sample_non_distribution_params(parameter_range, child)
+        param_dict[key] = self._sample_non_distribution_params(sampled_value, param_range, child)
       if len(child.store) == 0:
         del sampling_params[key]
     return param_dict
 
-  def _sample_non_distribution_params(self, range, sampling_params):
+  def _sample_non_distribution_params(self, sampled_mean, range, sampling_params):
     param_sampled = None
     if isinstance(range, list):
       if len(range) > 1:
@@ -347,11 +348,12 @@ class BehaviorSpace:
       param_sampled = range
     return param_sampled
 
-  def _sample_uniform_dist_params(self, range, sampling_params):
+  def _sample_uniform_dist_params(self, sampled_mean, range, sampling_params):
     uni_width = sampling_params["Width", "What minimum and maximum width should sampled distribution have", [0.1, 0.3]]
 
-    lower_bound = self.random_state.uniform(range[0], range[1] - uni_width[0])
-    upper_bound = self.random_state.uniform(lower_bound + uni_width[0], min(range[1], lower_bound + uni_width[1]))
+    width = self.random_state.uniform(uni_width[0], uni_width[1])
+    lower_bound = max(sampled_mean - width/2.0, range[0]) 
+    upper_bound = min(sampled_mean + width/2.0, range[1])
 
     sampled_params = ParameterServer(log_if_default = True)
     sampled_params["DistributionType"] = "UniformDistribution1D"
@@ -360,17 +362,17 @@ class BehaviorSpace:
     sampled_params["RandomSeed"] = sampling_params["RandomSeed", "Seed for stochastic behavior", 1000]
     return sampled_params
 
-  def _get_fixed_dist_params(self, range, sampling_params):
+  def _get_fixed_dist_params(self, sampled_mean, range, sampling_params):
     sampled_params = ParameterServer(log_if_default = True)
     sampled_params["DistributionType"] = "FixedValue"
-    sampled_params["FixedValue"] = range
+    sampled_params["FixedValue"] = sampled_mean
     return sampled_params
 
-  def _sample_normal_dist_params(self, range, sampling_params):
+  def _sample_normal_dist_params(self, sampled_mean, range, sampling_params):
     std_range = sampling_params["StdRange", "What minimum and maximum standard deviation should sampled distribution have", [0.1, 0.3]]
 
     std = self.random_state.uniform(std_range[0], std_range[1])
-    mean = self.random_state.uniform(range[0], range[1])
+    mean = sampled_mean
 
     sampled_params = ParameterServer(log_if_default = True)
     sampled_params["DistributionType"] = "NormalDistribution1D"
