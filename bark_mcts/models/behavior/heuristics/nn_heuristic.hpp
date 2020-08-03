@@ -68,6 +68,14 @@ public:
             output_vector[i] = output(0, i);
             LOG(INFO) << "observedstate" << i << "=" <<output_vector[i];
             }   
+            output_vector[0] = 1.0-10*(1.0-output(0, 0));
+            output_vector[1] = 1.0-10*(1.0-output(0, 1));
+            output_vector[4] = 1.0-10*(1.0-output(0, 4));
+            output_vector[5] = 1.0-10*(1.0-output(0, 5));
+            output_vector[8] = 1.0-10*(1.0-output(0, 8));
+            output_vector[9] = 1.0-10*(1.0-output(0, 9));
+            output_vector[12] = 1.0-10*(1.0-output(0, 12));
+            output_vector[13] = 1.0-10*(1.0-output(0, 13));
         
         std::vector<float> model_output = model_loader_ptr->Evaluator(output_vector,8);
         
