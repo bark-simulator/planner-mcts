@@ -73,8 +73,10 @@ public:
         
         double num_actions = model_output.size(); //num actions //use model.output size
         double value = std::accumulate(model_output.begin(), model_output.end(), 0);
-        double scalar = 1000.0f;
-        LOG_EVERY_N(INFO, 100) << "number of actions=" << num_actions;
+        double scalar = 1000.0;
+        LOG(INFO) << "value=" << value;
+        LOG(INFO) << "1/number of actions=" << (1/num_actions);
+        LOG(INFO) << "number of actions=" << num_actions;
         mcts::Reward ego_all_reward = (1/num_actions)*value;
         for (int i=0; i< num_actions; i++){
            LOG(INFO) << "q_value for action" << i << "=" <<model_output[i];
