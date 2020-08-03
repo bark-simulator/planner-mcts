@@ -13,6 +13,8 @@
 #include <math.h>
 #include <cmath>
 
+#include "bark/geometry/angle.hpp"
+
 namespace bark {
 namespace models {
 namespace behavior {
@@ -44,14 +46,17 @@ public:
         // generate an extra node statistic for each agent
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
         auto goal_distance = node->get_state()->get_distance_to_goal();
+        auto ego_orientation = node->get_state()->get_observed_world()->CurrentEgoState()[bark::models::dynamic::StateDefinition::THETA_POSITION];
         //mcts::Reward ego_all_reward = 105-5*exp(0.3*goal_distance);
-        //mcts::Reward ego_all_reward = 1/(0.01 + goal_distance);
+        float ego_all_reward = 1/(0.01 + goal_distance);
+        if (goal_distance < 0.5f) {
+          ego_all_reward -= std::abs(bark::geometry::B_PI_2 - ego_orientation);
+        }
         //mcts::Reward ego_all_reward = 100-80*goal_distance;
-        mcts::Reward ego_all_reward = 100-100*log(goal_distance+1);
-
+        ego_all_reward = std::max(-1000.0f, std::min(ego_all_reward, 100.0f));
 
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
-        LOG_EVERY_N(INFO, 100) << "Calculating domain value=" << ego_all_reward << ", for dist. to. goal=" << goal_distance;//30
+        LOG_EVERY_N(INFO, 100) << "Calculating domain value=" << ego_all_reward << ", for dist. to. goal=" << goal_distance << ", theta diff " << std::abs(bark::geometry::B_PI_2 - ego_orientation);//30
         std::unordered_map<mcts::AgentIdx, SO> other_heuristic_estimates;
         mcts::AgentIdx reward_idx=1;
         for (auto agent_idx : node->get_state()->get_other_agent_idx())
