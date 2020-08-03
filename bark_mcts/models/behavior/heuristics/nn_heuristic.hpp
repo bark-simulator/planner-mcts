@@ -75,13 +75,13 @@ public:
         double value = std::accumulate(model_output.begin(), model_output.end(), 0);
         double scalar = 1000.0f;
         LOG_EVERY_N(INFO, 100) << "number of actions=" << num_actions;
-        mcts::Reward ego_all_reward = scalar*(1/num_actions)*value;
+        mcts::Reward ego_all_reward = (1/num_actions)*value;
         for (int i=0; i< num_actions; i++){
            LOG(INFO) << "q_value for action" << i << "=" <<model_output[i];
             }
 
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
-        LOG(INFO) << "using scalar Calculating nn_heuristic value=" << ego_all_reward;//30
+        LOG(INFO) << "without scalar Calculating nn_heuristic value=" << ego_all_reward;//30
         std::unordered_map<mcts::AgentIdx, SO> other_heuristic_estimates;
         mcts::AgentIdx reward_idx=1;
         for (auto agent_idx : node->get_state()->get_other_agent_idx())
