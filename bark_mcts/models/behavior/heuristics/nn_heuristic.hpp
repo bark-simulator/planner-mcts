@@ -77,7 +77,7 @@ public:
         LOG(INFO) << "value=" << value;
         LOG(INFO) << "1/number of actions=" << (1/num_actions);
         LOG(INFO) << "number of actions=" << num_actions;
-        mcts::Reward ego_all_reward = (1/num_actions)*value;
+        mcts::Reward ego_all_reward = (1/num_actions)*value*scalar;
         for (int i=0; i< num_actions; i++){
            LOG(INFO) << "q_value for action" << i << "=" <<model_output[i];
             }
@@ -85,7 +85,7 @@ public:
 
         LOG(INFO) << "without scalar Calculating nn_heuristic value before=" << ego_all_reward;//30
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
-        LOG(INFO) << "without scalar Calculating nn_heuristic value=" << ego_all_reward;//30
+        LOG(INFO) << "with scalar Calculating nn_heuristic value=" << ego_all_reward;//30
         std::unordered_map<mcts::AgentIdx, SO> other_heuristic_estimates;
         mcts::AgentIdx reward_idx=1;
         for (auto agent_idx : node->get_state()->get_other_agent_idx())
