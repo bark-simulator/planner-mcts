@@ -7,6 +7,7 @@ import math
 import itertools
 import numpy as np
 import logging
+import scipy.stats 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
 
@@ -15,16 +16,56 @@ from bark.core.models.behavior.risk_calculation import *
 from bark.runtime.commons.parameters import ParameterServer
 
 class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
-  def __init__(self, supporting_region):
+  def __init__(self, params, supporting_region):
     super().__init__(supporting_region)
+    self.params = params.AddChild("WeibullKnowledgeFunctionDefinition")
     self.supporting_region = supporting_region
+    self.SetDefaultDistributionParams(self.supporting_region.definition)
+
+  def SetDefaultDistributionParams(self, supporting_region):
+    for range_desc, _ in supporting_region.items():
+      _ = self.params[range_desc]["Shape", "Shape of Weibull", 5]
+      _ = self.params[range_desc]["Scale", "Scale of Weibull", 1]
+      _ = self.params[range_desc]["Loc", "Location of Weibull", 2]
 
   def CalculateIntegral(self, region_boundaries):
-    if not len(region_boundaries) == 1:
-      raise ValueError("Only 1D knowledge function provided")
-    region_range = region_boundaries["1DDimensionName"]
-    uniform_prob = 1.0/10.0
-    return uniform_prob*(region_range[1] - region_range[0])
+    pdf_product = 1.0
+    for reg_desc, reg_range in region_boundaries:
+      reg_center = reg_range[1] -reg_range[0]
+      pdf_val = scipy.stats.weibull_min.pdf(reg_center, c=self.params[reg_desc]["Shape"], \
+        scale=self.params[reg_desc]["Scale"], loc=self.params[reg_desc]["Loc"])
+      pdf_product *= pdf_val
+    return pdf_product*CalculateRegionBoundariesArea(region_boundaries)
+
+  def _SampleFromRegion(self, sampling_region, random_state):
+    sampled_values = {}
+    total_values_prob = 1.0
+    for reg_desc, reg_range in sampling_region.items():
+      sampled_val = self.random_state.uniform(low=reg_range[0], high=reg_range[1])
+      val_prob = scipy.stats.weibull_min.pdf(sampled_val, c=self.params[reg_desc]["Shape"], \
+        scale=self.params[reg_desc]["Scale"], loc=self.params[reg_desc]["Loc"])
+      total_values_prob *= val_prob
+      sampled_values[reg_desc] = sampled_val
+    return sampled_values, total_values_prob, 1/CalculateRegionBoundariesArea(sampling_region)
+
+  def _SampleFromDensity(self, random_state):
+    sampled_values = {}
+    total_values_prob = 1.0
+    for reg_desc, reg_range in self.supporting_region.definition.items():
+      sampled_val = scipy.stats.weibull_min.rvs(size=1, c=self.params[reg_desc]["Shape"], \
+        scale=self.params[reg_desc]["Scale"], loc=self.params[reg_desc]["Loc"])
+      val_prob = scipy.stats.weibull_min.pdf(sampled_val, c=self.params[reg_desc]["Shape"], \
+        scale=self.params[reg_desc]["Scale"], loc=self.params[reg_desc]["Loc"])
+      total_values_prob *= val_prob
+      sampled_values[reg_desc] = sampled_val
+    return sampled_values, total_values_prob, total_values_prob
+
+  def Sample(self, sampling_region, random_state):
+    if sampling_region:
+      return self._SampleFromRegion(sampling_region, random_state)
+    else:
+      return self._SampleFromDensity(random_state)
+
 
 class BehaviorSpace:
   def __init__(self, params):
@@ -38,9 +79,21 @@ class BehaviorSpace:
     self.random_state = np.random.RandomState(random_seed)
     if random_state:
       self.random_state = random_state
-    return self._sample_params_from_param_ranges(self._behavior_space_range_params, \
-                self._sampling_parameters), self.model_type
 
+    partitioned, partitioned_behavior_space_range_params = self._check_and_apply_partitioning(
+                self._behavior_space_range_params, self._sampling_parameters)
+    sampling_region_boundaries = None
+    if partitioned:
+      sampling_region_boundaries, _ = \
+          self._divide_distribution_ranges_and_fixed(partitioned_behavior_space_range_params)
+
+    # todo: add prior knowledge function definitiion: None
+    mean_space_params, knowledge_probability, \
+      importance_sampling_probability = \
+           self._sample_mean_params_from_prior_knowledge_function(sampling_region_boundaries)
+    return self._sample_param_variations_from_param_means(mean_space_params, \
+          self._sampling_parameters), self.model_type, knowledge_probability, \
+          importance_sampling_probability
 
   def create_hypothesis_set_fixed_split(self, split):
     hypothesis_parameters = self.get_default_hypothesis_parameters()
@@ -184,13 +237,14 @@ class BehaviorSpace:
     prior_knowledge_definition_name = self._prior_knowledge_function_params["FunctionDefinition",
              "Specifies which class derived of PriorKnowledgeFunctionDefinition should be used to define priior knowledge", \
                 "DefaultKnowledgeFunctionDefinition"]
-    ranges, _ = self._divide_distribution_ranges_and_fixed()
+    ranges, _ = self._divide_distribution_ranges_and_fixed(self._behavior_space_range_params)
     self._prior_knowledge_region = PriorKnowledgeRegion(ranges)
-    self._prior_knowledge_function_definition = eval("{}(self._prior_knowledge_region)".format(prior_knowledge_definition_name))
+    self._prior_knowledge_function_definition = eval("{}(self._prior_knowledge_function_params, \
+                          self._prior_knowledge_region)".format(prior_knowledge_definition_name))
     self._prior_knowledge_function = PriorKnowledgeFunction(self._prior_knowledge_region, 
                                                     self._prior_knowledge_function_definition,
                                                     self._prior_knowledge_function_params)
-  def _divide_distribution_ranges_and_fixed(self):
+  def _divide_distribution_ranges_and_fixed(self, behavior_space_range_params):
     def filter_distributions(dct):
       found_ranges = {}
       found_fixed = {}
@@ -208,7 +262,7 @@ class BehaviorSpace:
           for k, v in found_sub_fixed.items():
             found_fixed[key][k] = v
       return found_ranges, found_fixed
-    return filter_distributions(self._behavior_space_range_params.ConvertToDict())
+    return filter_distributions(behavior_space_range_params.ConvertToDict())
 
   def _model_from_model_type(self, model_type, params):
     bark_model = eval("{}(params)".format(model_type))
@@ -217,9 +271,19 @@ class BehaviorSpace:
   def get_prior_knowledge_function(self):
     return self._prior_knowledge_function 
 
-  def _sample_mean_params_from_prior_knowledge_function(self):
+  def _sample_mean_params_from_prior_knowledge_function(self, sample_region):
     #todo
-    pass
+    mean_params = self._behavior_space_range_params.clone()
+    sampled_dist_params = self._prior_knowledge_function_definition.Sample(sample_region, self.random_state)
+    for param_sampled_hierarchy, param_value in sampled_dist_params[0].items():
+      hierarchy_levels = param_sampled_hierarchy.split("::")
+      current_child = mean_params
+      for idx, hierarchy_level in enumerate(hierarchy_levels):
+        if idx < len(hierarchy_levels) - 1:
+          current_child = current_child[hierarchy_level]
+        else:
+          current_child[hierarchy_level] = param_value
+    return mean_params, sampled_dist_params[1], sampled_dist_params[2]
 
   def _sample_mean_params_from_uniform_function(self):
     #todo
@@ -231,29 +295,32 @@ class BehaviorSpace:
     else:
       return self._sample_mean_params_from_prior_knowledge_function()
 
-  def _sample_param_variations_from_param_means(self, space_params, sampling_params):
-    """
-    searches through param server to find distribution keys,
-    adds by default to all distribution types a range parameter
-    """
-
-    # todo: add prior knowledge function definitiion: None
-    mean_space_params = self._sample_mean_params()
-    # todo: idea to support prior knowledge, instead of paramter ranges sample from ... functions change to parameter mean signature
-    # todo: sample from functions use mean and then calculation widths (they only consider variations around mean, fixed distributions are then also possible
-    # giving no variations at all)
-
-    param_dict = ParameterServer(log_if_default=True)
-    for key, value in space_params.store.items():
-      child = sampling_params[key]
+  def _check_and_apply_partitioning(self, behavior_space_range_params, sampling_params):
+    paritioned_params = behavior_space_range_params.clone()
+    partitioned = False
+    for key, value in paritioned_params.store.items():
       if "Distribution" in key:
-        distribution_type = sampling_params[key]["DistributionType", "Distribution type for sampling", "UniformDistribution1D"]
         parameter_range = value
         if len(parameter_range) > 1:
           partitions = sampling_params[key]["Partitions", "Into how many equal parameter range partitions is this range partitioned", None]
           if partitions :
             selected_partition = sampling_params[key]["SelectedPartition", "Which of these partitions is selected for sampling", 0]
             parameter_range = self._get_param_range_partition(parameter_range, partitions, selected_partition)
+            paritioned_params[key] = parameter_range
+            partitioned = True
+    return partitioned, paritioned_params
+
+  def _sample_param_variations_from_param_means(self, mean_space_params, sampling_params):
+    """
+    searches through param server to find distribution keys,
+    adds by default to all distribution types a range parameter
+    """
+    param_dict = ParameterServer(log_if_default=True)
+    for key, value in mean_space_params.store.items():
+      child = sampling_params[key]
+      if "Distribution" in key:
+        distribution_type = sampling_params[key]["DistributionType", "Distribution type for sampling", "UniformDistribution1D"]
+        parameter_range = value
         if "Uniform" in distribution_type and len(parameter_range) == 2:
           param_dict[key] = self._sample_uniform_dist_params(parameter_range, child)
         elif "Normal" in distribution_type and len(parameter_range) == 2:
@@ -261,7 +328,7 @@ class BehaviorSpace:
         elif "Fixed" in distribution_type or len(parameter_range) == 1:
           param_dict[key] = self._get_fixed_dist_params(parameter_range, child)
       elif isinstance(value, ParameterServer):
-        param_dict[key] = self._sample_params_from_param_ranges(value, child)
+        param_dict[key] = self._sample_param_variations_from_param_means(value, child)
       else:
         parameter_range = value
         param_dict[key] = self._sample_non_distribution_params(parameter_range, child)

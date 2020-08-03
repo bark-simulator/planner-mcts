@@ -54,9 +54,5 @@ std::vector<PriorKnowledgeRegion> PriorKnowledgeRegion::Partition(unsigned int n
 
 
 double PriorKnowledgeRegion::CalculateArea() const {
- double area = 1.0;
-  for (const auto& region: region_definition_) {
-    area *= (region.second.second - region.second.first);
-  }
-  return area;
+  return CalculateRegionBoundariesArea(region_definition_);
 }

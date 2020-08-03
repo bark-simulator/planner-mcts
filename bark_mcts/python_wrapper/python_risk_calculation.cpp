@@ -95,4 +95,5 @@ void python_risk_calculation(py::module m) {
                                       t[1].cast<double>());
       }));
 
+  m.def("CalculateRegionBoundariesArea", &CalculateRegionBoundariesArea);
 }

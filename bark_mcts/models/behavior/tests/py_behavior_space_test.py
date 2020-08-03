@@ -23,7 +23,8 @@ class PyBehaviorSpaceTests(unittest.TestCase):
   def test_default_config_sampling(self):
     param_server = ParameterServer()
     space = BehaviorSpace(param_server)
-    sampled_parameters, model_type = space.sample_behavior_parameters()
+    sampled_parameters, model_type, \
+    prob_prior, prob_sampling = space.sample_behavior_parameters()
     print(model_type)
     behavior = eval("{}(sampled_parameters)".format(model_type))
     print(sampled_parameters.ConvertToDict())
@@ -46,7 +47,8 @@ class PyBehaviorSpaceTests(unittest.TestCase):
 
     num_sampled_parameters = 100
     for _ in range(0, num_sampled_parameters):
-      sampled_parameters, model_type = space.sample_behavior_parameters()
+      sampled_parameters, model_type, \
+      prob_prior, prob_sampling = space.sample_behavior_parameters()
       behavior = eval("{}(sampled_parameters)".format(model_type))
 
       self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["MaxAccDistribution"]["DistributionType", "", ""], "FixedValue")
@@ -68,7 +70,8 @@ class PyBehaviorSpaceTests(unittest.TestCase):
   def test_partition_sampling(self):
     param_server = ParameterServer()
     space = BehaviorSpace(param_server)
-    sampled_parameters, model_type = space.sample_behavior_parameters()
+    sampled_parameters, model_type, \
+            prob_prior, prob_sampling = space.sample_behavior_parameters()
     print(model_type)
     behavior = eval("{}(sampled_parameters)".format(model_type))
     print(sampled_parameters.ConvertToDict())
@@ -96,7 +99,8 @@ class PyBehaviorSpaceTests(unittest.TestCase):
 
     num_sampled_parameters = 100
     for _ in range(0, num_sampled_parameters):
-      sampled_parameters, model_type = space.sample_behavior_parameters()
+      sampled_parameters, model_type, \
+            prob_prior, prob_sampling = space.sample_behavior_parameters()
       behavior = eval("{}(sampled_parameters)".format(model_type))
 
       self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["MaxAccDistribution"]["DistributionType", "", ""], "FixedValue")

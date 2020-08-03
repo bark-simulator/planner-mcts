@@ -23,8 +23,10 @@ class PriorKnowledgeFunctionDefinition {
 
     virtual KnowledgeValue CalculateIntegral(const RegionBoundaries& integral_region) const = 0;
 
-    typedef std::pair<bark::commons::Probability, RegionValue> KnowledgeSample;
-    virtual KnowledgeSample Sample() const = 0;
+    // First probability gives the probability of RegionValue with respect to full distribution
+    // Second probability gives the probability of sample distribution (to correct using importance sampling)
+    typedef std::tuple<RegionValue, bark::commons::Probability, bark::commons::Probability> KnowledgeSample;
+    virtual KnowledgeSample Sample(const PriorKnowledgeRegion& sampling_region) const = 0;
 
     private:
       PriorKnowledgeRegion supporting_region_;

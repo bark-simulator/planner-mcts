@@ -16,6 +16,7 @@ using bark::models::behavior::risk_calculation::PriorKnowledgeFunctionDefinition
 using bark::models::behavior::risk_calculation::RegionValue;
 using bark::models::behavior::risk_calculation::KnowledgeValue;
 using bark::models::behavior::risk_calculation::RegionBoundaries;
+using bark::models::behavior::risk_calculation::PriorKnowledgeRegion;
 using bark::commons::Probability;
 
 class PyPriorKnowledgeFunctionDefinition : public  PriorKnowledgeFunctionDefinition {
@@ -27,9 +28,9 @@ class PyPriorKnowledgeFunctionDefinition : public  PriorKnowledgeFunctionDefinit
                            CalculateIntegral, integral_region);
   }
 
-  PriorKnowledgeFunctionDefinition::KnowledgeSample Sample() const {
+  PriorKnowledgeFunctionDefinition::KnowledgeSample Sample(const PriorKnowledgeRegion& sampling_region) const {
     PYBIND11_OVERLOAD_PURE(PriorKnowledgeFunctionDefinition::KnowledgeSample,  PriorKnowledgeFunctionDefinition,
-                           Sample);
+                           Sample, sampling_region);
   }
 
 };
