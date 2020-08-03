@@ -109,8 +109,6 @@ private:
 
     static ModelLoader* model_loader_ptr;
     static NearestObserver* Observer_ptr;
-
-
 };
 
 ModelLoader* NNHeuristic::model_loader_ptr = NULL;
