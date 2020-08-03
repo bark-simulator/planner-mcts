@@ -73,7 +73,7 @@ public:
         
         float num_actions = model_output.size(); //num actions //use model.output size
         float value = std::accumulate(model_output.begin(), model_output.end(), 0.0);
-        float scalar = 250.0;
+        float scalar = 100.0;
         LOG(INFO) << "value=" << value;
         LOG(INFO) << "1/number of actions=" << (1/num_actions);
         LOG(INFO) << "number of actions=" << num_actions;
