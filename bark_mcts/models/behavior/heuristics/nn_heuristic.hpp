@@ -82,6 +82,7 @@ public:
            LOG(INFO) << "q_value for action" << i << "=" <<model_output[i];
             }
 
+
         LOG(INFO) << "without scalar Calculating nn_heuristic value before=" << ego_all_reward;//30
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
         LOG(INFO) << "without scalar Calculating nn_heuristic value=" << ego_all_reward;//30
