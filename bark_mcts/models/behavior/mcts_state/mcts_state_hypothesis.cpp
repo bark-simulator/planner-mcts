@@ -33,21 +33,20 @@ MctsStateHypothesis::MctsStateHypothesis(
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters) :
-      mcts::HypothesisStateInterface<MctsStateHypothesis>(current_agents_hypothesis),
-      observed_world_(observed_world),
-      is_terminal_state_(is_terminal_state),
-      num_ego_actions_(num_ego_actions),
-      prediction_time_span_(prediction_time_span),
-      behavior_hypotheses_(behavior_hypothesis),
-      ego_behavior_model_(ego_behavior_model),
-      other_agent_ids_(update_other_agent_ids()),
-      ego_agent_id_(ego_agent_id),
-      state_parameters_(state_parameters) {
-          // start at index 1 since first agent is ego agent
-          for(const auto& agent_id : other_agent_ids_) {
-              behaviors_stored_[agent_id] = std::make_shared<BehaviorActionStore>(nullptr);
-          }
-      }
+                        MctsStateBase<MctsStateHypothesis>(observed_world,
+                                      is_terminal_state,
+                                      num_ego_actions,
+                                      prediction_time_span,
+                                      ego_behavior_model,
+                                      ego_agent_id,
+                                      state_parameters,
+                                      current_agents_hypothesis),
+                        behavior_hypotheses_(behavior_hypothesis) {
+    // start at index 1 since first agent is ego agent
+    for(const auto& agent_id : other_agent_ids_) {
+        behaviors_stored_[agent_id] = std::make_shared<BehaviorActionStore>(nullptr);
+    }
+}
 
 std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::clone() const {
   auto worldptr =
@@ -117,15 +116,6 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
       ego_agent_id_, state_parameters_);
 }
 
-const std::vector<mcts::AgentIdx> MctsStateHypothesis::get_other_agent_idx() const {
-  return other_agent_ids_;
-}
-
-const mcts::AgentIdx MctsStateHypothesis::get_ego_agent_idx() const {
-  return ego_agent_id_;
-}
-
-
 mcts::ActionIdx MctsStateHypothesis::plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const {
     auto bark_agent_id = agent_idx;
     auto observed_world_for_other = observed_world_->ObserveForOtherAgent(bark_agent_id);
@@ -161,24 +151,6 @@ mcts::Probability MctsStateHypothesis::get_probability(const mcts::HypothesisId&
 mcts::Probability MctsStateHypothesis::get_prior(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx) const { return 0.5f;};
 
 mcts::HypothesisId MctsStateHypothesis::get_num_hypothesis(const mcts::AgentIdx& agent_idx) const {return behavior_hypotheses_.size();};
-
-std::vector<mcts::AgentIdx> MctsStateHypothesis::update_other_agent_ids() const {
-  world::AgentMap agent_map = observed_world_->GetOtherAgents();
-  std::vector<mcts::AgentIdx> ids;
-  for (const auto &agent : agent_map) {
-    ids.push_back(agent.first);
-  }
-  return ids;
-}
-
-std::string MctsStateHypothesis::sprintf() const {
-    std::stringstream ss;
-    for ( const auto& agent : observed_world_->GetAgents()) {
-         ss << "Agent " << agent.first << ", State: " << agent.second->GetCurrentState() << 
-          ", Action: " <<  boost::apply_visitor(action_tostring_visitor(), agent.second->GetBehaviorModel()->GetLastAction()) ;
-    }
-    return ss.str();
-}
 
 }  // namespace behavior
 }  // namespace models

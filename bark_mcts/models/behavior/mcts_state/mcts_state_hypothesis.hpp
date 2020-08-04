@@ -13,8 +13,7 @@
 #include "bark_mcts/models/behavior/hypothesis/behavior_hypothesis.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
 // MCTS Library
-#include "mcts/hypothesis/hypothesis_state.h"
-
+#include "bark_mcts/models/behavior/mcts_state/mcts_state_base.hpp"
 
 namespace bark {
 namespace world {
@@ -26,14 +25,7 @@ namespace behavior {
 
 using BarkAction = bark::models::behavior::Action;
 
-typedef struct StateParameters {
-  float GOAL_REWARD;
-  float COLLISION_REWARD;
-  float GOAL_COST;
-  float COLLISION_COST;
-};
-
-class MctsStateHypothesis : public mcts::HypothesisStateInterface<MctsStateHypothesis> {
+class MctsStateHypothesis : public MctsStateBase<MctsStateHypothesis> {
 public:
     MctsStateHypothesis(const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
@@ -52,16 +44,6 @@ public:
 
     std::shared_ptr<MctsStateHypothesis> clone() const;
 
-    mcts::ActionIdx get_num_actions(mcts::AgentIdx agent_idx) const { return num_ego_actions_; }
-
-    bool is_terminal() const { return is_terminal_state_; };
-
-    const std::vector<mcts::AgentIdx> get_other_agent_idx() const;
-
-    const mcts::AgentIdx get_ego_agent_idx() const;
-
-    std::string sprintf() const;
-
     // Hypothesis State Interfaces
     mcts::ActionIdx plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const;
 
@@ -79,22 +61,8 @@ public:
     typedef BarkAction ActionType; // required for template-mechanism to compile
 
  private:
-  std::vector<mcts::AgentIdx> update_other_agent_ids() const;
-
-  const std::shared_ptr<const bark::world::ObservedWorld> observed_world_;
-  const bool is_terminal_state_;
-  const mcts::ActionIdx num_ego_actions_;
-  const float prediction_time_span_;
-  const std::vector<mcts::AgentIdx> other_agent_ids_;
-  const mcts::AgentIdx ego_agent_id_;
-  const StateParameters state_parameters_;
-
-
-  // ---------------- Hypothesis specific ----------------------
-  // available hypothesis and ego model can be shared across all states
-  const std::vector<BehaviorModelPtr>& behavior_hypotheses_;
-  const BehaviorMotionPrimitivesPtr& ego_behavior_model_;
-  mutable std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
+   const std::vector<BehaviorModelPtr>& behavior_hypotheses_;
+   mutable std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
 
 };
 

@@ -1,7 +1,10 @@
 cc_library(
     name = "mcts_state_hypothesis",
     srcs = ["mcts_state_hypothesis.cpp"],
-    hdrs = ["mcts_state_hypothesis.hpp"],
+    hdrs = [
+            "mcts_state_hypothesis.hpp",
+            "mcts_state_base.hpp"
+            ],
     copts = ["-Iexternal/bark_project"],
     deps= [
         "//bark_mcts/models/behavior/hypothesis:hypothesis",
