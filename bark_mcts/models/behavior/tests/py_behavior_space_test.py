@@ -19,6 +19,8 @@ from bark.runtime.commons.parameters import ParameterServer
 from bark_mcts.models.behavior.hypothesis.behavior_space.behavior_space import BehaviorSpace
 from bark.core.models.behavior import *
 
+import scipy
+
 class PyBehaviorSpaceTests(unittest.TestCase):
   def test_default_config_sampling(self):
     param_server = ParameterServer()
@@ -224,6 +226,53 @@ class PyBehaviorSpaceTests(unittest.TestCase):
                       desired_range[0] + idx*(desired_range[1]-desired_range[0])/num_hypothesis_desired, 2)
             self.assertAlmostEquals(split[1],\
                       desired_range[0] + (idx+1)*(desired_range[1]-desired_range[0])/num_hypothesis_desired, 2)
+
+  def test_prior_knowledge_probability_estimation(self):
+    params_server = ParameterServer()
+
+
+
+    # fixed param ranges without sampling for all distributions ...
+    params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["SpacingDistribution"]["DistributionType"] = "FixedValue"
+    params_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["SpacingDistribution"] = [2]
+    params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["MaxAccDistribution"]["DistributionType"] = "FixedValue"
+    params_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["MaxAccDistribution"] = [3]
+    params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["ComftBrakingDistribution"]["DistributionType"] = "FixedValue"
+    params_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["ComftBrakingDistribution"] = [4]
+    params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["CoolnessFactorDistribution"]["DistributionType"] = "FixedValue"
+    params_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["CoolnessFactorDistribution"] = [2.5]
+    params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["HeadwayDistribution"]["DistributionType"] = "FixedValue"
+    params_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["HeadwayDistribution"] = [1.2]
+
+    # .. except one param distribution
+    params_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["DesiredVelDistribution"] = [0.8, 10.8]
+    params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["Width"] = [0.1, 0.3]
+    params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["DistributionType"] = "FixedValue"
+    params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["Partitions"] = 10
+    params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["SelectedPartition"] = 1
+
+    # parameterize prior knowledge function
+    truncated_region = [1.8, 2.8] # equal to desired vel distribution boundaries, selected partition 1
+    mean = 4
+    std = 0.1
+    params_server["BehaviorSpace"]["Definition"]["PriorKnowledgeFunction"]["WeibullKnowledgeFunctionDefinition"]\
+        ["BehaviorIDMStochastic::DesiredVelDistribution"]["Mean"] = mean
+    params_server["BehaviorSpace"]["Definition"]["PriorKnowledgeFunction"]["WeibullKnowledgeFunctionDefinition"]\
+        ["BehaviorIDMStochastic::DesiredVelDistribution"]["Std"] = std
+    a, b = (truncated_region[0] - mean) / std, (truncated_region[1] - mean) / std
+    dist_func = scipy.stats.truncnorm(a=a, b=b, loc=mean, scale=std)
+
+    space = BehaviorSpace(params_server) 
+    num_sampled_parameters = 100
+    for _ in range(0, num_sampled_parameters):
+      sampled_parameters, model_type, \
+            prob_prior, prob_sampling = space.sample_behavior_parameters()
+      sampled_value = sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["FixedValue", "", 1000.0]
+      # calculate probability of fixed value under truncated normal with given parameters
+      desired_prob_prior = dist_func.pdf(sampled_value)
+      self.assertAlmostEqual(prob_prior, desired_prob_prior, 4)
+      self.assertAlmostEqual(prob_sampling, 1.0, 4) # probability of uniform distribution density between 1.8 and 2.8
+
 
 
 if __name__ == '__main__':

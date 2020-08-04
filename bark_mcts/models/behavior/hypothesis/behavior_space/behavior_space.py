@@ -26,17 +26,21 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
   def SetDefaultDistributionParams(self, supporting_region):
     self._dist_funcs = {}
     for reg_desc, region in supporting_region.items():
-      mean = self.params[reg_desc]["Mean", "Shape of Weibull", 5]
-      std = self.params[reg_desc]["Std", "Scale of Weibull", 1]
-      a, b = (region[0] - mean) / std, (region[1] - mean) / std
-      self._dist_funcs[reg_desc] = scipy.stats.truncnorm(a=a, b=b, loc=mean, scale=std)
+      _ = self.params[reg_desc]["Mean", "Shape of Weibull", 5]
+      _ = self.params[reg_desc]["Std", "Scale of Weibull", 1]
+
+  def GetDistFunc(self, region_params, region_range):
+    mean = region_params["Mean"]
+    std = region_params["Std"]
+    a, b = (region_range[0] - mean) / std, (region_range[1] - mean) / std
+    return scipy.stats.truncnorm(a=a, b=b, loc=mean, scale=std)
 
   def CalculateIntegral(self, region_boundaries):
     #todo improve with mean
     pdf_product = 1.0
     for reg_desc, reg_range in region_boundaries:
       reg_center = reg_range[1] -reg_range[0]
-      pdf_val = self._dist_funcs[reg_desc].pdf(reg_center)
+      pdf_val = self.GetDistFunc(self.params[reg_desc], reg_range).pdf(reg_center)
       pdf_product *= pdf_val
     return pdf_product*CalculateRegionBoundariesArea(region_boundaries)
 
@@ -45,7 +49,7 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
     total_values_prob = 1.0
     for reg_desc, reg_range in sampling_region.items():
       sampled_val = random_state.uniform(low=reg_range[0], high=reg_range[1])
-      val_prob = self._dist_funcs[reg_desc].pdf(sampled_val)
+      val_prob = self.GetDistFunc(self.params[reg_desc], reg_range).pdf(sampled_val)
       total_values_prob *= val_prob
       sampled_values[reg_desc] = sampled_val
     return sampled_values, total_values_prob, 1/CalculateRegionBoundariesArea(sampling_region)
@@ -53,9 +57,10 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
   def _SampleFromDensity(self, random_state):
     sampled_values = {}
     total_values_prob = 1.0
-    for reg_desc, _ in self.supporting_region.definition.items():
-      sampled_val = self._dist_funcs[reg_desc].rvs(size=1)
-      val_prob = self._dist_funcs[reg_desc].pdf(sampled_val)
+    for reg_desc, reg_range in self.supporting_region.definition.items():
+      dist_funct = self.GetDistFunc(self.params[reg_desc], reg_range)
+      sampled_val = dist_funct.rvs(size=1)
+      val_prob = dist_funct.pdf(sampled_val)
       total_values_prob *= val_prob[0]
       sampled_values[reg_desc] = sampled_val[0]
     return sampled_values, total_values_prob, total_values_prob
@@ -92,7 +97,8 @@ class BehaviorSpace:
     # todo: add prior knowledge function definitiion: None
     mean_space_params, knowledge_probability, \
       importance_sampling_probability = \
-           self._sample_mean_params_from_prior_knowledge_function(sampling_region_boundaries)
+           self._sample_mean_params_from_prior_knowledge_function(behavior_space_range_params, \
+                                                    sampling_region_boundaries)
     return self._sample_param_variations_from_param_means(mean_space_params, behavior_space_range_params, \
           self._sampling_parameters), self.model_type, knowledge_probability, \
           importance_sampling_probability
@@ -273,9 +279,8 @@ class BehaviorSpace:
   def get_prior_knowledge_function(self):
     return self._prior_knowledge_function 
 
-  def _sample_mean_params_from_prior_knowledge_function(self, sample_region):
-    #todo
-    mean_params = self._behavior_space_range_params.clone()
+  def _sample_mean_params_from_prior_knowledge_function(self, behavior_space_range_params, sample_region):
+    mean_params = behavior_space_range_params.clone()
     sampled_dist_params = self._prior_knowledge_function_definition.Sample(sample_region, self.random_state)
     for param_sampled_hierarchy, param_value in sampled_dist_params[0].items():
       hierarchy_levels = param_sampled_hierarchy.split("::")
