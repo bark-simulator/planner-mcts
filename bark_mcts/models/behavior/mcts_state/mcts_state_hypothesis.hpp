@@ -37,7 +37,6 @@ public:
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters);
 
-// General Interfaces MCTS State: todo(@bernhard) move to a generic base class
     std::shared_ptr<MctsStateHypothesis> execute(const mcts::JointAction &joint_action,
                                             std::vector<mcts::Reward>& rewards,
                                             mcts::Cost& ego_cost) const;
@@ -58,10 +57,39 @@ public:
 
     mcts::HypothesisId get_num_hypothesis(const mcts::AgentIdx& agent_idx) const;
 
+    mcts::Cost calculate_collision_cost(const ObservedWorld& observed_world) const;
+
+    bark::commons::Probability calculation_state_transition_probability(
+                  const ObservedWorld& to) const {
+      bark::commons::Probability probability = 1.0;
+      for(const auto& agent : to.GetOtherAgents()) {
+        const Action last_action = agent.second->GetBehaviorModel()->GetLastAction();
+        for (const auto& hypothesis : behavior_hypotheses_) {
+          const auto last_action_prob = std::dynamic_pointer_cast<BehaviorHypothesis>(hypothesis)
+                                            ->GetProbability(last_action, *this, agent.second->GetAgentId());
+          probability *= last_action_prob; // Todo add hypothesis belief weighting
+        }
+      }
+    }
+
+    mcts::Cost calculate_collision_cost(const ObservedWorld& to) const {
+      return 1.0/
+    }
+
+    bark::commons::Probability calculate_sequence_probability(const ObservedWorld& to) const {
+      return get_state_sequence_probability() * calculation_state_transition_probability(*observed_world_, to);
+    }
+
+    bark::commons::Probability get_state_sequence_probability() const {
+      return state_sequence_probability_;
+    }
+
     typedef BarkAction ActionType; // required for template-mechanism to compile
 
  private:
    const std::vector<BehaviorModelPtr>& behavior_hypotheses_;
+  // const std::unordered_map<AgentIdx, std::vector<Belief>>& current_hypothesis_beliefs_;
+  // const bark::commons::Probability state_sequence_probability_ // Probability to end in this state given the past expanded joint actions
    mutable std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
 
 };
