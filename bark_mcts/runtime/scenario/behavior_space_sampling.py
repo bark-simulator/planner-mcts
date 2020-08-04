@@ -24,7 +24,8 @@ class BehaviorSpaceSampling(ConfigReaderBehaviorModels):
     behavior_model_types = []
 
     for _ in agent_states:
-      model_params_sampled, model_type = behavior_space.sample_behavior_parameters(self.random_state)
+      model_params_sampled, model_type, \
+        prior_knowledge_probability, sampling_probability = behavior_space.sample_behavior_parameters(self.random_state)
       self.param_servers.append(model_params_sampled)
       bark_model, _ = self.model_from_model_type(model_type, model_params_sampled)
       behavior_models.append(bark_model)
