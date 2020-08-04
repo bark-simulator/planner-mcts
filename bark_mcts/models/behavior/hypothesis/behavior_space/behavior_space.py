@@ -29,18 +29,19 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
       _ = self.params[reg_desc]["Mean", "Shape of Weibull", 5]
       _ = self.params[reg_desc]["Std", "Scale of Weibull", 1]
 
-  def GetDistFunc(self, region_params, region_range):
+  def GetDistFunc(self, region_params, region_range, random_state):
     mean = region_params["Mean"]
     std = region_params["Std"]
     a, b = (region_range[0] - mean) / std, (region_range[1] - mean) / std
-    return scipy.stats.truncnorm(a=a, b=b, loc=mean, scale=std)
-
+    dist_func = scipy.stats.truncnorm(a=a, b=b, loc=mean, scale=std)
+    dist_func.random_state = random_state
+    return dist_func
   def CalculateIntegral(self, region_boundaries):
     #todo improve with mean
     pdf_product = 1.0
     for reg_desc, reg_range in region_boundaries:
       reg_center = reg_range[1] -reg_range[0]
-      pdf_val = self.GetDistFunc(self.params[reg_desc], reg_range).pdf(reg_center)
+      pdf_val = self.GetDistFunc(self.params[reg_desc], reg_range, random_state).pdf(reg_center)
       pdf_product *= pdf_val
     return pdf_product*CalculateRegionBoundariesArea(region_boundaries)
 
@@ -49,7 +50,7 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
     total_values_prob = 1.0
     for reg_desc, reg_range in sampling_region.items():
       sampled_val = random_state.uniform(low=reg_range[0], high=reg_range[1])
-      val_prob = self.GetDistFunc(self.params[reg_desc], reg_range).pdf(sampled_val)
+      val_prob = self.GetDistFunc(self.params[reg_desc], reg_range, random_state).pdf(sampled_val)
       total_values_prob *= val_prob
       sampled_values[reg_desc] = sampled_val
     return sampled_values, total_values_prob, 1/CalculateRegionBoundariesArea(sampling_region)
@@ -58,7 +59,7 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
     sampled_values = {}
     total_values_prob = 1.0
     for reg_desc, reg_range in self.supporting_region.definition.items():
-      dist_funct = self.GetDistFunc(self.params[reg_desc], reg_range)
+      dist_funct = self.GetDistFunc(self.params[reg_desc], reg_range, random_state)
       sampled_val = dist_funct.rvs(size=1)
       val_prob = dist_funct.pdf(sampled_val)
       total_values_prob *= val_prob[0]
