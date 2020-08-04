@@ -44,7 +44,7 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
     sampled_values = {}
     total_values_prob = 1.0
     for reg_desc, reg_range in sampling_region.items():
-      sampled_val = self.random_state.uniform(low=reg_range[0], high=reg_range[1])
+      sampled_val = random_state.uniform(low=reg_range[0], high=reg_range[1])
       val_prob = self._dist_funcs[reg_desc].pdf(sampled_val)
       total_values_prob *= val_prob
       sampled_values[reg_desc] = sampled_val
@@ -53,7 +53,7 @@ class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
   def _SampleFromDensity(self, random_state):
     sampled_values = {}
     total_values_prob = 1.0
-    for reg_desc, reg_range in self.supporting_region.definition.items():
+    for reg_desc, _ in self.supporting_region.definition.items():
       sampled_val = self._dist_funcs[reg_desc].rvs(size=1)
       val_prob = self._dist_funcs[reg_desc].pdf(sampled_val)
       total_values_prob *= val_prob[0]
@@ -291,26 +291,27 @@ class BehaviorSpace:
     #todo
     pass
 
-  def _sample_means_params(self):
-    if not self._prior_knowledge_function:
-      return self._sample_mean_params_from_uniform_function()
-    else:
-      return self._sample_mean_params_from_prior_knowledge_function()
-
   def _check_and_apply_partitioning(self, behavior_space_range_params, sampling_params):
-    paritioned_params = behavior_space_range_params.clone()
-    partitioned = False
-    for key, value in paritioned_params.store.items():
-      if "Distribution" in key:
-        parameter_range = value
-        if len(parameter_range) > 1:
-          partitions = sampling_params[key]["Partitions", "Into how many equal parameter range partitions is this range partitioned", None]
-          if partitions :
-            selected_partition = sampling_params[key]["SelectedPartition", "Which of these partitions is selected for sampling", 0]
-            parameter_range = self._get_param_range_partition(parameter_range, partitions, selected_partition)
-            paritioned_params[key] = parameter_range
-            partitioned = True
-    return partitioned, paritioned_params
+    partitioned_params = behavior_space_range_params.clone()
+
+    def recursive_check_and_apply_partitioning(current_param_level, current_sampling_params):
+      partitioned = False
+      for key, value in current_param_level.store.items():
+        if "Distribution" in key:
+          parameter_range = value
+          if len(parameter_range) > 1:
+            partitions = current_sampling_params[key]["Partitions", "Into how many equal parameter range partitions is this range partitioned", None]
+            if partitions :
+              selected_partition = current_sampling_params[key]["SelectedPartition", "Which of these partitions is selected for sampling", 0]
+              parameter_range = self._get_param_range_partition(parameter_range, partitions, selected_partition)
+              current_param_level[key] = parameter_range
+              partitioned = True
+        elif isinstance(value, ParameterServer):
+          partitioned = partitioned or recursive_check_and_apply_partitioning(current_param_level[key], current_sampling_params[key])
+      return partitioned
+
+    partitioned = recursive_check_and_apply_partitioning(partitioned_params, sampling_params)
+    return partitioned, partitioned_params
 
   def _sample_param_variations_from_param_means(self, mean_space_params, behavior_space_range_params, sampling_params):
     """
@@ -352,8 +353,9 @@ class BehaviorSpace:
     uni_width = sampling_params["Width", "What minimum and maximum width should sampled distribution have", [0.1, 0.3]]
 
     width = self.random_state.uniform(uni_width[0], uni_width[1])
-    lower_bound = max(sampled_mean - width/2.0, range[0]) 
-    upper_bound = min(sampled_mean + width/2.0, range[1])
+    lower_offset = min(sampled_mean - range[0], max( width/2.0, width - (range[1] - sampled_mean)))
+    lower_bound = sampled_mean - lower_offset
+    upper_bound = sampled_mean + (width - (sampled_mean - lower_bound))
 
     sampled_params = ParameterServer(log_if_default = True)
     sampled_params["DistributionType"] = "UniformDistribution1D"

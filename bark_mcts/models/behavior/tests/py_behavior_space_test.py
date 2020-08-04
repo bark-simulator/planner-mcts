@@ -41,8 +41,10 @@ class PyBehaviorSpaceTests(unittest.TestCase):
     params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["DistributionType"] = "UniformDistribution1D"
 
     params_loaded["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["MaxAccDistribution"] = [1.7]
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["MaxAccDistribution"]["DistributionType"] = "FixedValue"
 
     params_loaded["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["ComftBrakingDistribution"] = [20]
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["ComftBrakingDistribution"]["DistributionType"] = "FixedValue"
     space = BehaviorSpace(params_loaded) 
 
     num_sampled_parameters = 100
@@ -86,15 +88,16 @@ class PyBehaviorSpaceTests(unittest.TestCase):
     params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["SpacingDistribution"]["SelectedPartition"] = 2
 
     params_loaded["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["DesiredVelDistribution"] = [4.8, 6.0]
-    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["Width"] = [0.1, 0.3]
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["Width"] = [0.05, 0.1]
     params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["DistributionType"] = "UniformDistribution1D"
     params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["Partitions"] =  12
     params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["SelectedPartition"] = 7
-    
 
     params_loaded["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["MaxAccDistribution"] = [1.7]
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["MaxAccDistribution"]["DistributionType"] = "FixedValue"
 
     params_loaded["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["ComftBrakingDistribution"] = [20]
+    params_loaded["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["ComftBrakingDistribution"]["DistributionType"] = "FixedValue"
     space = BehaviorSpace(params_loaded) 
 
     num_sampled_parameters = 100
@@ -113,14 +116,15 @@ class PyBehaviorSpaceTests(unittest.TestCase):
       self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["StdDev", "", 0.5] <= 0.4)
       self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["StdDev", "", 0.1] >= 0.2)
       self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["Mean", "", 0.1] >= 3.0)
-      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["Mean", "", 0.1] <= 3.25)
+      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["SpacingDistribution"]["Mean", "", 5.0] <= 3.25)
 
       self.assertEqual(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["DistributionType", "", ""], "UniformDistribution1D")
       self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["LowerBound", "", 1.0]>= 5.5)
       self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["UpperBound", "", 1.0]<= 5.6)
       lb = sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["LowerBound", "", 1.0]
-      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["UpperBound", "", 0.2] >= lb+0.1)
-      self.assertTrue(sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["UpperBound", "", 0.1] <= lb+0.3)
+      ub = sampled_parameters["BehaviorIDMStochastic"]["DesiredVelDistribution"]["UpperBound", "", 1.0]
+      self.assertTrue( ub - lb >= 0.05)
+      self.assertTrue( ub - lb <= 0.1)
 
   def test_default_config_hypothesis_creation(self):
     param_server = ParameterServer()
