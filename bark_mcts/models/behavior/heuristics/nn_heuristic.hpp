@@ -66,7 +66,6 @@ public:
         
         for (int i=0; i< output.cols(); i++){
             output_vector[i] = output(0, i);
-            LOG(INFO) << "observedstate" << i << "=" <<output_vector[i];
             }   
             output_vector[0] = 1.0-20*(1.0-output(0, 0));
             output_vector[1] = 1.0-20*(1.0-output(0, 1));
@@ -82,16 +81,8 @@ public:
         float num_actions = model_output.size(); //num actions //use model.output size
         float value = std::accumulate(model_output.begin(), model_output.end(), 0.0);
         float scalar = 100.0;
-        LOG(INFO) << "value=" << value;
-        LOG(INFO) << "1/number of actions=" << (1/num_actions);
-        LOG(INFO) << "number of actions=" << num_actions;
         mcts::Reward ego_all_reward = scalar*(1/num_actions)*value;
-        for (int i=0; i< num_actions; i++){
-           LOG(INFO) << "q_value for action" << i << "=" <<model_output[i];
-            }
 
-
-        LOG(INFO) << "without scalar Calculating nn_heuristic value before=" << ego_all_reward;//30
         ego_heuristic.set_heuristic_estimate(ego_all_reward, -ego_all_reward);//(ego_all_reward, -ego_all_reward)
         LOG(INFO) << "with scalar Calculating nn_heuristic value=" << ego_all_reward;//30
         std::unordered_map<mcts::AgentIdx, SO> other_heuristic_estimates;
