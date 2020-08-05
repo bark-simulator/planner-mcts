@@ -55,7 +55,7 @@ class BehaviorUCTHypothesis : public BehaviorModel {
 
   // Belief tracking, we must also maintain previous mcts hypothesis state
   mcts::HypothesisBeliefTracker belief_tracker_;
-  std::shared_ptr<MctsStateHypothesis> last_mcts_hypothesis_state_;
+  std::shared_ptr<MctsStateHypothesis<>> last_mcts_hypothesis_state_;
 };
 
 inline std::shared_ptr<BehaviorModel> BehaviorUCTHypothesis::Clone() const {

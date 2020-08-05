@@ -23,7 +23,8 @@ using bark::world::evaluation::EvaluatorCollisionEgoAgent;
 using bark::world::evaluation::EvaluatorDrivableArea;
 using bark::world::evaluation::EvaluatorGoalReached;
 
-MctsStateHypothesis::MctsStateHypothesis(
+template <typename T>
+MctsStateHypothesis<T>::MctsStateHypothesis(
                        const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
@@ -33,7 +34,7 @@ MctsStateHypothesis::MctsStateHypothesis(
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters) :
-                        MctsStateBase<MctsStateHypothesis>(observed_world,
+                        MctsStateBase<MctsStateHypothesis<T>>(observed_world,
                                       is_terminal_state,
                                       num_ego_actions,
                                       prediction_time_span,
@@ -43,39 +44,42 @@ MctsStateHypothesis::MctsStateHypothesis(
                                       current_agents_hypothesis),
                         behavior_hypotheses_(behavior_hypothesis) {
     // start at index 1 since first agent is ego agent
-    for(const auto& agent_id : other_agent_ids_) {
+    for(const auto& agent_id : MctsStateBase<MctsStateHypothesis<T>>::other_agent_ids_) {
         behaviors_stored_[agent_id] = std::make_shared<BehaviorActionStore>(nullptr);
     }
 }
 
-std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::clone() const {
+template <typename T>
+std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::clone() const {
   auto worldptr =
       std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
   return std::make_shared<MctsStateHypothesis>(
       worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
-      current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
+      MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
       ego_agent_id_, state_parameters_);
 }
 
-std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
+template <typename T>
+std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::execute(
     const mcts::JointAction& joint_action, std::vector<mcts::Reward>& rewards,
     mcts::Cost& ego_cost) const {
-  BARK_EXPECT_TRUE(!is_terminal());
+  BARK_EXPECT_TRUE(!this->is_terminal());
 
-  const auto predicted_world = predict(joint_action);
+  const auto predicted_world = MctsStateHypothesis<T>::predict(joint_action);
 
-  EvaluationResults evaluation_results = evaluate(*predicted_world);
+  EvaluationResults evaluation_results = MctsStateHypothesis<T>::evaluate(*predicted_world);
 
-  calculate_ego_reward_cost(evaluation_results, rewards, ego_cost);
+  MctsStateHypothesis<T>::calculate_ego_reward_cost(evaluation_results, rewards, ego_cost);
 
-  return generate_next_state(evaluation_results, predicted_world);
+  return MctsStateHypothesis<T>::generate_next_state(evaluation_results, predicted_world);
 }
 
-ObservedWorldPtr MctsStateHypothesis::predict(const mcts::JointAction& joint_action) const {
+template <typename T>
+ObservedWorldPtr MctsStateHypothesis<T>::predict(const mcts::JointAction& joint_action) const {
   ego_behavior_model_->ActionToBehavior(DiscreteAction(joint_action[this->ego_agent_idx]));
   auto predicted_behaviors_ = behaviors_stored_;
   mcts::AgentIdx action_idx = 1;
-  for (const auto& agent_id : get_other_agent_idx()) {
+  for (const auto& agent_id : this->get_other_agent_idx()) {
       std::dynamic_pointer_cast<BehaviorActionStore>(predicted_behaviors_[agent_id])
             ->MakeBehaviorActive(static_cast<ActionHash>(joint_action[action_idx]));
     action_idx++;
@@ -85,7 +89,8 @@ ObservedWorldPtr MctsStateHypothesis::predict(const mcts::JointAction& joint_act
   return predicted_world;
 }
 
-EvaluationResults MctsStateHypothesis::evaluate(const ObservedWorld& observed_world) const {
+template <typename T>
+EvaluationResults MctsStateHypothesis<T>::evaluate(const ObservedWorld& observed_world) const {
   EvaluationResults evaluation_results;
 
   if (observed_world.GetEgoAgent()) {
@@ -109,14 +114,16 @@ EvaluationResults MctsStateHypothesis::evaluate(const ObservedWorld& observed_wo
   return evaluation_results;
 }
 
-std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const {
+template <typename T>
+std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const {
   return std::make_shared<MctsStateHypothesis>(
       predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
-      current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
+      MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
       ego_agent_id_, state_parameters_);
 }
 
-void MctsStateHypothesis::calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+template <typename T>
+void MctsStateHypothesis<T>::calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
   rewards.resize(this->get_num_agents(), 0.0f);
   rewards[this->ego_agent_idx] =
       (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * state_parameters_.COLLISION_REWARD +
@@ -124,10 +131,11 @@ void MctsStateHypothesis::calculate_ego_reward_cost(const EvaluationResults& eva
 
   ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) *state_parameters_.COLLISION_COST +
       evaluation_results.goal_reached * state_parameters_.GOAL_COST;
-  VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 3) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
+  LOG(INFO) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
 }
 
-mcts::ActionIdx MctsStateHypothesis::plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const {
+template <typename T>
+mcts::ActionIdx MctsStateHypothesis<T>::plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const {
     auto bark_agent_id = agent_idx;
     auto observed_world_for_other = observed_world_->ObserveForOtherAgent(bark_agent_id);
     const mcts::HypothesisId agt_hyp_id = this->current_agents_hypothesis_.at(agent_idx);
@@ -140,14 +148,15 @@ mcts::ActionIdx MctsStateHypothesis::plan_action_current_hypothesis(const mcts::
 }
 
 template<>
-bark::models::behavior::Action MctsStateHypothesis::get_last_action(const mcts::AgentIdx& agent_idx) const {
+template<>
+bark::models::behavior::Action MctsStateHypothesis<void>::get_last_action(const mcts::AgentIdx& agent_idx) const {
     auto bark_agent_id = agent_idx;
     return observed_world_->GetAgent(bark_agent_id)->GetStateInputHistory().back().second;
 }
 
-
 template<>
-mcts::Probability MctsStateHypothesis::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
+template<>
+mcts::Probability MctsStateHypothesis<void>::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
             const bark::models::behavior::Action& action) const {
     auto bark_agent_id = agent_idx;
     auto hypothesis_ptr = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypotheses_[hypothesis]);
@@ -159,9 +168,11 @@ mcts::Probability MctsStateHypothesis::get_probability(const mcts::HypothesisId&
     return prob;
 }
 
-mcts::Probability MctsStateHypothesis::get_prior(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx) const { return 0.5f;};
+template <typename T>
+mcts::Probability MctsStateHypothesis<T>::get_prior(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx) const { return 0.5f;};
 
-mcts::HypothesisId MctsStateHypothesis::get_num_hypothesis(const mcts::AgentIdx& agent_idx) const {return behavior_hypotheses_.size();};
+template <typename T>
+mcts::HypothesisId MctsStateHypothesis<T>::get_num_hypothesis(const mcts::AgentIdx& agent_idx) const {return behavior_hypotheses_.size();};
 
 }  // namespace behavior
 }  // namespace models

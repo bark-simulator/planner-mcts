@@ -71,7 +71,7 @@ void MctsStateRiskConstraint::calculate_ego_reward_cost(const EvaluationResults&
 
   ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) *state_parameters_.COLLISION_COST +
       evaluation_results.goal_reached * state_parameters_.GOAL_COST;
-  VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 3) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
+  LOG(INFO) << "Risk Constraint statistic cost called";
 }
 
 

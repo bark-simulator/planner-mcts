@@ -99,8 +99,6 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
     return params;
 }
 
-/*
-
 TEST(hypothesis_mcts_state, execute) {
   // Setup prediction models for ego agent and other agents   
   auto params = std::make_shared<SetterParams>(false);
@@ -139,7 +137,7 @@ TEST(hypothesis_mcts_state, execute) {
   auto ego_agent_id = observed_world->GetAgents().begin()->first;
   auto front_agent_id = std::next(observed_world->GetAgents().begin())->first;
   auto state_params = MctsStateParametersFromParamServer(params);
-  MctsStateHypothesis mcts_state(const_observed_world,
+  MctsStateHypothesis<> mcts_state(const_observed_world,
                         false,
                        num_ego_actions,
                        prediction_time_span,
@@ -484,7 +482,7 @@ TEST(behavior_uct_single_agent, belief_test) {
   auto observed_world = std::make_shared<ObservedWorld>(world->Clone(), ego_agent->GetAgentId());
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
   auto state_params = MctsStateParametersFromParamServer(params);
-  auto last_mcts_state = std::make_shared<MctsStateHypothesis>(const_observed_world,
+  auto last_mcts_state = std::make_shared<MctsStateHypothesis<>>(const_observed_world,
                         false,
                        2,
                        0.2,
@@ -502,7 +500,7 @@ TEST(behavior_uct_single_agent, belief_test) {
     auto next_world = std::make_shared<ObservedWorld>(world->Clone(), ego_agent->GetAgentId());
     auto next_const_observed_world = std::const_pointer_cast<ObservedWorld>(next_world);
     auto state_params = MctsStateParametersFromParamServer(params);
-    auto mcts_state = std::make_shared<MctsStateHypothesis>(next_const_observed_world,
+    auto mcts_state = std::make_shared<MctsStateHypothesis<>>(next_const_observed_world,
                       false,
                        2,
                        0.2,
@@ -537,7 +535,6 @@ TEST(behavior_uct_single_agent, belief_test) {
   EXPECT_NEAR(belief_tracker.get_beliefs()
               .at(left_agent2->GetAgentId())[2], 0.333, 0.08);
 }
-*/
 
 TEST(behavior_uct_single_agent_macro_actions, normalization) {
   // Try to provoke a normalization error

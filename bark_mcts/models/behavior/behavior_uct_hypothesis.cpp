@@ -65,7 +65,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
 
   // Define initial mcts state
   auto ego_id = const_mcts_observed_world->GetEgoAgentId();
-  auto mcts_hypothesis_state_ptr = std::make_shared<MctsStateHypothesis>(
+  auto mcts_hypothesis_state_ptr = std::make_shared<MctsStateHypothesis<>>(
                                 mcts_observed_world, 
                                 false, // terminal
                                 num, // num action 
@@ -87,7 +87,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   }
 
   // Now do the search
-  mcts::Mcts<MctsStateHypothesis, mcts::UctStatistic, mcts::HypothesisStatistic,
+  mcts::Mcts<MctsStateHypothesis<>, mcts::UctStatistic, mcts::HypothesisStatistic,
              mcts::RandomHeuristic>mcts_hypothesis(mcts_parameters_);
   mcts_hypothesis.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;

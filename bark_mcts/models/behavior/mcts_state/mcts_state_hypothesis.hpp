@@ -25,7 +25,18 @@ namespace behavior {
 
 using BarkAction = bark::models::behavior::Action;
 
-class MctsStateHypothesis : public MctsStateBase<MctsStateHypothesis> {
+template<class T = void>
+class MctsStateHypothesis : public MctsStateBase<MctsStateHypothesis<T>> {
+
+  using MctsStateBase<MctsStateHypothesis<T>>::observed_world_;
+  using MctsStateBase<MctsStateHypothesis<T>>::is_terminal_state_;
+  using MctsStateBase<MctsStateHypothesis<T>>::num_ego_actions_;
+  using MctsStateBase<MctsStateHypothesis<T>>::prediction_time_span_;
+  using MctsStateBase<MctsStateHypothesis<T>>::other_agent_ids_;
+  using MctsStateBase<MctsStateHypothesis<T>>::ego_agent_id_;
+  using MctsStateBase<MctsStateHypothesis<T>>::state_parameters_;
+  using MctsStateBase<MctsStateHypothesis<T>>::ego_behavior_model_;
+
 public:
     MctsStateHypothesis(const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
@@ -37,11 +48,11 @@ public:
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters);
 
-    std::shared_ptr<MctsStateHypothesis> execute(const mcts::JointAction &joint_action,
+    std::shared_ptr<MctsStateHypothesis<T>> execute(const mcts::JointAction &joint_action,
                                             std::vector<mcts::Reward>& rewards,
                                             mcts::Cost& ego_cost) const;
 
-    std::shared_ptr<MctsStateHypothesis> clone() const;
+    std::shared_ptr<MctsStateHypothesis<T>> clone() const;
 
     // Hypothesis State Interfaces
     mcts::ActionIdx plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const;
@@ -57,39 +68,14 @@ public:
 
     mcts::HypothesisId get_num_hypothesis(const mcts::AgentIdx& agent_idx) const;
 
-  /*  bark::commons::Probability calculation_state_transition_probability(
-                  const ObservedWorld& to) const {
-      bark::commons::Probability probability = 1.0;
-      for(const auto& agent : to.GetOtherAgents()) {
-        const Action last_action = agent.second->GetBehaviorModel()->GetLastAction();
-        for (const auto& hypothesis : behavior_hypotheses_) {
-          const auto last_action_prob = std::dynamic_pointer_cast<BehaviorHypothesis>(hypothesis)
-                                            ->GetProbability(last_action, *this, agent.second->GetAgentId());
-          probability *= last_action_prob; // Todo add hypothesis belief weighting
-        }
-      }
-    }*/
-
-   /* mcts::Cost calculate_collision_cost(const ObservedWorld& to) const {
-      return 1.0/
-    }
-
-    bark::commons::Probability calculate_sequence_probability(const ObservedWorld& to) const {
-      return get_state_sequence_probability() * calculation_state_transition_probability(*observed_world_, to);
-    }
-
-    bark::commons::Probability get_state_sequence_probability() const {
-      return state_sequence_probability_;
-    }
-*/
     typedef BarkAction ActionType; // required for template-mechanism to compile
 
- private:
+ protected:
   ObservedWorldPtr predict(const mcts::JointAction& joint_action) const;
 
   EvaluationResults evaluate(const ObservedWorld& observed_world) const;
 
-  std::shared_ptr<MctsStateHypothesis> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const;
+  std::shared_ptr<MctsStateHypothesis<T>> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const;
 
   void calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
 
@@ -104,5 +90,7 @@ public:
 }  // namespace behavior
 }  // namespace models
 }  // namespace bark
+
+#include "bark_mcts/models/behavior/mcts_state/mcts_state_hypothesis.cpp"
 
 #endif // BARK_MCTS_HYPOTHESIS_STATE_H_

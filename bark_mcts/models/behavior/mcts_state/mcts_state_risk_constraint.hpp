@@ -20,7 +20,7 @@ namespace behavior {
 
 using BarkAction = bark::models::behavior::Action;
 
-class MctsStateRiskConstraint : public MctsStateHypothesis {
+class MctsStateRiskConstraint : public MctsStateHypothesis<MctsStateRiskConstraint> {
 public:
     MctsStateRiskConstraint(const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
