@@ -71,20 +71,39 @@ public:
     typedef BarkAction ActionType; // required for template-mechanism to compile
 
  protected:
-  ObservedWorldPtr predict(const mcts::JointAction& joint_action) const;
+    ObservedWorldPtr predict(const mcts::JointAction& joint_action) const;
 
-  EvaluationResults evaluate(const ObservedWorld& observed_world) const;
+    EvaluationResults evaluate(const ObservedWorld& observed_world) const;
 
-  std::shared_ptr<MctsStateHypothesis<T>> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const;
+    std::shared_ptr<MctsStateHypothesis<T>> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const;
 
-  void calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
+    void calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
 
+    const std::vector<BehaviorModelPtr>& behavior_hypotheses_;
+    mutable std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
 
-   const std::vector<BehaviorModelPtr>& behavior_hypotheses_;
-  // const std::unordered_map<AgentIdx, std::vector<Belief>>& current_hypothesis_beliefs_;
-  // const bark::commons::Probability state_sequence_probability_ // Probability to end in this state given the past expanded joint actions
-   mutable std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
+  private:
+    // 
+  //  void impl_calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
 
+    std::shared_ptr<MctsStateHypothesis<T>> impl_clone(std::false_type) const {
+        if (&MctsStateHypothesis::clone == &T::clone) {
+            impl_clone(std::true_type{});
+         } else {
+            mcts::StateInterface<T>::impl().clone();
+         }
+    }
+
+    std::shared_ptr<MctsStateHypothesis<T>> impl_clone(std::true_type) const {
+      auto worldptr =
+          std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
+      return std::make_shared<MctsStateHypothesis>(
+          worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
+          MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
+          ego_agent_id_, state_parameters_);
+    }
+
+ //   std::shared_ptr<MctsStateHypothesis<T>> impl_generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const;
 };
 
 }  // namespace behavior

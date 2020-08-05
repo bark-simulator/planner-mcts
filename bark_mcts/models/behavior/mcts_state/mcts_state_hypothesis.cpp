@@ -51,13 +51,9 @@ MctsStateHypothesis<T>::MctsStateHypothesis(
 
 template <typename T>
 std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::clone() const {
-  auto worldptr =
-      std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
-  return std::make_shared<MctsStateHypothesis>(
-      worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
-      MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
-      ego_agent_id_, state_parameters_);
+    return impl_clone(std::is_same<T, void>{});
 }
+
 
 template <typename T>
 std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::execute(
@@ -131,8 +127,14 @@ void MctsStateHypothesis<T>::calculate_ego_reward_cost(const EvaluationResults& 
 
   ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) *state_parameters_.COLLISION_COST +
       evaluation_results.goal_reached * state_parameters_.GOAL_COST;
-  LOG(INFO) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
+  VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
 }
+
+//void impl_calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
+ //std::shared_ptr<MctsStateHypothesis<T>> impl_generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const;
+
+
+
 
 template <typename T>
 mcts::ActionIdx MctsStateHypothesis<T>::plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const {

@@ -175,6 +175,10 @@ TEST(hypothesis_mcts_state, execute) {
   EXPECT_NEAR(rewards[0], 0.0f , 0.00001);
   EXPECT_NEAR(cost, 0,0.001);
 
+  // Clone test
+  const auto cloned_state = mcts_state.clone();
+
+
   // Checking collision with other agent
   next_mcts_state = mcts_state.execute(JointAction({2, action_idx}), rewards, cost);
   auto reached = next_mcts_state->is_terminal();
