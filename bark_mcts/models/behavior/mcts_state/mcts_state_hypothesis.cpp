@@ -62,7 +62,16 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
     mcts::Cost& ego_cost) const {
   BARK_EXPECT_TRUE(!is_terminal());
 
-  // pass next actions to behavior models for prediction
+  const auto predicted_world = predict(joint_action);
+
+  EvaluationResults evaluation_results = evaluate(*predicted_world);
+
+  calculate_ego_reward_cost(evaluation_results, rewards, ego_cost);
+
+  return generate_next_state(evaluation_results, predicted_world);
+}
+
+ObservedWorldPtr MctsStateHypothesis::predict(const mcts::JointAction& joint_action) const {
   ego_behavior_model_->ActionToBehavior(DiscreteAction(joint_action[this->ego_agent_idx]));
   auto predicted_behaviors_ = behaviors_stored_;
   mcts::AgentIdx action_idx = 1;
@@ -73,47 +82,49 @@ std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::execute(
   }
   const auto predicted_world = 
             observed_world_->Predict(prediction_time_span_, ego_behavior_model_, predicted_behaviors_);
+  return predicted_world;
+}
 
-  bool collision_drivable_area = false;
-  bool collision_ego = false;
-  bool goal_reached = false;
-  bool out_of_map = false;
+EvaluationResults MctsStateHypothesis::evaluate(const ObservedWorld& observed_world) const {
+  EvaluationResults evaluation_results;
 
-  if (predicted_world->GetEgoAgent()) {
-    // TODO: allow for separate configuration options ------
-    auto ego_id = predicted_world->GetEgoAgent()->GetAgentId();
+  if (observed_world.GetEgoAgent()) {
+    auto ego_id = observed_world.GetEgoAgent()->GetAgentId();
     auto evaluator_drivable_area = EvaluatorDrivableArea();
     auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(ego_id);
     auto evaluator_goal_reached = EvaluatorGoalReached(ego_id);
 
-    collision_drivable_area =
-        boost::get<bool>(evaluator_drivable_area.Evaluate(*predicted_world));
-    collision_ego =
-        boost::get<bool>(evaluator_collision_ego.Evaluate(*predicted_world));
-    goal_reached =
-        boost::get<bool>(evaluator_goal_reached.Evaluate(*predicted_world));
-    out_of_map = false;
-    // -------------------------------------------
+    evaluation_results.collision_drivable_area =
+        boost::get<bool>(evaluator_drivable_area.Evaluate(observed_world));
+    evaluation_results.collision_other_agent =
+        boost::get<bool>(evaluator_collision_ego.Evaluate(observed_world));
+    evaluation_results.goal_reached =
+        boost::get<bool>(evaluator_goal_reached.Evaluate(observed_world));
+    evaluation_results.out_of_map = false;
   } else {
-    out_of_map = true;
+    evaluation_results.out_of_map = true;
   }
+  evaluation_results.is_terminal = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent
+                                   || evaluation_results.goal_reached || evaluation_results.out_of_map);
+  return evaluation_results;
+}
 
-  rewards.resize(this->get_num_agents(), 0.0f);
-  rewards[this->ego_agent_idx] =
-      (collision_drivable_area || collision_ego || out_of_map) * state_parameters_.COLLISION_REWARD +
-      goal_reached * state_parameters_.GOAL_REWARD;
-
-  ego_cost = (collision_drivable_area || collision_ego || out_of_map) *state_parameters_.COLLISION_COST +
-      goal_reached * state_parameters_.GOAL_COST;
-  VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 3) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
-
-  bool is_terminal =
-      (collision_drivable_area || collision_ego || goal_reached || out_of_map);
-
+std::shared_ptr<MctsStateHypothesis> MctsStateHypothesis::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const {
   return std::make_shared<MctsStateHypothesis>(
-      predicted_world, is_terminal, num_ego_actions_, prediction_time_span_,
+      predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
       ego_agent_id_, state_parameters_);
+}
+
+void MctsStateHypothesis::calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+  rewards.resize(this->get_num_agents(), 0.0f);
+  rewards[this->ego_agent_idx] =
+      (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * state_parameters_.COLLISION_REWARD +
+      evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
+
+  ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) *state_parameters_.COLLISION_COST +
+      evaluation_results.goal_reached * state_parameters_.GOAL_COST;
+  VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 3) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
 }
 
 mcts::ActionIdx MctsStateHypothesis::plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const {

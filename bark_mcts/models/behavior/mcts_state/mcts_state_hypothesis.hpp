@@ -57,9 +57,7 @@ public:
 
     mcts::HypothesisId get_num_hypothesis(const mcts::AgentIdx& agent_idx) const;
 
-    mcts::Cost calculate_collision_cost(const ObservedWorld& observed_world) const;
-
-    bark::commons::Probability calculation_state_transition_probability(
+  /*  bark::commons::Probability calculation_state_transition_probability(
                   const ObservedWorld& to) const {
       bark::commons::Probability probability = 1.0;
       for(const auto& agent : to.GetOtherAgents()) {
@@ -70,9 +68,9 @@ public:
           probability *= last_action_prob; // Todo add hypothesis belief weighting
         }
       }
-    }
+    }*/
 
-    mcts::Cost calculate_collision_cost(const ObservedWorld& to) const {
+   /* mcts::Cost calculate_collision_cost(const ObservedWorld& to) const {
       return 1.0/
     }
 
@@ -83,10 +81,19 @@ public:
     bark::commons::Probability get_state_sequence_probability() const {
       return state_sequence_probability_;
     }
-
+*/
     typedef BarkAction ActionType; // required for template-mechanism to compile
 
  private:
+  ObservedWorldPtr predict(const mcts::JointAction& joint_action) const;
+
+  EvaluationResults evaluate(const ObservedWorld& observed_world) const;
+
+  std::shared_ptr<MctsStateHypothesis> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const;
+
+  void calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
+
+
    const std::vector<BehaviorModelPtr>& behavior_hypotheses_;
   // const std::unordered_map<AgentIdx, std::vector<Belief>>& current_hypothesis_beliefs_;
   // const bark::commons::Probability state_sequence_probability_ // Probability to end in this state given the past expanded joint actions
