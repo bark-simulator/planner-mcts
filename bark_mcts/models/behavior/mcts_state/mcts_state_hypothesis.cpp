@@ -168,6 +168,28 @@ mcts::Probability MctsStateHypothesis<void>::get_probability(const mcts::Hypothe
     return prob;
 }
 
+class MctsStateRiskConstraint;
+template<>
+template<>
+bark::models::behavior::Action MctsStateHypothesis<MctsStateRiskConstraint>::get_last_action(const mcts::AgentIdx& agent_idx) const {
+    auto bark_agent_id = agent_idx;
+    return observed_world_->GetAgent(bark_agent_id)->GetStateInputHistory().back().second;
+}
+
+template<>
+template<>
+mcts::Probability MctsStateHypothesis<MctsStateRiskConstraint>::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
+            const bark::models::behavior::Action& action) const {
+    auto bark_agent_id = agent_idx;
+    auto hypothesis_ptr = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypotheses_[hypothesis]);
+    if(!hypothesis_ptr) {
+        LOG(FATAL) << "Behaviors specified as hypothesis are not castable to hypothesis.";
+    }
+    auto prob = static_cast<mcts::Probability>(
+        hypothesis_ptr->GetProbability(action, *observed_world_, bark_agent_id));
+    return prob;
+}
+
 template <typename T>
 mcts::Probability MctsStateHypothesis<T>::get_prior(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx) const { return 0.5f;};
 

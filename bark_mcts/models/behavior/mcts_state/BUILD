@@ -1,13 +1,13 @@
 cc_library(
     name = "mcts_state_hypothesis",
     srcs = [
-           # "mcts_state_risk_constraint.cpp",
+            "mcts_state_risk_constraint.cpp",
     ],
     hdrs = [
             "mcts_state_hypothesis.hpp",
             "mcts_state_hypothesis.cpp",
             "mcts_state_base.hpp",
-          #  "mcts_state_risk_constraint.hpp",
+            "mcts_state_risk_constraint.hpp",
             ],
     copts = ["-Iexternal/bark_project"],
     deps= [

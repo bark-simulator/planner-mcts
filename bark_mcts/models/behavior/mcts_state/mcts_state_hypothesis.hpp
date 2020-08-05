@@ -27,15 +27,15 @@ using BarkAction = bark::models::behavior::Action;
 
 template<class T = void>
 class MctsStateHypothesis : public MctsStateBase<MctsStateHypothesis<T>> {
-
-  using MctsStateBase<MctsStateHypothesis<T>>::observed_world_;
-  using MctsStateBase<MctsStateHypothesis<T>>::is_terminal_state_;
-  using MctsStateBase<MctsStateHypothesis<T>>::num_ego_actions_;
-  using MctsStateBase<MctsStateHypothesis<T>>::prediction_time_span_;
-  using MctsStateBase<MctsStateHypothesis<T>>::other_agent_ids_;
-  using MctsStateBase<MctsStateHypothesis<T>>::ego_agent_id_;
-  using MctsStateBase<MctsStateHypothesis<T>>::state_parameters_;
-  using MctsStateBase<MctsStateHypothesis<T>>::ego_behavior_model_;
+  protected:
+    using MctsStateBase<MctsStateHypothesis<T>>::observed_world_;
+    using MctsStateBase<MctsStateHypothesis<T>>::is_terminal_state_;
+    using MctsStateBase<MctsStateHypothesis<T>>::num_ego_actions_;
+    using MctsStateBase<MctsStateHypothesis<T>>::prediction_time_span_;
+    using MctsStateBase<MctsStateHypothesis<T>>::other_agent_ids_;
+    using MctsStateBase<MctsStateHypothesis<T>>::ego_agent_id_;
+    using MctsStateBase<MctsStateHypothesis<T>>::state_parameters_;
+    using MctsStateBase<MctsStateHypothesis<T>>::ego_behavior_model_;
 
 public:
     MctsStateHypothesis(const bark::world::ObservedWorldPtr& observed_world,
