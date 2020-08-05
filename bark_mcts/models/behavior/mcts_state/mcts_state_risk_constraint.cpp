@@ -57,10 +57,11 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::clone() const 
 }
 
 std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const {
+  const auto next_state_sequence_probability = state_sequence_probability_ * calculation_state_transition_probability(predicted_world);
   return std::make_shared<MctsStateRiskConstraint>(
       predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
-      ego_agent_id_, state_parameters_, current_hypothesis_beliefs_, state_sequence_probability_);
+      ego_agent_id_, state_parameters_, current_hypothesis_beliefs_, next_state_sequence_probability);
 }
 
 void MctsStateRiskConstraint::calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
@@ -69,10 +70,32 @@ void MctsStateRiskConstraint::calculate_ego_reward_cost(const EvaluationResults&
       (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * state_parameters_.COLLISION_REWARD +
       evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
 
-  ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) *state_parameters_.COLLISION_COST +
-      evaluation_results.goal_reached * state_parameters_.GOAL_COST;
+  ego_cost = 1.0/
   LOG(INFO) << "Risk Constraint statistic cost called";
 }
+
+bark::commons::Probability calculation_state_transition_probability(
+              const ObservedWorld& to) const {
+  bark::commons::Probability probability = 1.0;
+  for(const auto& agent : to.GetOtherAgents()) {
+    const Action last_action = agent.second->GetBehaviorModel()->GetLastAction();
+    for (const auto& hypothesis : behavior_hypotheses_) {
+      const auto last_action_prob = std::dynamic_pointer_cast<BehaviorHypothesis>(hypothesis)
+                                        ->GetProbability(last_action, *observed_world_, agent.second->GetAgentId());
+      probability *= last_action_prob; // Todo add hypothesis belief weighting
+    }
+  }
+}
+
+
+bark::commons::Probability calculate_sequence_probability(const ObservedWorld& to) const {
+  return get_state_sequence_probability() * calculation_state_transition_probability(to);
+}
+
+bark::commons::Probability get_state_sequence_probability() const {
+  return state_sequence_probability_;
+}
+
 
 
 }  // namespace behavior
