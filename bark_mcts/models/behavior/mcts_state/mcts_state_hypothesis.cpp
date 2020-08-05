@@ -65,9 +65,7 @@ std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::execute(
 
   EvaluationResults evaluation_results = MctsStateHypothesis<T>::evaluate(*predicted_world);
 
-  MctsStateHypothesis<T>::calculate_ego_reward_cost(evaluation_results, rewards, ego_cost);
-
-  return MctsStateHypothesis<T>::generate_next_state(evaluation_results, predicted_world);
+  return MctsStateHypothesis<T>::generate_next_state(evaluation_results, predicted_world, rewards, ego_cost);
 }
 
 template <typename T>
@@ -111,13 +109,9 @@ EvaluationResults MctsStateHypothesis<T>::evaluate(const ObservedWorld& observed
 }
 
 template <typename T>
-std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const {
-  return impl_generate_next_state(std::is_same<T, void>{}, evaluation_results, predicted_world);
-}
-
-template <typename T>
-void MctsStateHypothesis<T>::calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
-  return impl_calculate_ego_reward_cost(std::is_same<T, void>{}, evaluation_results, rewards, ego_cost);
+std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
+                                                        std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+  return impl_generate_next_state(std::is_same<T, void>{}, evaluation_results, predicted_world, rewards, ego_cost);
 }
 
 template <typename T>

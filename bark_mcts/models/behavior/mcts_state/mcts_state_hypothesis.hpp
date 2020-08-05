@@ -75,34 +75,13 @@ public:
 
     EvaluationResults evaluate(const ObservedWorld& observed_world) const;
 
-    std::shared_ptr<MctsStateHypothesis<T>> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const;
-
-    void calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
+    std::shared_ptr<MctsStateHypothesis<T>> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
+                                                          std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
 
     const std::vector<BehaviorModelPtr>& behavior_hypotheses_;
     mutable std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
 
   private:
-    // CRTP Implementations to support further going down inheritance hierarchy
-    void impl_calculate_ego_reward_cost(std::true_type, const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
-        rewards.resize(this->get_num_agents(), 0.0f);
-        rewards[this->ego_agent_idx] =
-            (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * state_parameters_.COLLISION_REWARD +
-            evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
-
-        ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) *state_parameters_.COLLISION_COST +
-            evaluation_results.goal_reached * state_parameters_.GOAL_COST;
-        VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
-    }
-
-    void impl_calculate_ego_reward_cost(std::false_type, const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
-        if (&MctsStateHypothesis::calculate_ego_reward_cost == &T::calculate_ego_reward_cost) {
-            impl_calculate_ego_reward_cost(std::true_type{}, evaluation_results, rewards, ego_cost);
-        } else {
-            static_cast<const T*>(this)->calculate_ego_reward_cost(evaluation_results, rewards, ego_cost);
-        }
-    }
-
     std::shared_ptr<MctsStateHypothesis<T>> impl_clone(std::false_type) const {
         if (&MctsStateHypothesis::clone == &T::clone) {
             return impl_clone(std::true_type{});
@@ -120,15 +99,26 @@ public:
           ego_agent_id_, state_parameters_);
     }
 
-    std::shared_ptr<MctsStateHypothesis<T>> impl_generate_next_state(std::true_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const {
+    std::shared_ptr<MctsStateHypothesis<T>> impl_generate_next_state(std::true_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
+                                                        std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+        rewards.resize(this->get_num_agents(), 0.0f);
+        rewards[this->ego_agent_idx] =
+            (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * state_parameters_.COLLISION_REWARD +
+            evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
+
+        ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) *state_parameters_.COLLISION_COST +
+            evaluation_results.goal_reached * state_parameters_.GOAL_COST;
+        VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
+
         return std::make_shared<MctsStateHypothesis<T>>(
         predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
         MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
         ego_agent_id_, state_parameters_);
     }
 
-    std::shared_ptr<MctsStateHypothesis<T>> impl_generate_next_state(std::false_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const {
-        return static_cast<const T*>(this)->generate_next_state(evaluation_results, predicted_world);
+    std::shared_ptr<MctsStateHypothesis<T>> impl_generate_next_state(std::false_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
+                                                        std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+        return static_cast<const T*>(this)->generate_next_state(evaluation_results, predicted_world, rewards, ego_cost);
     }
 };
 

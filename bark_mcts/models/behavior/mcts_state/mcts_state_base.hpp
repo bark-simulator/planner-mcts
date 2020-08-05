@@ -77,10 +77,8 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
 
   EvaluationResults evaluate(const ObservedWorld& observed_world) const;
 
-  std::shared_ptr<T> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const;
-
-  void calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
-
+  std::shared_ptr<T> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
+                                                        std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
 
   const std::shared_ptr<const bark::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
@@ -152,13 +150,9 @@ EvaluationResults MctsStateBase<T>::evaluate(const ObservedWorld& observed_world
 }
 
 template<class T>
-std::shared_ptr<T> MctsStateBase<T>::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const {
-  return mcts::StateInterface<T>::impl().generate_next_state(evaluation_results, predicted_world);
-}
-
-template<class T>
-void MctsStateBase<T>::calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
-  return mcts::StateInterface<T>::impl().calculate_ego_reward_cost(evaluation_results, rewards, ego_cost);
+std::shared_ptr<T> MctsStateBase<T>::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
+                                                         std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+  return mcts::StateInterface<T>::impl().generate_next_state(evaluation_results, predicted_world, rewards, ego_cost);
 }
 
 
