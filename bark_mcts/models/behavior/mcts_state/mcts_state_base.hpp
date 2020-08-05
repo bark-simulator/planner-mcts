@@ -32,11 +32,25 @@ typedef struct StateParameters {
   float COLLISION_REWARD;
   float GOAL_COST;
   float COLLISION_COST;
-};
+} StateParameters;
+
+typedef struct EvaluationResults {
+  EvaluationResults() : 
+      collision_other_agent(false),
+      collision_drivable_area(false),
+      goal_reached(false),
+      out_of_map(false),
+      is_terminal(false) {}
+  bool collision_other_agent;
+  bool collision_drivable_area;
+  bool goal_reached;
+  bool out_of_map;
+  bool is_terminal;
+} EvaluationResults;
 
 template<class T>
 class MctsStateBase : public mcts::HypothesisStateInterface<T> {
-public:
+  public:
     MctsStateBase(const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
@@ -58,6 +72,15 @@ public:
 
  protected:
   std::vector<mcts::AgentIdx> update_other_agent_ids() const;
+
+  ObservedWorldPtr predict(const mcts::JointAction& joint_action) const;
+
+  EvaluationResults evaluate(const ObservedWorld& observed_world) const;
+
+  std::shared_ptr<T> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const;
+
+  void calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
+
 
   const std::shared_ptr<const bark::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
@@ -117,6 +140,27 @@ std::string MctsStateBase<T>::sprintf() const {
     }
     return ss.str();
 }
+
+template<class T>
+ObservedWorldPtr MctsStateBase<T>::predict(const mcts::JointAction& joint_action) const {
+  return mcts::StateInterface<T>::impl().predict(joint_action);
+}
+
+template<class T>
+EvaluationResults MctsStateBase<T>::evaluate(const ObservedWorld& observed_world) const {
+  return mcts::StateInterface<T>::impl().evaluate(observed_world);
+}
+
+template<class T>
+std::shared_ptr<T> MctsStateBase<T>::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world) const {
+  return mcts::StateInterface<T>::impl().generate_next_state(evaluation_results, predicted_world);
+}
+
+template<class T>
+void MctsStateBase<T>::calculate_ego_reward_cost(const EvaluationResults& evaluation_results, std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+  return mcts::StateInterface<T>::impl().calculate_ego_reward_cost(evaluation_results, rewards, ego_cost);
+}
+
 
 }  // namespace behavior
 }  // namespace models
