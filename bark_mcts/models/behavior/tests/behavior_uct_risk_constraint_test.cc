@@ -161,7 +161,7 @@ TEST(risk_constraint_mcts_state, execute) {
   auto t2 = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
   std::cout << "Duration" << duration << "[ms]";
-  std::shared_ptr<MctsStateRiskConstraint> next_mcts_state = mcts_state.execute(JointAction({0, action_idx}), rewards, cost);
+  auto next_mcts_state = mcts_state.execute(JointAction({0, action_idx}), rewards, cost);
 
   // Checking reward of zero if we are neither colliding or at goal
   EXPECT_FALSE(next_mcts_state->is_terminal()); // < make test world is defined in such a way that

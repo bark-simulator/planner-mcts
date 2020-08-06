@@ -70,6 +70,8 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
 
     std::string sprintf() const;
 
+    const ObservedWorld& get_observed_world() const { return *observed_world_; }
+
  protected:
   std::vector<mcts::AgentIdx> update_other_agent_ids() const;
 

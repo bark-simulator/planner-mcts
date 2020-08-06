@@ -48,7 +48,8 @@ public:
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters);
 
-    std::shared_ptr<MctsStateHypothesis<T>> execute(const mcts::JointAction &joint_action,
+    
+    auto execute(const mcts::JointAction &joint_action,
                                             std::vector<mcts::Reward>& rewards,
                                             mcts::Cost& ego_cost) const;
 
@@ -75,7 +76,7 @@ public:
 
     EvaluationResults evaluate(const ObservedWorld& observed_world) const;
 
-    std::shared_ptr<MctsStateHypothesis<T>> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
+    auto generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
                                                           std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
 
     const std::vector<BehaviorModelPtr>& behavior_hypotheses_;
@@ -99,7 +100,7 @@ public:
           ego_agent_id_, state_parameters_);
     }
 
-    std::shared_ptr<MctsStateHypothesis<T>> impl_generate_next_state(std::true_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
+    auto impl_generate_next_state(std::true_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
                                                         std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
         rewards.resize(this->get_num_agents(), 0.0f);
         rewards[this->ego_agent_idx] =
@@ -116,7 +117,7 @@ public:
         ego_agent_id_, state_parameters_);
     }
 
-    std::shared_ptr<MctsStateHypothesis<T>> impl_generate_next_state(std::false_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
+    auto impl_generate_next_state(std::false_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
                                                         std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
         return static_cast<const T*>(this)->generate_next_state(evaluation_results, predicted_world, rewards, ego_cost);
     }

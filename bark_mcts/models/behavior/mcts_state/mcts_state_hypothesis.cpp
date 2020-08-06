@@ -56,7 +56,7 @@ std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::clone() const {
 
 
 template <typename T>
-std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::execute(
+auto MctsStateHypothesis<T>::execute(
     const mcts::JointAction& joint_action, std::vector<mcts::Reward>& rewards,
     mcts::Cost& ego_cost) const {
   BARK_EXPECT_TRUE(!this->is_terminal());
@@ -109,7 +109,7 @@ EvaluationResults MctsStateHypothesis<T>::evaluate(const ObservedWorld& observed
 }
 
 template <typename T>
-std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
+auto MctsStateHypothesis<T>::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
                                                         std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
   return impl_generate_next_state(std::is_same<T, void>{}, evaluation_results, predicted_world, rewards, ego_cost);
 }
