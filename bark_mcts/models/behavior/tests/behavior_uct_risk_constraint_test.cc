@@ -92,8 +92,8 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
     params->SetDistribution("BehaviorIDMStochastic::CoolnessFactorDistribution", "FixedValue");
     params->SetListFloat("BehaviorIDMStochastic::CoolnessFactorDistribution::FixedValue", {0.0f});
     // IDM Hypothesis
-    params->SetInt("BehaviorHypothesisIDMStochastic::NumSamples", 10000);
-    params->SetInt("BehaviorHypothesisIDMStochastic::NumBuckets", 1000);
+    params->SetInt("BehaviorHypothesisIDMStochastic::NumSamples", 1000);
+    params->SetInt("BehaviorHypothesisIDMStochastic::NumBuckets", 100);
     params->SetReal("BehaviorHypothesisIDMStochastic::BucketsLowerBound", buckets_lower_bound);
     params->SetReal("BehaviorHypothesisIDMStochastic::BucketsUpperBound", buckets_upper_bound);
 
@@ -184,12 +184,14 @@ TEST(risk_constraint_mcts_state, execute) {
     auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(front_agent_id);
     next_mcts_state = next_mcts_state->execute(JointAction({2, action_idx2}), rewards, cost);
     auto last_bark_action = next_mcts_state->get_observed_world().GetAgents()[front_agent_id]->GetBehaviorModel()->GetLastAction();
-    bark::commons::Probability desired_transition_prob = 1.0;
+    LOG(INFO) <<  "in test action=" << boost::apply_visitor(bark::models::behavior::action_tostring_visitor(), last_bark_action);
+    bark::commons::Probability agent_action_probability = 0.0;
     for (std::size_t hyp_id = 0; hyp_id <  behavior_hypothesis.size(); ++hyp_id) {
-      desired_transition_prob *= std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypothesis[hyp_id])
+      auto last_action_prob = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypothesis[hyp_id])
                             ->GetProbability(last_bark_action, last_mcts_state->get_observed_world(), front_agent_id);
+      agent_action_probability += last_action_prob * belief_tracker.get_beliefs().at(front_agent_id).at(hyp_id);
     }
-    current_state_prob = current_state_prob * desired_transition_prob;
+    current_state_prob = current_state_prob * agent_action_probability;
     EXPECT_NEAR(current_state_prob, next_mcts_state->get_state_sequence_probability(), 0.00001);
   }
   EXPECT_TRUE(next_mcts_state->is_terminal()); // < acceleration should lead to a collision with other agent
