@@ -188,7 +188,7 @@ TEST(hypothesis_mcts_state, execute) {
       reached = true;
       break;
     }
-    auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(1);
+    auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(front_agent_id);
     next_mcts_state = next_mcts_state->execute(JointAction({2, action_idx2}), rewards, cost);
   }
   EXPECT_TRUE(next_mcts_state->is_terminal()); // < acceleration should lead to a collision with other agent
@@ -202,7 +202,7 @@ TEST(hypothesis_mcts_state, execute) {
     if(next_mcts_state->is_terminal()) {
       break;
     }
-    auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(1);
+    auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(front_agent_id);
     next_mcts_state = next_mcts_state->execute(JointAction({0, action_idx2}), rewards, cost);
   }
   EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::GoalReward", "", 1.0)  , 0.00001); // < reward should be one when reaching the goal 

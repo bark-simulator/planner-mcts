@@ -41,12 +41,12 @@ public:
   std::shared_ptr<MctsStateRiskConstraint> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
                                                         std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
 
+  bark::commons::Probability get_state_sequence_probability() const;
+
  private:
   bark::commons::Probability calculation_state_transition_probability(const ObservedWorld& to) const;
 
   bark::commons::Probability calculate_sequence_probability(const ObservedWorld& to) const;
-
-  bark::commons::Probability get_state_sequence_probability() const;
 
   const std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>>& current_hypothesis_beliefs_;
 

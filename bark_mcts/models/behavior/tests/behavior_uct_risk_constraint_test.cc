@@ -92,7 +92,7 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
     params->SetDistribution("BehaviorIDMStochastic::CoolnessFactorDistribution", "FixedValue");
     params->SetListFloat("BehaviorIDMStochastic::CoolnessFactorDistribution::FixedValue", {0.0f});
     // IDM Hypothesis
-    params->SetInt("BehaviorHypothesisIDMStochastic::NumSamples", 100000);
+    params->SetInt("BehaviorHypothesisIDMStochastic::NumSamples", 10000);
     params->SetInt("BehaviorHypothesisIDMStochastic::NumBuckets", 1000);
     params->SetReal("BehaviorHypothesisIDMStochastic::BucketsLowerBound", buckets_lower_bound);
     params->SetReal("BehaviorHypothesisIDMStochastic::BucketsUpperBound", buckets_upper_bound);
@@ -100,7 +100,7 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
     return params;
 }
 
-TEST(hypothesis_mcts_state, execute) {
+TEST(risk_constraint_mcts_state, execute) {
   // Setup prediction models for ego agent and other agents   
   auto params = std::make_shared<SetterParams>(false);
 
@@ -136,9 +136,10 @@ TEST(hypothesis_mcts_state, execute) {
           std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
 
   auto ego_agent_id = observed_world->GetAgents().begin()->first;
+  
   auto front_agent_id = std::next(observed_world->GetAgents().begin())->first;
   auto state_params = MctsStateParametersFromParamServer(params);
-  const auto current_beliefs = belief_tracker.get_beliefs();
+  const auto& current_beliefs = belief_tracker.get_beliefs();
   MctsStateRiskConstraint mcts_state(const_observed_world,
                         false,
                        num_ego_actions,
@@ -160,17 +161,18 @@ TEST(hypothesis_mcts_state, execute) {
   auto t2 = std::chrono::high_resolution_clock::now();
   auto duration = std::chrono::duration_cast<std::chrono::microseconds>( t2 - t1 ).count();
   std::cout << "Duration" << duration << "[ms]";
-  auto next_mcts_state = mcts_state.execute(JointAction({0, action_idx}), rewards, cost);
+  std::shared_ptr<MctsStateRiskConstraint> next_mcts_state = mcts_state.execute(JointAction({0, action_idx}), rewards, cost);
 
   // Checking reward of zero if we are neither colliding or at goal
   EXPECT_FALSE(next_mcts_state->is_terminal()); // < make test world is defined in such a way that
                                                 // a long driving corridor along x exists
                                                 // no collision should occur after one action
   EXPECT_NEAR(rewards[0], 0.0f , 0.00001);
-  EXPECT_NEAR(cost, 0,0.001);
 
-  // Checking collision with other agent
+  // Checking collision with other agent and probability calculation
   next_mcts_state = mcts_state.execute(JointAction({2, action_idx}), rewards, cost);
+  decltype(next_mcts_state) last_mcts_state;
+  bark::commons::Probability current_state_prob = 1.0;
   auto reached = next_mcts_state->is_terminal();
   for (int i = 0; i < 1000; ++i) {
     LOG(INFO) << "---------------\n" << next_mcts_state->sprintf();
@@ -178,12 +180,20 @@ TEST(hypothesis_mcts_state, execute) {
       reached = true;
       break;
     }
-    auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(1);
+    last_mcts_state = next_mcts_state;
+    auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(front_agent_id);
     next_mcts_state = next_mcts_state->execute(JointAction({2, action_idx2}), rewards, cost);
+    auto last_bark_action = next_mcts_state->get_observed_world().GetAgents()[front_agent_id]->GetBehaviorModel()->GetLastAction();
+    bark::commons::Probability desired_transition_prob = 1.0;
+    for (std::size_t hyp_id = 0; hyp_id <  behavior_hypothesis.size(); ++hyp_id) {
+      desired_transition_prob *= std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypothesis[hyp_id])
+                            ->GetProbability(last_bark_action, last_mcts_state->get_observed_world(), front_agent_id);
+    }
+    current_state_prob = current_state_prob * desired_transition_prob;
+    EXPECT_NEAR(current_state_prob, next_mcts_state->get_state_sequence_probability(), 0.00001);
   }
   EXPECT_TRUE(next_mcts_state->is_terminal()); // < acceleration should lead to a collision with other agent
   EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::CollisionReward", "", 1.0) , 0.00001);
-  EXPECT_NEAR(cost, params->GetReal("Mcts::State::CollisionCost", "", 1.0) , 0.00001);
 
 
   // Checking goal reached: Do multiple steps and expect that goal is reached
@@ -192,11 +202,10 @@ TEST(hypothesis_mcts_state, execute) {
     if(next_mcts_state->is_terminal()) {
       break;
     }
-    auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(1);
+    auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(front_agent_id);
     next_mcts_state = next_mcts_state->execute(JointAction({0, action_idx2}), rewards, cost);
   }
   EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::GoalReward", "", 1.0)  , 0.00001); // < reward should be one when reaching the goal 
-  EXPECT_NEAR(cost, params->GetReal("Mcts::State::GoalCost", "", 1.0) , 0.00001);
 }
 
 
