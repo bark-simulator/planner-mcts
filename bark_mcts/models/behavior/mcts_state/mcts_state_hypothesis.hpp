@@ -103,9 +103,7 @@ public:
     auto impl_generate_next_state(std::true_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
                                                         std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
         rewards.resize(this->get_num_agents(), 0.0f);
-        rewards[this->ego_agent_idx] =
-            (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * state_parameters_.COLLISION_REWARD +
-            evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
+        rewards[this->ego_agent_idx] = reward_from_evaluation_results(evaluation_results, state_parameters_);
 
         ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) *state_parameters_.COLLISION_COST +
             evaluation_results.goal_reached * state_parameters_.GOAL_COST;

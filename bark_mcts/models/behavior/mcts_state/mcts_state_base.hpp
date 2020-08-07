@@ -8,6 +8,9 @@
 #define BARK_MCTS_STATE_BASE_H_
 
 // BARK
+#include "bark/world/evaluation/evaluator_collision_ego_agent.hpp"
+#include "bark/world/evaluation/evaluator_drivable_area.hpp"
+#include "bark/world/evaluation/evaluator_goal_reached.hpp"
 #include "bark/world/observed_world.hpp"
 #include "bark/models/behavior/behavior_model.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
@@ -26,12 +29,16 @@ namespace behavior {
 using BarkAction = bark::models::behavior::Action;
 using bark::world::ObservedWorld;
 using bark::world::ObservedWorldPtr;
+using bark::world::evaluation::EvaluatorCollisionEgoAgent;
+using bark::world::evaluation::EvaluatorDrivableArea;
+using bark::world::evaluation::EvaluatorGoalReached;
 
 typedef struct StateParameters {
   float GOAL_REWARD;
   float COLLISION_REWARD;
   float GOAL_COST;
   float COLLISION_COST;
+  float COOPERATION_FACTOR;
 } StateParameters;
 
 typedef struct EvaluationResults {
@@ -47,6 +54,11 @@ typedef struct EvaluationResults {
   bool out_of_map;
   bool is_terminal;
 } EvaluationResults;
+
+inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
+  return (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * parameters.COLLISION_REWARD +
+            evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
+};
 
 template<class T>
 class MctsStateBase : public mcts::HypothesisStateInterface<T> {
@@ -74,13 +86,6 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
 
  protected:
   std::vector<mcts::AgentIdx> update_other_agent_ids() const;
-
-  ObservedWorldPtr predict(const mcts::JointAction& joint_action) const;
-
-  EvaluationResults evaluate(const ObservedWorld& observed_world) const;
-
-  std::shared_ptr<T> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
-                                                        std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
 
   const std::shared_ptr<const bark::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
@@ -141,22 +146,29 @@ std::string MctsStateBase<T>::sprintf() const {
     return ss.str();
 }
 
-template<class T>
-ObservedWorldPtr MctsStateBase<T>::predict(const mcts::JointAction& joint_action) const {
-  return mcts::StateInterface<T>::impl().predict(joint_action);
-}
+inline EvaluationResults mcts_observed_world_evaluation(const ObservedWorld& observed_world) {
+    EvaluationResults evaluation_results;
 
-template<class T>
-EvaluationResults MctsStateBase<T>::evaluate(const ObservedWorld& observed_world) const {
-  return mcts::StateInterface<T>::impl().evaluate(observed_world);
-}
+  if (observed_world.GetEgoAgent()) {
+    auto ego_id = observed_world.GetEgoAgent()->GetAgentId();
+    auto evaluator_drivable_area = EvaluatorDrivableArea();
+    auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(ego_id);
+    auto evaluator_goal_reached = EvaluatorGoalReached(ego_id);
 
-template<class T>
-std::shared_ptr<T> MctsStateBase<T>::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
-                                                         std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
-  return mcts::StateInterface<T>::impl().generate_next_state(evaluation_results, predicted_world, rewards, ego_cost);
+    evaluation_results.collision_drivable_area =
+        boost::get<bool>(evaluator_drivable_area.Evaluate(observed_world));
+    evaluation_results.collision_other_agent =
+        boost::get<bool>(evaluator_collision_ego.Evaluate(observed_world));
+    evaluation_results.goal_reached =
+        boost::get<bool>(evaluator_goal_reached.Evaluate(observed_world));
+    evaluation_results.out_of_map = false;
+  } else {
+    evaluation_results.out_of_map = true;
+  }
+  evaluation_results.is_terminal = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent
+                                   || evaluation_results.goal_reached || evaluation_results.out_of_map);
+  return evaluation_results;
 }
-
 
 }  // namespace behavior
 }  // namespace models

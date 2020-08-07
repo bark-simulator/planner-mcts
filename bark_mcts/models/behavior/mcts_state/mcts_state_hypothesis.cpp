@@ -54,7 +54,6 @@ std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::clone() const {
     return impl_clone(std::is_same<T, void>{});
 }
 
-
 template <typename T>
 auto MctsStateHypothesis<T>::execute(
     const mcts::JointAction& joint_action, std::vector<mcts::Reward>& rewards,
@@ -63,7 +62,7 @@ auto MctsStateHypothesis<T>::execute(
 
   const auto predicted_world = MctsStateHypothesis<T>::predict(joint_action);
 
-  EvaluationResults evaluation_results = MctsStateHypothesis<T>::evaluate(*predicted_world);
+  EvaluationResults evaluation_results = mcts_observed_world_evaluation(*predicted_world);
 
   return MctsStateHypothesis<T>::generate_next_state(evaluation_results, predicted_world, rewards, ego_cost);
 }
@@ -81,31 +80,6 @@ ObservedWorldPtr MctsStateHypothesis<T>::predict(const mcts::JointAction& joint_
   const auto predicted_world = 
             observed_world_->Predict(prediction_time_span_, ego_behavior_model_, predicted_behaviors_);
   return predicted_world;
-}
-
-template <typename T>
-EvaluationResults MctsStateHypothesis<T>::evaluate(const ObservedWorld& observed_world) const {
-  EvaluationResults evaluation_results;
-
-  if (observed_world.GetEgoAgent()) {
-    auto ego_id = observed_world.GetEgoAgent()->GetAgentId();
-    auto evaluator_drivable_area = EvaluatorDrivableArea();
-    auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(ego_id);
-    auto evaluator_goal_reached = EvaluatorGoalReached(ego_id);
-
-    evaluation_results.collision_drivable_area =
-        boost::get<bool>(evaluator_drivable_area.Evaluate(observed_world));
-    evaluation_results.collision_other_agent =
-        boost::get<bool>(evaluator_collision_ego.Evaluate(observed_world));
-    evaluation_results.goal_reached =
-        boost::get<bool>(evaluator_goal_reached.Evaluate(observed_world));
-    evaluation_results.out_of_map = false;
-  } else {
-    evaluation_results.out_of_map = true;
-  }
-  evaluation_results.is_terminal = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent
-                                   || evaluation_results.goal_reached || evaluation_results.out_of_map);
-  return evaluation_results;
 }
 
 template <typename T>
