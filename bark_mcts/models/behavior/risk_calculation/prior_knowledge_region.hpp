@@ -17,7 +17,9 @@ namespace risk_calculation {
 inline double CalculateRegionBoundariesArea(const RegionBoundaries& region_boundaries) {
   double area = 1.0;
   for (const auto& region: region_boundaries) {
-    area *= (region.second.second - region.second.first);
+    if (region.second.second > region.second.first) {
+      area *= (region.second.second - region.second.first);
+    }
   }
   return area;
 }

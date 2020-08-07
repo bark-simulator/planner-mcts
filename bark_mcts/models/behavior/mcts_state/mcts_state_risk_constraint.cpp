@@ -77,11 +77,10 @@ bark::commons::Probability MctsStateRiskConstraint::calculation_state_transition
   bark::commons::Probability joint_probability = 1.0;
   for(const auto& agent : to.GetOtherAgents()) {
     const Action last_action = agent.second->GetBehaviorModel()->GetLastAction();
-    LOG(INFO) << "agent: " << agent.first << "action=" << boost::apply_visitor(action_tostring_visitor(), last_action);
     bark::commons::Probability agent_action_probability = 0.0;
     for (std::size_t hyp_id = 0; hyp_id < behavior_hypotheses_.size(); ++hyp_id) {
       const auto last_action_prob = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypotheses_[hyp_id])
-                                        ->GetProbability(last_action, *observed_world_, agent.second->GetAgentId());
+                                      ->GetProbability(last_action, *observed_world_, agent.second->GetAgentId());
       agent_action_probability  += last_action_prob * current_hypothesis_beliefs_.at(agent.second->GetAgentId()).at(hyp_id);
     }
     joint_probability *= agent_action_probability;
