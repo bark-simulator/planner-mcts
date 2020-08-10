@@ -6,10 +6,6 @@
 #include "mcts/hypothesis/hypothesis_statistic.h"
 #include "bark_mcts/models/behavior/mcts_state/mcts_state_hypothesis.hpp"
 
-#include "bark/models/behavior/constant_velocity/constant_velocity.hpp"
-#include "bark/models/behavior/idm/idm_classic.hpp"
-#include "bark/models/behavior/motion_primitives/continuous_actions.hpp"
-#include "bark/models/dynamic/single_track.hpp"
 #include "bark/world/observed_world.hpp"
 
 namespace bark {
