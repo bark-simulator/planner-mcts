@@ -7,7 +7,6 @@
 #define MCTS_PARAMETERS_MCTS_STATE_PARAMETERS_FROM_PARAMETER_SERVER_HPP_
 
 #include "bark/commons/params/params.hpp"
-#include "bark_mcts/models/behavior/mcts_state/mcts_state_hypothesis.hpp"
 
 #include "mcts/mcts_parameters.h"
 

@@ -1,7 +1,4 @@
 #include "bark_mcts/models/behavior/behavior_uct_hypothesis.hpp"
-#include "bark_mcts/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
-#include "bark_mcts/models/behavior/param_config/mcts_state_parameters_from_param_server.hpp"
-#include "bark/models/behavior/motion_primitives/param_config/behav_macro_actions_from_param_server.hpp"
 #define MCTS_EXPECT_TRUE(cond) BARK_EXPECT_TRUE(cond)
 #include "mcts/heuristics/random_heuristic.h"
 #include "mcts/mcts.h"
@@ -21,32 +18,9 @@ namespace behavior {
 
 using bark::world::objects::AgentId;
 
-
-BehaviorUCTHypothesis::BehaviorUCTHypothesis(
-    const commons::ParamsPtr& params,
-    const std::vector<BehaviorModelPtr>& behavior_hypothesis)
-    : BehaviorModel(params),
-      ego_behavior_model_(models::behavior::
-          BehaviorMacroActionsFromParamServer(GetParams()
-            ->AddChild("BehaviorUctHypothesis")->AddChild("EgoBehavior"))),
-      behavior_hypotheses_(behavior_hypothesis),
-      mcts_parameters_(models::behavior::MctsParametersFromParamServer(
-          GetParams()->AddChild("BehaviorUctHypothesis"))),
-      dump_tree_(GetParams()->AddChild("BehaviorUctHypothesis")->GetBool(
-          "DumpTree",
-          "If true, tree is dumped to dot file after planning", false)),
-        prediction_time_span_(GetParams()->AddChild("BehaviorUctHypothesis")
-                                        ->AddChild("PredictionSettings")
-                                        ->GetReal("TimeSpan",
-          "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)),
-      use_true_behaviors_as_hypothesis_(GetParams()->AddChild("BehaviorUctHypothesis")
-                                        ->AddChild("PredictionSettings")
-                                        ->GetBool("UseTrueBehaviorsAsHypothesis", "When true behaviors out of observed world are used as hypothesis", false)),
-      mcts_state_parameters_(MctsStateParametersFromParamServer(
-          GetParams()->AddChild("BehaviorUctHypothesis"))),
-      belief_tracker_(mcts_parameters_),
-      last_mcts_hypothesis_state_() {}
-
+BehaviorUCTHypothesis::BehaviorUCTHypothesis(const commons::ParamsPtr& params,
+                                const std::vector<BehaviorModelPtr>& behavior_hypothesis) :
+                                BehaviorUCTHypothesisBase(params, behavior_hypothesis) {}
 
 dynamic::Trajectory BehaviorUCTHypothesis::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
@@ -55,13 +29,13 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
 
   // Check if we can shall use existing behavior models as hypothesis
   if(use_true_behaviors_as_hypothesis_) {
-    DefineTrueBehaviorsAsHypothesis(observed_world);
+    this->DefineTrueBehaviorsAsHypothesis(observed_world);
   }
 
   const ObservedWorldPtr const_mcts_observed_world =
       std::const_pointer_cast<ObservedWorld>(mcts_observed_world);
   BehaviorMotionPrimitives::MotionIdx num =
-      ego_behavior_model_->GetNumMotionPrimitives(const_mcts_observed_world);
+      this->ego_behavior_model_->GetNumMotionPrimitives(const_mcts_observed_world);
 
   // Define initial mcts state
   auto ego_id = const_mcts_observed_world->GetEgoAgentId();
@@ -112,17 +86,6 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   SetLastAction(ego_behavior_model_->GetLastAction());
   SetBehaviorStatus(BehaviorStatus::VALID);
   return traj;
-}
-
-void BehaviorUCTHypothesis::DefineTrueBehaviorsAsHypothesis(const world::ObservedWorld& observed_world) {
-  // If now hypothesis set specified we take true behaviors as hypothesis
-  behavior_hypotheses_.clear();
-  std::unordered_map<mcts::AgentIdx, mcts::HypothesisId> fixed_hypothesis_map;
-  for (const auto& agent : observed_world.GetOtherAgents()) {
-    fixed_hypothesis_map[agent.first] = behavior_hypotheses_.size();
-    behavior_hypotheses_.push_back(agent.second->GetBehaviorModel());
-  }
-  belief_tracker_.update_fixed_hypothesis_set(fixed_hypothesis_map);
 }
 
 }  // namespace behavior
