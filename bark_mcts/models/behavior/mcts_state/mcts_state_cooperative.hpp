@@ -9,8 +9,6 @@
 
 // BARK
 #include "bark/models/behavior/behavior_model.hpp"
-#include "bark_mcts/models/behavior/action_store/behavior_action_store.hpp"
-#include "bark_mcts/models/behavior/hypothesis/behavior_hypothesis.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
 // MCTS Library
 #include "bark_mcts/models/behavior/mcts_state/mcts_state_base.hpp"
@@ -31,12 +29,11 @@ class MctsStateCooperative : public MctsStateBase<MctsStateCooperative> {
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
                        const float& prediction_time_span,
-                       const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters);
 
-    auto execute(const mcts::JointAction& joint_action,
+    std::shared_ptr<MctsStateCooperative> execute(const mcts::JointAction& joint_action,
                                             std::vector<mcts::Reward>& rewards,
                                             mcts::Cost& ego_cost) const;
 
@@ -45,14 +42,12 @@ class MctsStateCooperative : public MctsStateBase<MctsStateCooperative> {
  protected:
     ObservedWorldPtr predict(const mcts::JointAction& joint_action) const;
 
-    auto generate_next_state(const ObservedWorldPtr& predicted_world,
+    std::shared_ptr<MctsStateCooperative> generate_next_state(const ObservedWorldPtr& predicted_world,
                                                           std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
 };
 
 }  // namespace behavior
 }  // namespace models
 }  // namespace bark
-
-#include "bark_mcts/models/behavior/mcts_state/mcts_state_hypothesis.cpp"
 
 #endif // BARK_MCTS_HYPOTHESIS_STATE_H_

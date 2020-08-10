@@ -141,6 +141,33 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "behavior_uct_cooperative_test",
+    srcs = [
+        "behavior_uct_cooperative_test.cc"
+    ],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        "//bark_mcts/models/behavior:planner_uct_hypothesis",
+        "//bark_mcts/models/behavior/action_store:behavior_action_store",
+        "//bark_mcts/models/behavior/hypothesis/idm:hypothesis_idm",
+        "//bark_mcts/models/behavior/mcts_state:mcts_state_cooperative",
+        ":test_helpers",
+        "@bark_project//bark/world:world",
+        "@bark_project//bark/world/tests:make_test_world",
+        "@bark_project//bark/models/behavior:behavior",
+        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
+        "@bark_project//bark/models/behavior/idm/stochastic:stochastic",
+        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
+        "@bark_project//bark/models/execution/interpolation:interpolation",
+        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
+        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
+        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
+        "@bark_project//bark/world/goal_definition:goal_definition",
+        "@gtest//:gtest_main",
+    ],
+)
+
 
 cc_test(
     name = "behavior_uct_risk_constraint_test",

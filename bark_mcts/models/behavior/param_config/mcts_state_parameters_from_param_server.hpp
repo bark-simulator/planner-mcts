@@ -25,6 +25,8 @@ inline StateParameters MctsStateParametersFromParamServer(const commons::ParamsP
     parameters.GOAL_COST = params->GetReal("Mcts::State::GoalCost", "Reward for goal", -100.0f);
     parameters.COLLISION_COST = params->GetReal("Mcts::State::CollisionCost", "Reward for goal", 1000.0f);
 
+    parameters.COOPERATION_FACTOR = params->GetReal("Mcts::State::CooperationFactor", "Cooperative MCTS, coop. factor", 0.2f);
+
     return parameters;
 }
 

@@ -57,7 +57,7 @@ typedef struct EvaluationResults {
 
 inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
   return (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * parameters.COLLISION_REWARD +
-            evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
+            evaluation_results.goal_reached * parameters.GOAL_REWARD;
 };
 
 template<class T>

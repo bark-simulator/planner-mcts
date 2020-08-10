@@ -3,14 +3,11 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#include "bark_mcts/models/behavior/mcts_state/mcts_state_hypothesis.hpp"
+#include "bark_mcts/models/behavior/mcts_state/mcts_state_cooperative.hpp"
 
 #include <memory>
 #include <string>
 #include <vector>
-#include "bark/world/evaluation/evaluator_collision_ego_agent.hpp"
-#include "bark/world/evaluation/evaluator_drivable_area.hpp"
-#include "bark/world/evaluation/evaluator_goal_reached.hpp"
 #include "bark/world/observed_world.hpp"
 
 namespace bark {
@@ -28,11 +25,10 @@ MctsStateCooperative::MctsStateCooperative(
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
                        const float& prediction_time_span,
-                       const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                        const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters) :
-                        MctsStateBase<MctsStateHypothesis<T>>(observed_world,
+                        MctsStateBase<MctsStateCooperative>(observed_world,
                                       is_terminal_state,
                                       num_ego_actions,
                                       prediction_time_span,
@@ -41,11 +37,15 @@ MctsStateCooperative::MctsStateCooperative(
                                       state_parameters,
                                       std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>()){}
 
-std::shared_ptr<MctsStateCooperative> MctsStateHypothesis<T>::clone() const {
-    return 
+std::shared_ptr<MctsStateCooperative> MctsStateCooperative::clone() const {
+    auto worldptr =
+        std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
+    return std::make_shared<MctsStateCooperative>(
+                    worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
+                    ego_behavior_model_, ego_agent_id_, state_parameters_); 
 }
 
-auto MctsStateCooperative::execute(
+std::shared_ptr<MctsStateCooperative> MctsStateCooperative::execute(
     const mcts::JointAction& joint_action, std::vector<mcts::Reward>& rewards,
     mcts::Cost& ego_cost) const {
   BARK_EXPECT_TRUE(!this->is_terminal());
@@ -62,33 +62,53 @@ ObservedWorldPtr MctsStateCooperative::predict(const mcts::JointAction& joint_ac
     agent_action_map.insert({agent_idx, DiscreteAction(joint_action[action_idx])});
     action_idx++;
   }
-  agent_action_map.insert({get_ego_agent_idx(), DiscreteAction(joint_action[S::ego_agent_idx])});
+  agent_action_map.insert({get_ego_agent_idx(), DiscreteAction(joint_action[this->ego_agent_idx])});
   auto predicted_world =
       std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Predict(
           prediction_time_span_, agent_action_map));
   return predicted_world;
 }
 
-auto MctsStateCooperative::generate_next_state(const ObservedWorldPtr& predicted_world,
+std::shared_ptr<MctsStateCooperative> MctsStateCooperative::generate_next_state(const ObservedWorldPtr& predicted_world,
                                                         std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
-    const auto ego_evaluation_results = mcts_observed_world_evaluation(others_observed_world);
-    const ego_agent_reward = reward_from_evaluation_results(ego_evaluation_results, state_parameters_);
+    const auto ego_evaluation_results = mcts_observed_world_evaluation(*predicted_world);
+    const auto ego_agent_reward = reward_from_evaluation_results(ego_evaluation_results, state_parameters_);
     std::unordered_map<mcts::AgentIdx, mcts::Reward> other_agents_rewards;
     for(const auto& agent : predicted_world->GetOtherAgents()) {
-      const auto others_observed_world = ObservedWorld(*predicted_world, agent->GetAgentId());
+      const auto others_observed_world = ObservedWorld(predicted_world, agent.first);
       const auto evaluation_results = mcts_observed_world_evaluation(others_observed_world);
-      const auto reward = reward_from_evaluation_results(evaluation_results, state_parameters_);
-      agents_rewards[agent->GetAgentId()] = reward;
+      if (!evaluation_results.out_of_map) { // only count this agents reward  if still in map
+        const auto reward = reward_from_evaluation_results(evaluation_results, state_parameters_);
+        other_agents_rewards[agent.first] = reward;
+      }
     }
 
     rewards.resize(this->get_num_agents(), 0.0f);
     mcts::Reward reward_sum = ego_agent_reward;
-    for (const auto& agent_reward : agent_rewards) {
+    for (const auto& agent_reward : other_agents_rewards) {
       reward_sum += agent_reward.second;
     }
 
-    mcts::ActionIdx = 1
-    for (auto& )
+    // Others rewards
+    mcts::ActionIdx reward_idx = 1;
+    rewards.resize(this->get_num_agents(), 0.0f);
+    for (const auto& agent_idx : get_other_agent_idx()) {
+      const auto& other_reward = other_agents_rewards[agent_idx];
+      const auto rest_reward = reward_sum - other_reward;
+      const auto cooperative_reward = 1.0/double(other_agents_rewards.size() + 1) *
+             (other_reward + state_parameters_.COOPERATION_FACTOR * rest_reward);
+      rewards[reward_idx] = cooperative_reward;
+      ++reward_idx;
+    }
+    // Ego reward
+    const auto rest_reward = reward_sum - ego_agent_reward;
+    rewards[this->ego_agent_idx] = 1.0/double(other_agents_rewards.size() + 1) *
+             (ego_agent_reward + state_parameters_.COOPERATION_FACTOR * rest_reward);
+    ego_cost = - rewards[this->ego_agent_idx];
+
+    return std::make_shared<MctsStateCooperative>(
+                    predicted_world, ego_evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
+                    ego_behavior_model_, ego_agent_id_, state_parameters_);
 }
 
 

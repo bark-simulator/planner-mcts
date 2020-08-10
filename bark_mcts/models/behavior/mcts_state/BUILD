@@ -19,6 +19,23 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
+cc_library(
+    name = "mcts_state_cooperative",
+    srcs = [
+            "mcts_state_cooperative.cpp",
+    ],
+    hdrs = [
+            "mcts_state_cooperative.hpp",
+            "mcts_state_base.hpp"
+            ],
+    copts = ["-Iexternal/bark_project"],
+    deps= [
+        "@bark_project//bark:include",
+        "@mamcts_project//mcts:mamcts",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 
 
 cc_library(

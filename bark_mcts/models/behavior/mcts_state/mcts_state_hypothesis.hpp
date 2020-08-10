@@ -110,9 +110,9 @@ public:
         VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
 
         return std::make_shared<MctsStateHypothesis<T>>(
-        predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
-        MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
-        ego_agent_id_, state_parameters_);
+                    predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
+                    MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
+                    ego_agent_id_, state_parameters_);
     }
 
     auto impl_generate_next_state(std::false_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
