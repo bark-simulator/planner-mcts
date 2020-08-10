@@ -3,7 +3,7 @@
 #include "mcts/heuristics/random_heuristic.h"
 #include "mcts/mcts.h"
 #include "mcts/statistics/uct_statistic.h"
-#include "mcts/cost_constraint/cost_constrained_statistic.h"
+#include "mcts/cost_constrained/cost_constrained_statistic.h"
 
 #include "bark/world/observed_world.hpp"
 
@@ -14,8 +14,12 @@ namespace behavior {
 using bark::world::objects::AgentId;
 
 BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& params,
-                                const std::vector<BehaviorModelPtr>& behavior_hypothesis) :
-                                BehaviorUCTHypothesisBase(params, behavior_hypothesis) {}
+                                const std::vector<BehaviorModelPtr>& behavior_hypothesis,
+                                const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function) :
+                                BehaviorUCTHypothesisBase(params, behavior_hypothesis),
+                                default_available_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
+                                      ->GetReal("DefaultAvailableRik", "Risk used when belief not initialized", 0.0f)),
+                                scenario_risk_function_(scenario_risk_function) {}
 
 dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
@@ -56,7 +60,7 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   }
 
   // Now do the search
-  mcts::Mcts<MctsStateHypothesis<>, mcts::UctStatistic, mcts::HypothesisStatistic,
+  mcts::Mcts<MctsStateRiskConstraint, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
              mcts::RandomHeuristic>mcts_hypothesis(mcts_parameters_);
   mcts_hypothesis.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
@@ -82,6 +86,36 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   SetBehaviorStatus(BehaviorStatus::VALID);
   return traj;
 }
+
+ mcts::Cost BehaviorUCTRiskConstraint::CalculateAvailableScenarioRisk() const {
+  VLOG(3) << "Available Scenario Risk Calculation: ";
+  if (!belief_tracker_.belief_initialized()) {
+    VLOG(3) << "Default Risk: " << default_available_risk_;
+    return default_available_risk_;
+  }
+
+  // First calculate mean of belief for each hypothesis
+  const const std::unordered_map<AgentIdx, std::vector<Belief>>& beliefs
+                        = belief_tracker_.get_beliefs();
+  std::vector<Belief> belief_sum(beliefs.begin()->second.size(), 0.0f);
+  for (const auto& agent_beliefs : beliefs) {
+    for (mcts::HypothesisId hyp_id = 0; hyp_id < agent_beliefs.second.size(); ++hyp_id) {
+      belief_sum[hyp_id] += agent_beliefs.second.at(hyp_id);
+    }
+  }
+
+  mcst::Cost available_risk = 0.0f;
+
+  for (mcts::HypothesisId hyp_id = 0; hyp_id < behavior_hypotheses_.size(); ++hyp_id) {
+    const auto& hypothesis = behavior_hypotheses_.at(hyp_id);
+    const auto& integrated_risk = scenario_risk_function_->CalculateIntegralValue(hypothesis.GetDefinition());
+    const auto& behavior_space_area = risk_calculation::CalculateRegionBoundariesArea(hypothesis.GetDefinition());
+    available_risk += 1.0 / beliefs.size() * belief_sum.at(hyp_id) * integrated_risk / behavior_space_area;
+    VLOG(3) << "Integrated Risk: " << integrated_risk << ", Behavior Space Area: " << behavior_space_area << ", Belief Sum: " <<  belief_sum.at(hyp_id);
+  }
+  VLOG(3) << "Available Risk: " << available_risk;
+  return available_risk;
+ }
 
 }  // namespace behavior
 }  // namespace models

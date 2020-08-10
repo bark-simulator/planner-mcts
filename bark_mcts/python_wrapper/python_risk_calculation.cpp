@@ -81,7 +81,7 @@ void python_risk_calculation(py::module m) {
     })
     .def_property_readonly("normalization_constant", &ScenarioRiskFunction::GetNormalizationConstant)
     .def_property_readonly("scenario_risk_function_template", &ScenarioRiskFunction::GetScenarioRiskFunctionDefinition)
-    .def("CalculateMeanAvailableScenarioRisk", &ScenarioRiskFunction::CalculateMeanAvailableScenarioRisk)
+    .def("CalculateIntegralValue", &ScenarioRiskFunction::CalculateIntegralValue)
     .def(py::pickle(
       [](const ScenarioRiskFunction& srf) {
         // We throw away other information such as last trajectories

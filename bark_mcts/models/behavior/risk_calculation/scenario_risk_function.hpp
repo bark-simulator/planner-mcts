@@ -26,7 +26,7 @@ class ScenarioRiskFunction {
                 risk_function_definition_(risk_function_definition),
                 normalization_constant_(normalization_constant) {}
 
-    bark::commons::Probability CalculateMeanAvailableScenarioRisk(const KnowledgeRegion& region) const {
+    bark::commons::Probability CalculateIntegralValue(const KnowledgeRegion& region) const {
             return normalization_constant_ * GetIntegralValueTemplateFunction(region);
     }
 

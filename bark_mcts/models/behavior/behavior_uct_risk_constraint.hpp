@@ -9,6 +9,7 @@
 #include <memory>
 #include "bark_mcts/models/behavior/behavior_uct_hypothesis_base.hpp"
 #include "bark_mcts/models/behavior/mcts_state/mcts_state_risk_constraint.hpp"
+#include "bark_mcts/models/behavior/risk_calculation/scenario_risk_function.hpp"
 #include "mcts/hypothesis/hypothesis_belief_tracker.h"
 
 namespace bark {
@@ -21,7 +22,8 @@ namespace behavior {
 class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<> {
  public:
   explicit BehaviorUCTRiskConstraint(const commons::ParamsPtr& params,
-                                const std::vector<BehaviorModelPtr>& behavior_hypothesis);
+                                const std::vector<BehaviorModelPtr>& behavior_hypothesis,
+                                const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function);
 
   virtual ~BehaviorUCTRiskConstraint() {}
 
@@ -29,6 +31,12 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<> {
                           const world::ObservedWorld& observed_world);
 
   virtual std::shared_ptr<BehaviorModel> Clone() const;
+
+  protected:
+    mcts::Cost CalculateAvailableScenarioRisk() const;
+
+    mcts::Cost default_available_risk_;
+    risk_calculation::ScenarioRiskFunctionPtr scenario_risk_function_;
 };
 
 inline std::shared_ptr<BehaviorModel> BehaviorUCTRiskConstraint::Clone() const {
