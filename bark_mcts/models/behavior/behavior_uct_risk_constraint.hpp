@@ -32,6 +32,8 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRisk
 
   virtual std::shared_ptr<BehaviorModel> Clone() const;
 
+  risk_calculation::ScenarioRiskFunctionPtr GetScenarioRiskFunction() const { return scenario_risk_function_; }
+
   protected:
     mcts::Cost CalculateAvailableScenarioRisk() const;
 

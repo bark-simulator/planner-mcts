@@ -3,8 +3,8 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
-#ifndef MODULES_MODELS_BEHAVIOR_BEHAVIOR_UCT_HYPOTHESIS_HPP_
-#define MODULES_MODELS_BEHAVIOR_BEHAVIOR_UCT_HYPOTHESIS_HPP_
+#ifndef MODULES_MODELS_BEHAVIOR_BEHAVIOR_UCT_COOPERATIVE_HPP_
+#define MODULES_MODELS_BEHAVIOR_BEHAVIOR_UCT_COOPERATIVE_HPP_
 
 #include <memory>
 #include "bark_mcts/models/behavior/behavior_uct_base.hpp"
@@ -39,4 +39,4 @@ inline std::shared_ptr<BehaviorModel> BehaviorUCTCooperative::Clone() const {
 }  // namespace models
 }  // namespace bark
 
-#endif  // MODULES_MODELS_BEHAVIOR_BEHAVIOR_UCT_HYPOTHESIS_HPP_
+#endif  // MODULES_MODELS_BEHAVIOR_BEHAVIOR_UCT_COOPERATIVE_HPP_
