@@ -19,7 +19,7 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                 const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function) :
                                 BehaviorUCTHypothesisBase(params, behavior_hypothesis),
                                 default_available_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
-                                      ->GetReal("DefaultAvailableRik", "Risk used when belief not initialized", 0.0f)),
+                                      ->GetReal("DefaultAvailableRisk", "Risk used when belief not initialized", 0.0f)),
                                 current_scenario_risk_(default_available_risk_),
                                 estimate_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
                                       ->GetBool("EstimateScenarioRisk", "Should scenario risk be estimated from scenario risk function", false)),

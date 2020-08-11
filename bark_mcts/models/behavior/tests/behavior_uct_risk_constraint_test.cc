@@ -219,21 +219,33 @@ TEST(behavior_uct_risk_constraint, change_lane) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
   auto params = std::make_shared<SetterParams>(false);
 
+  params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 2.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", 0.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", 1.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::CollisionCost", 0.0);
+
   // Desired headway should correspond to initial headway
-  params->SetInt("BehaviorUctHypothesis::Mcts::MaxNumIterations", 400);
-  params->SetInt("BehaviorUctHypothesis::Mcts::MaxSearchTime", 4000);
-  params->SetInt("BehaviorUctHypothesis::Mcts::RandomSeed", 1000);
-  params->SetBool("BehaviorUctHypothesis::DumpTree", true);
-  params->SetListFloat("BehaviorUctHypothesis::EgoBehavior::AccelerationInputs", {0, 1, 4, -1, -8});
-  params->SetReal("BehaviorUctHypothesis::Mcts::DiscountFactor", 0.9);
-  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ExplorationConstant", 0.7);
-  params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxSearchTime", 20000);
-  params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxNumIterations", 10);
-  params->SetReal("BehaviorUctHypothesis::Mcts::ReturnLowerBound", -1000);
-  params->SetReal("BehaviorUctHypothesis::Mcts::ReturnUpperBound", 100);
-  params->SetReal("BehaviorUctHypothesis::Mcts::LowerCostBound", 0.0);
-  params->SetReal("BehaviorUctHypothesis::Mcts::UpperCostBound", 100);
+  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 400);
+  params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 4000);
+  params->SetInt("BehaviorUctBase::Mcts::RandomSeed", 1000);
+  params->SetBool("BehaviorUctBase::DumpTree", true);
+  params->SetListFloat("BehaviorUctBase::EgoBehavior::AccelerationInputs", {0, 1, 4, -1, -8});
+  params->SetReal("BehaviorUctBase::Mcts::DiscountFactor", 0.9);
+  params->SetReal("BehaviorUctBase::Mcts::UctStatistic::ExplorationConstant", 0.7);
+  params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
+  params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
+  params->SetReal("BehaviorUctBase::Mcts::ReturnLowerBound", -1000);
+  params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 100);
+  params->SetReal("BehaviorUctBase::Mcts::LowerCostBound", 0.0);
+  params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 100);
+  params->SetReal("BehaviorUctRiskConstraint::DefaultAvailableRisk", 0.1f);
+  params->SetBool("BehaviorUctRiskConstraint::EstimateScenarioRisk", false);
   // TODO ADD RISK CONSTRAINT PARAMETERS
+  params->SetReal("Mcts::CostConstrainedStatistic::LambdaInit", 2.0f);
+  params->SetReal("Mcts::CostConstrainedStatistic::Kappa", 10.0f);
+  params->SetReal("Mcts::CostConstrainedStatistic::GradientUpdateScaling",  1.0f);
+  params->SetReal("Mcts::CostConstrainedStatistic::TauGradientClip", 1.0f);
+  params->SetReal("Mcts::CostConstrainedStatistic::ActionFilterFactor", 0.5f);
 
   // IDM Classic
   params->SetReal("BehaviorIDMClassic::MinimumSpacing", 0.0f); // Required for testing
@@ -264,10 +276,10 @@ TEST(behavior_uct_risk_constraint, change_lane) {
   params->SetDistribution("BehaviorIDMStochastic::CoolnessFactorDistribution", "FixedValue");
   params->SetListFloat("BehaviorIDMStochastic::CoolnessFactorDistribution::FixedValue", {0.0f});
   // IDM Hypothesis
-  params->SetInt("BehaviorHypothesisIDMStochastic::NumSamples", 1000000);
-  params->SetInt("BehaviorHypothesisIDMStochastic::NumBuckets", 1000);
-  params->SetReal("BehaviorHypothesisIDMStochastic::BucketsLowerBound", -9.0);
-  params->SetReal("BehaviorHypothesisIDMStochastic::BucketsUpperBound", 6.0);
+  params->SetInt("BehaviorHypothesisIDM::NumSamples", 1000);
+  params->SetInt("BehaviorHypothesisIDM::NumBuckets", 10);
+  params->SetReal("BehaviorHypothesisIDM::BucketsLowerBound", -9.0);
+  params->SetReal("BehaviorHypothesisIDM::BucketsUpperBound", 6.0);
 
   // Map creation
   OpenDriveMapPtr open_drive_map = MakeXodrMapOneRoadTwoLanes();
@@ -338,8 +350,10 @@ TEST(behavior_uct_risk_constraint, change_lane) {
 
 
 int main(int argc, char **argv) {
+  FLAGS_alsologtostderr = true;
+  FLAGS_v = 3;
+  google::InitGoogleLogging("test");
   ::testing::InitGoogleTest(&argc, argv);
 
   return RUN_ALL_TESTS();
-
 }

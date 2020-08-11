@@ -50,7 +50,6 @@ MctsStateRiskConstraint::MctsStateRiskConstraint(
 std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::clone() const {
   auto worldptr =
       std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
-  LOG(INFO) << "Cloning risk constraint state";
   return std::make_shared<MctsStateRiskConstraint>(
       worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
@@ -61,7 +60,9 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::generate_next_
                                                         std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
   const auto next_state_sequence_probability = state_sequence_probability_ * calculation_state_transition_probability(*predicted_world);
   rewards.resize(this->get_num_agents(), 0.0f);
-  rewards[this->ego_agent_idx] = evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
+  rewards[this->ego_agent_idx] =
+      (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * state_parameters_.COLLISION_REWARD +
+      evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
 
   ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * 1.0 / next_state_sequence_probability;
   VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;

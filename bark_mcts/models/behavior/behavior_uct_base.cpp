@@ -15,7 +15,7 @@ BehaviorUCTBase::BehaviorUCTBase(
             ->AddChild("BehaviorUctBase")->AddChild("EgoBehavior"))),
       mcts_parameters_(models::behavior::MctsParametersFromParamServer(
           GetParams()->AddChild("BehaviorUctBase"))),
-      dump_tree_(GetParams()->AddChild("BehaviorUctHypothesis")->GetBool(
+      dump_tree_(GetParams()->AddChild("BehaviorUctBase")->GetBool(
           "DumpTree",
           "If true, tree is dumped to dot file after planning", false)),
       prediction_time_span_(GetParams()->AddChild("BehaviorUctBase")
