@@ -93,8 +93,8 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
     params->SetDistribution("BehaviorIDMStochastic::CoolnessFactorDistribution", "FixedValue");
     params->SetListFloat("BehaviorIDMStochastic::CoolnessFactorDistribution::FixedValue", {0.0f});
     // IDM Hypothesis
-    params->SetInt("BehaviorHypothesisIDM::NumSamples", 400);
-    params->SetInt("BehaviorHypothesisIDM::NumBuckets", 100);
+    params->SetInt("BehaviorHypothesisIDM::NumSamples", 200);
+    params->SetInt("BehaviorHypothesisIDM::NumBuckets", 10);
     params->SetReal("BehaviorHypothesisIDMStochastic::BucketsLowerBound", buckets_lower_bound);
     params->SetReal("BehaviorHypothesisIDMStochastic::BucketsUpperBound", buckets_upper_bound);
 
@@ -215,6 +215,81 @@ TEST(risk_constraint_mcts_state, execute) {
   EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::GoalReward", "", 1.0)  , 0.00001); // < reward should be one when reaching the goal 
 }
 
+TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
+  // Test if uct planner accelerates if there is no agent in front
+  auto params = std::make_shared<SetterParams>();
+  params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 2.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", 0.0);
+  params->SetReal("BehaviorUctBase::Mcts::ReturnLowerBound", 0.0);
+  params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 2.0);
+  params->SetReal("BehaviorUctBase::Mcts::LowerCostBound", 0.0);
+  params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 2.0);
+  params->SetReal("BehaviorUctRiskConstraint::DefaultAvailableRisk", 0.1f);
+  params->SetBool("BehaviorUctRiskConstraint::EstimateScenarioRisk", false);
+  params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
+  params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
+
+  float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
+  
+  auto observed_world = make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
+  observed_world.SetRemoveAgents(true);
+  auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
+  auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
+  std::vector<BehaviorModelPtr> behavior_hypothesis;
+  behavior_hypothesis.push_back(
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp1));
+  behavior_hypothesis.push_back(
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
+
+  bark::models::behavior::BehaviorUCTRiskConstraint behavior_uct(params, behavior_hypothesis, nullptr);
+
+  Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
+  auto action = behavior_uct.GetLastAction();
+  EXPECT_TRUE(boost::get<Continuous1DAction>(action)>= 0.0); // << max, available acceleration is action 2
+}
+
+TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
+  // Test if uct planner brakes when slow agent is directly in front
+  auto params = std::make_shared<SetterParams>();
+  params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 2.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", 0.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::CollisionCost", 100.0);
+  params->SetReal("BehaviorUctBase::Mcts::ReturnLowerBound", 0.0);
+  params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 2.0);
+  params->SetReal("BehaviorUctBase::Mcts::LowerCostBound", 0.0);
+  params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 100.0);
+  params->SetReal("BehaviorUctRiskConstraint::DefaultAvailableRisk", 0.01f);
+  params->SetBool("BehaviorUctRiskConstraint::EstimateScenarioRisk", false);
+  params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
+  params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
+    params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 1000);
+  params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 400000);
+
+  float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.5f;
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
+  
+  auto observed_world = make_test_observed_world(2,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
+  observed_world.SetRemoveAgents(true);
+  auto params_hyp1 = make_params_hypothesis(1.0, 1.5, 1.5);
+  auto params_hyp2 = make_params_hypothesis(1.5, 3.0, 1.5);
+  std::vector<BehaviorModelPtr> behavior_hypothesis;
+  behavior_hypothesis.push_back(
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp1));
+  behavior_hypothesis.push_back(
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
+  bark::models::behavior::BehaviorUCTRiskConstraint behavior_uct(params, behavior_hypothesis, nullptr);
+
+  Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
+  auto action = behavior_uct.GetLastAction();
+  EXPECT_TRUE(boost::get<Continuous1DAction>(action) < 0.0f); // some decceleration should occur
+}
+
+/*
 TEST(behavior_uct_risk_constraint, change_lane) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
   auto params = std::make_shared<SetterParams>(false);
@@ -347,6 +422,7 @@ TEST(behavior_uct_risk_constraint, change_lane) {
   }
   EXPECT_TRUE(goal_reached);
 }
+*/
 
 
 int main(int argc, char **argv) {

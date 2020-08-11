@@ -51,7 +51,7 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
     mcts_cooperative.printTreeToDotFile(filename.str());
   }
 
-  VLOG(2) << "BehaviorUCTHypothesis, iterations: " << mcts_cooperative.numIterations()
+  VLOG(2) << "BehaviorUCTCooperative, iterations: " << mcts_cooperative.numIterations()
             << ", search time " << mcts_cooperative.searchTime()
             << ", best action: " << best_action;
 
