@@ -5,6 +5,7 @@
 #include <chrono>
 #include "gtest/gtest.h"
 #include "mcts/hypothesis/hypothesis_belief_tracker.h"
+#include "bark_mcts/models/behavior/behavior_uct_risk_constraint.hpp"
 #include "bark_mcts/models/behavior/mcts_state/mcts_state_risk_constraint.hpp"
 #include "bark/models/behavior/motion_primitives/param_config/behav_macro_actions_from_param_server.hpp"
 #include "bark_mcts/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
@@ -212,6 +213,127 @@ TEST(risk_constraint_mcts_state, execute) {
     next_mcts_state = next_mcts_state->execute(JointAction({0, action_idx2}), rewards, cost);
   }
   EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::GoalReward", "", 1.0)  , 0.00001); // < reward should be one when reaching the goal 
+}
+
+TEST(behavior_uct_risk_constraint, change_lane) {
+  // Test if the planner reaches the goal at some point when agent is slower and in front
+  auto params = std::make_shared<SetterParams>(false);
+
+  // Desired headway should correspond to initial headway
+  params->SetInt("BehaviorUctHypothesis::Mcts::MaxNumIterations", 400);
+  params->SetInt("BehaviorUctHypothesis::Mcts::MaxSearchTime", 4000);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomSeed", 1000);
+  params->SetBool("BehaviorUctHypothesis::DumpTree", true);
+  params->SetListFloat("BehaviorUctHypothesis::EgoBehavior::AccelerationInputs", {0, 1, 4, -1, -8});
+  params->SetReal("BehaviorUctHypothesis::Mcts::DiscountFactor", 0.9);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ExplorationConstant", 0.7);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxSearchTime", 20000);
+  params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxNumIterations", 10);
+  params->SetReal("BehaviorUctHypothesis::Mcts::ReturnLowerBound", -1000);
+  params->SetReal("BehaviorUctHypothesis::Mcts::ReturnUpperBound", 100);
+  params->SetReal("BehaviorUctHypothesis::Mcts::LowerCostBound", 0.0);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UpperCostBound", 100);
+  // TODO ADD RISK CONSTRAINT PARAMETERS
+
+  // IDM Classic
+  params->SetReal("BehaviorIDMClassic::MinimumSpacing", 0.0f); // Required for testing
+  params->SetReal("BehaviorIDMClassic::DesiredTimeHeadway", 1.5);
+  params->SetReal("BehaviorIDMClassic::MaxAcceleration", 1.0f); // Required for testing
+  params->SetReal("BehaviorIDMClassic::AccelerationLowerBound", -8.0);
+  params->SetReal("BehaviorIDMClassic::AccelerationUpperBound", 5.0);
+  params->SetReal("BehaviorIDMClassic::DesiredVelocity", 15.0f);
+  params->SetReal("BehaviorIDMClassic::ComfortableBrakingAcceleration",  1.0f);
+  params->SetReal("BehaviorIDMClassic::MinVelocity", 0.0f);
+  params->SetReal("BehaviorIDMClassic::MaxVelocity", 50.0f);
+  params->SetInt("BehaviorIDMClassic::Exponent", 4);
+  params->SetReal("BehaviorIDMClassic::CoolnessFactor", 0.0f);
+  // IDM Stochastic
+  params->SetInt("BehaviorIDMStochastic::HeadwayDistribution::RandomSeed", 1234);
+  params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::LowerBound", 1);
+  params->SetReal("BehaviorIDMStochastic::HeadwayDistribution::UpperBound", 2);
+  params->SetDistribution("BehaviorIDMStochastic::HeadwayDistribution", "UniformDistribution1D");
+
+  params->SetDistribution("BehaviorIDMStochastic::SpacingDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::SpacingDistribution::FixedValue", {0.0f});
+  params->SetDistribution("BehaviorIDMStochastic::MaxAccDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::MaxAccDistribution::FixedValue", {1.0f});
+  params->SetDistribution("BehaviorIDMStochastic::DesiredVelDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::DesiredVelDistribution::FixedValue", {15.0f});
+  params->SetDistribution("BehaviorIDMStochastic::ComftBrakingDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::ComftBrakingDistribution::FixedValue", {1.0f});
+  params->SetDistribution("BehaviorIDMStochastic::CoolnessFactorDistribution", "FixedValue");
+  params->SetListFloat("BehaviorIDMStochastic::CoolnessFactorDistribution::FixedValue", {0.0f});
+  // IDM Hypothesis
+  params->SetInt("BehaviorHypothesisIDMStochastic::NumSamples", 1000000);
+  params->SetInt("BehaviorHypothesisIDMStochastic::NumBuckets", 1000);
+  params->SetReal("BehaviorHypothesisIDMStochastic::BucketsLowerBound", -9.0);
+  params->SetReal("BehaviorHypothesisIDMStochastic::BucketsUpperBound", 6.0);
+
+  // Map creation
+  OpenDriveMapPtr open_drive_map = MakeXodrMapOneRoadTwoLanes();
+  MapInterfacePtr map_interface = std::make_shared<MapInterface>();
+  map_interface->interface_from_opendrive(open_drive_map);
+
+  // Hypothesis behavior creation
+  auto ego_behavior_model = BehaviorMacroActionsFromParamServer(
+                                              params);
+  auto make_hyp_params = [&](float lower, float upper) {
+    auto params_new = std::make_shared<SetterParams>(false, params->GetCondensedParamList());
+    params_new->SetReal("BehaviorIDMStochastic::HeadwayDistribution::LowerBound", lower);
+    params_new->SetReal("BehaviorIDMStochastic::HeadwayDistribution::UpperBound", upper);
+    return params_new;
+  };
+                                          
+  auto params_hyp1 = make_hyp_params(1, 1.5);
+  auto params_hyp2 = make_hyp_params(1.5, 2.0);
+  std::vector<BehaviorModelPtr> behavior_hypothesis;
+  behavior_hypothesis.push_back(
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp1));
+  behavior_hypothesis.push_back(
+          std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
+
+
+  auto behavior_uct = std::make_shared<BehaviorUCTRiskConstraint>(params, behavior_hypothesis, nullptr);
+
+  // Agent and world Creation
+  auto ego_agent = CreateAgent(true, 5.0, 15.0, false, params, map_interface);
+  auto left_agent1 = CreateAgent(false, 3.0, 14.0, false, params, map_interface);
+  auto left_agent2 = CreateAgent(false, 3.0+4.0+10.0, 14.0, false, params, map_interface);
+
+  WorldPtr world(new World(params));
+  ego_agent->SetBehaviorModel(behavior_uct);
+  world->AddAgent(ego_agent);
+  world->AddAgent(left_agent1);
+  world->AddAgent(left_agent2);
+  world->UpdateAgentRTree();
+
+  world->SetMap(map_interface);
+
+  // Run simulation with evaluations
+  auto evaluator_drivable_area = EvaluatorDrivableArea();
+  auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(world->GetAgents().begin()->second->GetAgentId());
+
+  bool goal_reached = false;
+  for(int i =0; i<100; ++i) {
+    world->Step(0.2);
+    bool outside_drivable_area = boost::get<bool>(evaluator_drivable_area.Evaluate(*world));
+    bool collision_ego = boost::get<bool>(evaluator_collision_ego.Evaluate(*world));
+    EXPECT_FALSE(outside_drivable_area);
+    EXPECT_FALSE(collision_ego);
+
+    LOG(INFO) << "Time step " << i*0.2;
+    for (const auto& agent : world->GetAgents()) {
+      LOG(INFO) << "Agent " << agent.first << ", State: " << agent.second->GetCurrentState() << 
+          ", Action: " <<  boost::apply_visitor(action_tostring_visitor(), agent.second->GetBehaviorModel()->GetLastAction()) ;
+    }
+    LOG(INFO) << behavior_uct->GetBeliefTracker().sprintf();
+
+    if(world->GetAgents().begin()->second->AtGoal()) {
+      goal_reached = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(goal_reached);
 }
 
 

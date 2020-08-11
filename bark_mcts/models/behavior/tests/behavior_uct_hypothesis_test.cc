@@ -275,8 +275,8 @@ TEST(behavior_uct_single_agent, change_lane) {
   params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ExplorationConstant", 0.7);
   params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxNumIterations", 10);
-  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnLowerBound", -1000);
-  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnUpperBound", 100);
+  params->SetReal("BehaviorUctHypothesis::Mcts::ReturnLowerBound", -1000);
+  params->SetReal("BehaviorUctHypothesis::Mcts::ReturnUpperBound", 100);
 
 
   // IDM Classic
@@ -394,8 +394,8 @@ TEST(behavior_uct_single_agent, belief_test) {
   params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ExplorationConstant", 0.7);
   params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxNumIterations", 10);
-  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnLowerBound", -1000);
-  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnUpperBound", 100);
+  params->SetReal("BehaviorUctHypothesis::Mcts::ReturnLowerBound", -1000);
+  params->SetReal("BehaviorUctHypothesis::Mcts::ReturnUpperBound", 100);
 
   params->SetReal("BehaviorUctHypothesis::Mcts::State::GoalReward", 100.0);
   params->SetReal("BehaviorUctHypothesis::Mcts::State::CollisionReward", -1000.0);
@@ -552,12 +552,12 @@ TEST(behavior_uct_single_agent_macro_actions, normalization) {
   params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ExplorationConstant", 0.7);
   params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctHypothesis::Mcts::RandomHeuristic::MaxNumIterations", 40);
-  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnLowerBound", -1000);
-  params->SetReal("BehaviorUctHypothesis::Mcts::UctStatistic::ReturnUpperBound", 100);
+  params->SetReal("BehaviorUctHypothesis::Mcts::ReturnLowerBound", -1000);
+  params->SetReal("BehaviorUctHypothesis::Mcts::ReturnUpperBound", 100);
 
   params->SetBool("BehaviorUctHypothesis::Mcts::HypothesisStatistic::CostBasedActionSelection", true);
-  params->SetReal("BehaviorUctHypothesis::Mcts::HypothesisStatistic::LowerCostBound", -100);
-  params->SetReal("BehaviorUctHypothesis::Mcts::HypothesisStatistic::UpperCostBound", 1000);
+  params->SetReal("BehaviorUctHypothesis::Mcts::LowerCostBound", -100);
+  params->SetReal("BehaviorUctHypothesis::Mcts::UpperCostBound", 1000);
 
   params->SetReal("BehaviorUctHypothesis::Mcts::State::GoalReward", 100.0);
   params->SetReal("BehaviorUctHypothesis::Mcts::State::CollisionReward", -1000.0);

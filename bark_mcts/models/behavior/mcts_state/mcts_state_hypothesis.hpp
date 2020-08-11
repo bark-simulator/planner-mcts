@@ -84,11 +84,7 @@ public:
 
   private:
     std::shared_ptr<MctsStateHypothesis<T>> impl_clone(std::false_type) const {
-        if (&MctsStateHypothesis::clone == &T::clone) {
-            return impl_clone(std::true_type{});
-        } else {
-            return static_cast<const T*>(this)->clone();
-        }
+      return static_cast<const T*>(this)->clone();
     }
 
     std::shared_ptr<MctsStateHypothesis<T>> impl_clone(std::true_type) const {
