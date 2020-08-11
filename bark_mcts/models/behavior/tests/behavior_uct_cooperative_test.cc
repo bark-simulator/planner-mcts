@@ -165,8 +165,28 @@ TEST(behavior_uct_cooperative, no_agent_in_front_accelerate) {
 }
 
 
+TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
+  // Test if uct planner brakes when slow agent is directly in front
+  auto params = std::make_shared<SetterParams>();
+
+  float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.5f;
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
+  
+  auto observed_world = make_test_observed_world(2,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
+  observed_world.SetRemoveAgents(true);
+  bark::models::behavior::BehaviorUCTCooperative behavior_uct(params);
+
+  Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
+  auto action = behavior_uct.GetLastAction();
+  EXPECT_TRUE(boost::get<Continuous1DAction>(action) < 0.0f); // some decceleration should occur
+}
+
 
 int main(int argc, char **argv) {
+  FLAGS_alsologtostderr = true;
+  FLAGS_v = 3;
   ::testing::InitGoogleTest(&argc, argv);
 
   return RUN_ALL_TESTS();
