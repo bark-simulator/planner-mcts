@@ -5,6 +5,7 @@
 #include <chrono>
 #include "gtest/gtest.h"
 #include "bark_mcts/models/behavior/mcts_state/mcts_state_cooperative.hpp"
+#include "bark_mcts/models/behavior/behavior_uct_cooperative.hpp"
 #include "bark/models/behavior/motion_primitives/param_config/behav_macro_actions_from_param_server.hpp"
 #include "bark_mcts/models/behavior/param_config/mcts_parameters_from_param_server.hpp"
 #include "bark_mcts/models/behavior/param_config/mcts_state_parameters_from_param_server.hpp"
@@ -143,6 +144,27 @@ TEST(cooperative_mcts_state, execute) {
   EXPECT_NEAR(rewards[0], desired_goal_reward , 0.00001); // < reward should be one when reaching the goal 
   EXPECT_NEAR(cost, - desired_goal_reward , 0.00001);
 }
+
+TEST(behavior_uct_cooperative, no_agent_in_front_accelerate) {
+  // Test if uct planner accelerates if there is no agent in front
+  auto params = std::make_shared<SetterParams>();
+
+  float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
+  
+  auto observed_world = make_test_observed_world(0,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
+  observed_world.SetRemoveAgents(true);
+
+  bark::models::behavior::BehaviorUCTCooperative behavior_uct(params);
+
+  Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
+  auto action = behavior_uct.GetLastAction();
+  EXPECT_TRUE(boost::get<Continuous1DAction>(action)>= 0.0); // << max, available acceleration is action 2
+}
+
+
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);

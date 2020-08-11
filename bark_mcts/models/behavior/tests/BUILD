@@ -148,9 +148,7 @@ cc_test(
     ],
     copts = ["-Iexternal/gtest/include"],
     deps = [
-        "//bark_mcts/models/behavior:planner_uct_hypothesis",
-        "//bark_mcts/models/behavior/action_store:behavior_action_store",
-        "//bark_mcts/models/behavior/hypothesis/idm:hypothesis_idm",
+        "//bark_mcts/models/behavior:planner_uct_cooperative",
         "//bark_mcts/models/behavior/mcts_state:mcts_state_cooperative",
         ":test_helpers",
         "@bark_project//bark/world:world",

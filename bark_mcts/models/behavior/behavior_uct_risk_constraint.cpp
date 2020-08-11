@@ -12,8 +12,6 @@ namespace bark {
 namespace models {
 namespace behavior {
 
-using bark::world::objects::AgentId;
-
 BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& params,
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                                 const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function) :

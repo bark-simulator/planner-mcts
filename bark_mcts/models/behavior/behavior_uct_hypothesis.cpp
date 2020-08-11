@@ -12,8 +12,6 @@ namespace bark {
 namespace models {
 namespace behavior {
 
-using bark::world::objects::AgentId;
-
 BehaviorUCTHypothesis::BehaviorUCTHypothesis(const commons::ParamsPtr& params,
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis) :
                                 BehaviorUCTHypothesisBase(params, behavior_hypothesis) {}

@@ -4,8 +4,8 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 // ========================================================
 
-#ifndef BARK_MCTS_HYPOTHESIS_STATE_H_
-#define BARK_MCTS_HYPOTHESIS_STATE_H_
+#ifndef BARK_MCTS_COOPERATIVE_STATE_H_
+#define BARK_MCTS_COOPERATIVE_STATE_H_
 
 // BARK
 #include "bark/models/behavior/behavior_model.hpp"
@@ -50,4 +50,4 @@ class MctsStateCooperative : public MctsStateBase<MctsStateCooperative> {
 }  // namespace models
 }  // namespace bark
 
-#endif // BARK_MCTS_HYPOTHESIS_STATE_H_
+#endif // BARK_MCTS_COOPERATIVE_STATE_H_

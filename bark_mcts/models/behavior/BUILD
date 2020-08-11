@@ -46,6 +46,25 @@ cc_library(
 )
 
 cc_library(
+    name = "planner_uct_cooperative",
+    srcs = [
+        "behavior_uct_cooperative.cpp",
+    ],
+    hdrs = [
+            "behavior_uct_cooperative.hpp",
+    ],
+    copts = ["-Iexternal/bark_project"],
+    deps= [
+        ":planner_uct_base",
+        "//bark_mcts/models/behavior/mcts_state:mcts_state_cooperative",
+        "@bark_project//bark:include",
+        "@mamcts_project//mcts:mamcts",
+        ":planner_uct_single_agent_base",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
     name = "planner_uct_base",
     srcs = [
         "behavior_uct_base.cpp",
