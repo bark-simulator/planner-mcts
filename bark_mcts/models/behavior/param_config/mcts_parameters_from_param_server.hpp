@@ -48,7 +48,7 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
     parameters.hypothesis_belief_tracker.FIXED_HYPOTHESIS_SET = fixed_hypothesis_set;
 
     parameters.cost_constrained_statistic.LAMBDA = params->GetReal("Mcts::CostConstrainedStatistic::LambdaInit", "Initial lambda value", 2.0f);
-    parameters.cost_constrained_statistic.COST_UPPER_BOUND = parameters.hypothesis_statistic.UPPER_COST_BOUND
+    parameters.cost_constrained_statistic.COST_UPPER_BOUND = parameters.hypothesis_statistic.UPPER_COST_BOUND;
     parameters.cost_constrained_statistic.COST_LOWER_BOUND = parameters.hypothesis_statistic.LOWER_COST_BOUND;
     parameters.cost_constrained_statistic.REWARD_UPPER_BOUND = parameters.uct_statistic.UPPER_BOUND;
     parameters.cost_constrained_statistic.REWARD_LOWER_BOUND = parameters.uct_statistic.LOWER_BOUND;

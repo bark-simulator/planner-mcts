@@ -64,6 +64,27 @@ cc_library(
 )
 
 
+cc_library(
+    name = "planner_uct_risk_constraint",
+    srcs = [
+        "behavior_uct_risk_constraint.cpp",
+    ],
+    hdrs = [
+            "behavior_uct_risk_constraint.hpp",
+            "behavior_uct_hypothesis_base.hpp",
+    ],
+    copts = ["-Iexternal/bark_project"],
+    deps= [
+        ":planner_uct_base",
+        "//bark_mcts/models/behavior/mcts_state:mcts_state_risk_constraint",
+        "//bark_mcts/models/behavior/hypothesis/idm:hypothesis_idm",
+        "@bark_project//bark:include",
+        "@mamcts_project//mcts:mamcts",
+        ":planner_uct_single_agent_base",
+    ],
+    visibility = ["//visibility:public"],
+)
+
 
 
 cc_library(

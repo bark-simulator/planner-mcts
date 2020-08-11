@@ -31,7 +31,7 @@ class BehaviorUCTBase : public BehaviorModel {
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
 
   // PARAMETERS
-  mcts::MctsParameters mcts_parameters_;
+  const mcts::MctsParameters mcts_parameters_;
   bool dump_tree_;
   double prediction_time_span_;
   StateParameters mcts_state_parameters_;

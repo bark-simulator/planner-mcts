@@ -62,7 +62,6 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   mcts_hypothesis.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
   mcts::ActionIdx best_action = mcts_hypothesis.returnBestAction();
-  this->SetLastAction(DiscreteAction(best_action));
 
   if (dump_tree_) {
     std::stringstream filename;

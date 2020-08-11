@@ -176,7 +176,7 @@ cc_test(
     ],
     copts = ["-Iexternal/gtest/include"],
     deps = [
-        "//bark_mcts/models/behavior:planner_uct_hypothesis",
+        "//bark_mcts/models/behavior:planner_uct_risk_constraint",
         "//bark_mcts/models/behavior/action_store:behavior_action_store",
         "//bark_mcts/models/behavior/hypothesis/idm:hypothesis_idm",
         ":test_helpers",

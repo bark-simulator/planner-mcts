@@ -1,9 +1,10 @@
-#include "bark_mcts/models/behavior/behavior_uct_risk_constraint.hpp"
 #define MCTS_EXPECT_TRUE(cond) BARK_EXPECT_TRUE(cond)
+#include "mcts/cost_constrained/cost_constrained_statistic.h"
+#include "bark_mcts/models/behavior/behavior_uct_risk_constraint.hpp"
 #include "mcts/heuristics/random_heuristic.h"
 #include "mcts/mcts.h"
 #include "mcts/statistics/uct_statistic.h"
-#include "mcts/cost_constrained/cost_constrained_statistic.h"
+#include "mcts/hypothesis/hypothesis_statistic.h"
 
 #include "bark/world/observed_world.hpp"
 
@@ -19,6 +20,10 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                 BehaviorUCTHypothesisBase(params, behavior_hypothesis),
                                 default_available_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
                                       ->GetReal("DefaultAvailableRik", "Risk used when belief not initialized", 0.0f)),
+                                current_scenario_risk_(default_available_risk_),
+                                estimate_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
+                                      ->GetBool("EstimateScenarioRisk", "Should scenario risk be estimated from scenario risk function", false)),
+                                initialized_available_risk_(!estimate_scenario_risk_),
                                 scenario_risk_function_(scenario_risk_function) {}
 
 dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
@@ -38,7 +43,7 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
 
   // Define initial mcts state
   auto ego_id = const_mcts_observed_world->GetEgoAgentId();
-  auto mcts_hypothesis_state_ptr = std::make_shared<MctsStateHypothesis<>>(
+  auto mcts_hypothesis_state_ptr = std::make_shared<MctsStateRiskConstraint>(
                                 mcts_observed_world, 
                                 false, // terminal
                                 num, // num action 
@@ -47,7 +52,9 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
                                 behavior_hypotheses_,
                                 ego_behavior_model_,
                                 ego_id,
-                                mcts_state_parameters_);
+                                mcts_state_parameters_,
+                                belief_tracker_.get_beliefs(),
+                                1.0);
 
   // Belief update only required, if we do not use true behaviors as hypothesis
   if(!use_true_behaviors_as_hypothesis_) {
@@ -59,61 +66,73 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
     }
   }
 
-  // Now do the search
-  mcts::Mcts<MctsStateRiskConstraint, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
-             mcts::RandomHeuristic>mcts_hypothesis(mcts_parameters_);
-  mcts_hypothesis.search(*mcts_hypothesis_state_ptr, belief_tracker_);
-  last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
-  mcts::ActionIdx best_action = mcts_hypothesis.returnBestAction();
-  this->SetLastAction(DiscreteAction(best_action));
+  // Update the constraint if it was not already calculated previously during plan
+  if(estimate_scenario_risk_ && 
+    !initialized_available_risk_ && 
+    belief_tracker_.beliefs_initialized()) {
+    current_scenario_risk_ = CalculateAvailableScenarioRisk();
+    initialized_available_risk_ = true;
+  }
 
+  // Do the search
+  auto current_mcts_parameters = mcts_parameters_;
+  mcts::Mcts<MctsStateRiskConstraint, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
+             mcts::RandomHeuristic>  mcts_risk_constrained(current_mcts_parameters);
+  mcts_risk_constrained.search(*mcts_hypothesis_state_ptr, belief_tracker_);
+  last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
+  auto sampled_policy = mcts_risk_constrained.get_root().get_ego_int_node().greedy_policy(
+              0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR);
+      VLOG(3) << "Constraint: " << current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT << ", Action: " << sampled_policy.first << "\n" <<
+                mcts_risk_constrained.get_root().get_ego_int_node().print_edge_information(0);
+
+  // Update the constraint based on policy
+  if(initialized_available_risk_) {
+    current_scenario_risk_ = mcts_risk_constrained.get_root().get_ego_int_node().
+                      calc_updated_constraint_based_on_policy(sampled_policy, current_scenario_risk_);
+  }
+
+  // Postprocessing
   if (dump_tree_) {
     std::stringstream filename;
     filename << "tree_dot_file_" << observed_world.GetWorldTime();
-    mcts_hypothesis.printTreeToDotFile(filename.str());
+    mcts_risk_constrained.printTreeToDotFile(filename.str());
   }
 
-  VLOG(2) << "BehaviorUCTHypothesis, iterations: " << mcts_hypothesis.numIterations()
-            << ", search time " << mcts_hypothesis.searchTime()
+  const auto& best_action = sampled_policy.first;
+  VLOG(2) << "BehaviorUCTHypothesis, iterations: " << mcts_risk_constrained.numIterations()
+            << ", search time " << mcts_risk_constrained.searchTime()
             << ", best action: " << best_action;
   VLOG_EVERY_N(3, 3) << belief_tracker_.sprintf();
 
-  // Covert action to a trajectory
+  // Convert action to a trajectory
   ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
   auto traj = ego_behavior_model_->Plan(delta_time, observed_world);
-  SetLastTrajectory(traj);
-  SetLastAction(ego_behavior_model_->GetLastAction());
-  SetBehaviorStatus(BehaviorStatus::VALID);
+  this->SetLastTrajectory(traj);
+  this->SetLastAction(ego_behavior_model_->GetLastAction());
+  this->SetBehaviorStatus(BehaviorStatus::VALID);
   return traj;
 }
 
  mcts::Cost BehaviorUCTRiskConstraint::CalculateAvailableScenarioRisk() const {
-  VLOG(3) << "Available Scenario Risk Calculation: ";
-  if (!belief_tracker_.belief_initialized()) {
-    VLOG(3) << "Default Risk: " << default_available_risk_;
-    return default_available_risk_;
-  }
-
   // First calculate mean of belief for each hypothesis
-  const const std::unordered_map<AgentIdx, std::vector<Belief>>& beliefs
+  const std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>>& beliefs
                         = belief_tracker_.get_beliefs();
-  std::vector<Belief> belief_sum(beliefs.begin()->second.size(), 0.0f);
+  std::vector<mcts::Belief> belief_sum(beliefs.begin()->second.size(), 0.0f);
   for (const auto& agent_beliefs : beliefs) {
     for (mcts::HypothesisId hyp_id = 0; hyp_id < agent_beliefs.second.size(); ++hyp_id) {
       belief_sum[hyp_id] += agent_beliefs.second.at(hyp_id);
     }
   }
-
-  mcst::Cost available_risk = 0.0f;
-
+  VLOG(3) << "Calculating available scenario risk ...";
+  mcts::Cost available_risk = 0.0f;
   for (mcts::HypothesisId hyp_id = 0; hyp_id < behavior_hypotheses_.size(); ++hyp_id) {
-    const auto& hypothesis = behavior_hypotheses_.at(hyp_id);
-    const auto& integrated_risk = scenario_risk_function_->CalculateIntegralValue(hypothesis.GetDefinition());
-    const auto& behavior_space_area = risk_calculation::CalculateRegionBoundariesArea(hypothesis.GetDefinition());
-    available_risk += 1.0 / beliefs.size() * belief_sum.at(hyp_id) * integrated_risk / behavior_space_area;
-    VLOG(3) << "Integrated Risk: " << integrated_risk << ", Behavior Space Area: " << behavior_space_area << ", Belief Sum: " <<  belief_sum.at(hyp_id);
+    const auto hypothesis = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypotheses_.at(hyp_id));
+    const auto& integrated_risk = scenario_risk_function_->CalculateIntegralValue(*hypothesis);
+    const auto& behavior_space_area = risk_calculation::CalculateRegionBoundariesArea(hypothesis->GetDefinition());
+    available_risk += 1.0 / belief_sum.size() * belief_sum.at(hyp_id) * integrated_risk / behavior_space_area;
+    VLOG(3) << "integrated risk: " << integrated_risk << ", behavior space area: " << behavior_space_area << ", belief sum: " <<  belief_sum.at(hyp_id);
   }
-  VLOG(3) << "Available Risk: " << available_risk;
+  VLOG(3) << "available risk: " << available_risk;
   return available_risk;
  }
 
