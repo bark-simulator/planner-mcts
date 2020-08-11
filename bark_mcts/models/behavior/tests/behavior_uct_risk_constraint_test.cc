@@ -261,12 +261,17 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 2.0);
   params->SetReal("BehaviorUctBase::Mcts::LowerCostBound", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 100.0);
-  params->SetReal("BehaviorUctRiskConstraint::DefaultAvailableRisk", 0.01f);
+  params->SetReal("BehaviorUctRiskConstraint::DefaultAvailableRisk", 2.0f);
   params->SetBool("BehaviorUctRiskConstraint::EstimateScenarioRisk", false);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
-    params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 1000);
+  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 1000);
   params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 400000);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", 2.0f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 10.0f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::GradientUpdateScaling",  1.0f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::TauGradientClip", 1.0f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::ActionFilterFactor", 0.0f);
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
