@@ -6,6 +6,7 @@ import pickle
 
 
 from bark.core.models.behavior import *
+from bark.core.models.behavior.risk_calculation import *
 from bark.core.models.dynamic import SingleTrackModel
 from bark.runtime.commons.parameters import ParameterServer
 
@@ -40,7 +41,7 @@ class PickleTests(unittest.TestCase):
                          1.75656563123232323, 5)
         self.assertEqual(hyp1.params.getInt("BehaviorHypothesisIDM::NumSamples", "", 1), 13423434)
 
-  def test_behavior_uct_risk_constraintpickle(self):
+    def test_behavior_uct_risk_constraintpickle(self):
         def scenario_risk_test_func(region_boundaries):
           if not len(region_boundaries) == 1:
             raise ValueError("Only 1D scenario risk function provided")

@@ -103,14 +103,14 @@ mcts::ActionIdx MctsStateHypothesis<T>::plan_action_current_hypothesis(const mct
 
 template<>
 template<>
-bark::models::behavior::Action MctsStateHypothesis<void>::get_last_action(const mcts::AgentIdx& agent_idx) const {
+inline bark::models::behavior::Action MctsStateHypothesis<void>::get_last_action(const mcts::AgentIdx& agent_idx) const {
     auto bark_agent_id = agent_idx;
     return observed_world_->GetAgent(bark_agent_id)->GetStateInputHistory().back().second;
 }
 
 template<>
 template<>
-mcts::Probability MctsStateHypothesis<void>::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
+inline mcts::Probability MctsStateHypothesis<void>::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
             const bark::models::behavior::Action& action) const {
     auto bark_agent_id = agent_idx;
     auto hypothesis_ptr = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypotheses_[hypothesis]);
@@ -125,14 +125,14 @@ mcts::Probability MctsStateHypothesis<void>::get_probability(const mcts::Hypothe
 class MctsStateRiskConstraint;
 template<>
 template<>
-bark::models::behavior::Action MctsStateHypothesis<MctsStateRiskConstraint>::get_last_action(const mcts::AgentIdx& agent_idx) const {
+inline bark::models::behavior::Action MctsStateHypothesis<MctsStateRiskConstraint>::get_last_action(const mcts::AgentIdx& agent_idx) const {
     auto bark_agent_id = agent_idx;
     return observed_world_->GetAgent(bark_agent_id)->GetStateInputHistory().back().second;
 }
 
 template<>
 template<>
-mcts::Probability MctsStateHypothesis<MctsStateRiskConstraint>::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
+inline mcts::Probability MctsStateHypothesis<MctsStateRiskConstraint>::get_probability(const mcts::HypothesisId& hypothesis, const mcts::AgentIdx& agent_idx, 
             const bark::models::behavior::Action& action) const {
     auto bark_agent_id = agent_idx;
     auto hypothesis_ptr = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypotheses_[hypothesis]);
