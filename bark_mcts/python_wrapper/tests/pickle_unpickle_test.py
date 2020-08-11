@@ -1,4 +1,5 @@
 import unittest
+import dill
 import pickle
 
 # note: run this test with bazel test //python:pickle_unpickle_test --define planner_uct=true
@@ -42,13 +43,7 @@ class PickleTests(unittest.TestCase):
         self.assertEqual(hyp1.params.getInt("BehaviorHypothesisIDM::NumSamples", "", 1), 13423434)
 
     def test_behavior_uct_risk_constraintpickle(self):
-        def scenario_risk_test_func(region_boundaries):
-          if not len(region_boundaries) == 1:
-            raise ValueError("Only 1D scenario risk function provided")
-          # template function is a*x+ b then indefinite integral is a*x^2 + b*x
-          region_range = region_boundaries["1DDimensionName"]
-          uniform_prob = 0.5123256674234
-          return uniform_prob*(region_range[1] - region_range[0]) 
+        scenario_risk_func_before = lambda x: x
         params = ParameterServer()
         params["BehaviorIDMStochastic"]["HeadwayDistribution"]["LowerBound"] = 1.343412233123232323
         params["BehaviorIDMStochastic"]["HeadwayDistribution"]["UpperBound"] = 1.75656563123232323
@@ -57,8 +52,8 @@ class PickleTests(unittest.TestCase):
         hypothesis = BehaviorHypothesisIDM(params)
         hypothesis_list = []
         hypothesis_list.append(hypothesis)
-        scenario_risk_func_before = ScenarioRiskFunction(scenario_risk_test_func, 0.3456)
-        behavior = BehaviorUCTRiskConstraint(params, [hypothesis],)
+        scenario_risk_func_before = ScenarioRiskFunction(scenario_risk_func_before, 0.3456)
+        behavior = BehaviorUCTRiskConstraint(params, [hypothesis], scenario_risk_func_before)
         unpickled = pickle_unpickle(behavior)
         unpickled_hypothesis = unpickled.hypotheses
         self.assertEqual(len(unpickled_hypothesis), 1)
