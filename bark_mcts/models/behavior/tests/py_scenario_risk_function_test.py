@@ -40,7 +40,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     param_server = ParameterServer()
     prior_knowledge_region = PriorKnowledgeRegion({"1DDimensionName" : (-3.0, 7.0)})
 
-    class TestKnowledgeFunctionDef(PriorKnowledgeFunctionDefinition):
+    class TestKnowledgeFunctionDef(KnowledgeFunctionDefinition):
       def __init__(self, supporting_region):
         super().__init__(supporting_region)
         self.supporting_region = supporting_region
@@ -77,7 +77,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     param_server = ParameterServer()
     prior_knowledge_region = PriorKnowledgeRegion({"1DDimensionName" : (-3.0, 7.0)})
 
-    class TestKnowledgeFunctionDef(PriorKnowledgeFunctionDefinition):
+    class TestKnowledgeFunctionDef(KnowledgeFunctionDefinition):
       def __init__(self, supporting_region):
         super().__init__(supporting_region)
         self.supporting_region = supporting_region
@@ -121,7 +121,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     param_server["PriorKnowledgeFunction"]["NumPartitionsIntegration"] = 1000
     prior_knowledge_region = PriorKnowledgeRegion({"1DDimensionName" : (-3.0, 7.0)})
 
-    class TestKnowledgeFunctionDef(PriorKnowledgeFunctionDefinition):
+    class TestKnowledgeFunctionDef(KnowledgeFunctionDefinition):
       def __init__(self, supporting_region):
         super().__init__(supporting_region)
         self.supporting_region = supporting_region
@@ -181,7 +181,7 @@ class PyScenarioRiskFunctionTests(unittest.TestCase):
     param_server = ParameterServer()
     prior_knowledge_region = PriorKnowledgeRegion({"DimensionName1" : (1.0, 5.0), "DimensionName2" : (2.0, 8.0)})
 
-    class TestKnowledgeFunctionDef(PriorKnowledgeFunctionDefinition):
+    class TestKnowledgeFunctionDef(KnowledgeFunctionDefinition):
       def __init__(self, supporting_region):
         super().__init__(supporting_region)
         self.supporting_region = supporting_region

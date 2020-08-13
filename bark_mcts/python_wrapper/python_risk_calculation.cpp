@@ -6,6 +6,7 @@
 #include "bark/python_wrapper/polymorphic_conversion.hpp"
 
 #include "bark_mcts/python_wrapper/python_risk_calculation.hpp"
+#include "bark_mcts/models/behavior/risk_calculation/knowledge_function_definition/linear_knowledge_function_definition.hpp"
 #include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_function.hpp"
 #include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
 #include "bark_mcts/models/behavior/risk_calculation/scenario_risk_function.hpp"
@@ -16,15 +17,36 @@ using namespace bark::models::behavior::risk_calculation;
 
 void python_risk_calculation(py::module m) {
 
-  py::class_<PriorKnowledgeFunctionDefinition, PyPriorKnowledgeFunctionDefinition,
-             std::shared_ptr<PriorKnowledgeFunctionDefinition>>(m,
-    "PriorKnowledgeFunctionDefinition")
-    .def(py::init<const PriorKnowledgeRegion& >())
-    .def("__repr__", [](const PriorKnowledgeFunctionDefinition &m) {
-      return "bark.behavior.PriorKnowledgeFunctionDefinition";
+  py::class_<KnowledgeFunctionDefinition, PyKnowledgeFunctionDefinition, 
+            bark::commons::BaseType,
+             std::shared_ptr<KnowledgeFunctionDefinition>>(m,
+    "KnowledgeFunctionDefinition")
+    .def(py::init<const PriorKnowledgeRegion&,
+        const bark::commons::ParamsPtr&>())
+    .def("__repr__", [](const KnowledgeFunctionDefinition &m) {
+      return "bark.behavior.KnowledgeFunctionDefinition";
     })
-    .def("Sample", &PriorKnowledgeFunctionDefinition::Sample)
-    .def("CalculateIntegral", &PriorKnowledgeFunctionDefinition::CalculateIntegral);
+    .def("Sample", &KnowledgeFunctionDefinition::Sample)
+    .def("CalculateIntegral", &KnowledgeFunctionDefinition::CalculateIntegral);
+
+    py::class_<LinearKnowledgeFunctionDefinition, KnowledgeFunctionDefinition,
+             std::shared_ptr<KnowledgeFunctionDefinition>>(m,
+    "LinearKnowledgeFunctionDefinition")
+    .def(py::init<const PriorKnowledgeRegion&,
+        const bark::commons::ParamsPtr& >())
+    .def("__repr__", [](const LinearKnowledgeFunctionDefinition &m) {
+      return "bark.behavior.LinearKnowledgeFunctionDefinition";
+    })
+    .def(py::pickle(
+      [](const LinearKnowledgeFunctionDefinition& pkf) {
+        // We throw away other information such as last trajectories
+        return py::make_tuple(py::make_tuple(ParamsToPython(pkf.GetParams())););
+      },
+      [](py::tuple t) {
+        if (t.size() != 1)
+          throw std::runtime_error("Invalid LinearKnowledgeFunctionDefinition state!");
+        return new LinearKnowledgeFunctionDefinition(t[0].cast<py::tuple>());
+    }));
 
   py::class_<PriorKnowledgeRegion,
              std::shared_ptr<PriorKnowledgeRegion>>(m,
@@ -50,7 +72,7 @@ void python_risk_calculation(py::module m) {
              std::shared_ptr<PriorKnowledgeFunction>>(m,
     "PriorKnowledgeFunction")
     .def(py::init<const PriorKnowledgeRegion&, 
-             const PriorKnowledgeFunctionDefinitionPtr&,
+             const KnowledgeFunctionDefinitionPtr&,
               const bark::commons::ParamsPtr&>())
     .def("__repr__", [](const PriorKnowledgeFunction &m) {
       return "bark.behavior.PriorKnowledgeFunction";
@@ -67,7 +89,7 @@ void python_risk_calculation(py::module m) {
         if (t.size() != 3)
           throw std::runtime_error("Invalid PriorKnowledgeFunction state!");
         return new PriorKnowledgeFunction(t[0].cast<PriorKnowledgeRegion>(),
-                                      t[1].cast<PriorKnowledgeFunctionDefinitionPtr>(),
+                                      t[1].cast<KnowledgeFunctionDefinitionPtr>(),
                                       PythonToParams(t[2].cast<py::tuple>()));
       }));
 

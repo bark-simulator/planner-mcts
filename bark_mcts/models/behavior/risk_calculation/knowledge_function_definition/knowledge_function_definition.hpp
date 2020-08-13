@@ -16,10 +16,12 @@ namespace behavior {
 namespace risk_calculation {
 
 
-class PriorKnowledgeFunctionDefinition {
+class KnowledgeFunctionDefinition : public bark::commons::BaseType {
   public:
-     PriorKnowledgeFunctionDefinition(const PriorKnowledgeRegion& supporting_region) : 
-        supporting_region_(supporting_region) {}
+     KnowledgeFunctionDefinition(const PriorKnowledgeRegion& supporting_region,
+                                const bark::commons::ParamsPtr& params) :
+                            bark::commons::BaseType(params),
+                            supporting_region_(supporting_region) {}
 
     virtual KnowledgeValue CalculateIntegral(const RegionBoundaries& integral_region) const = 0;
 
@@ -32,7 +34,7 @@ class PriorKnowledgeFunctionDefinition {
       PriorKnowledgeRegion supporting_region_;
 };
 
-typedef std::shared_ptr<PriorKnowledgeFunctionDefinition> PriorKnowledgeFunctionDefinitionPtr;
+typedef std::shared_ptr<KnowledgeFunctionDefinition> KnowledgeFunctionDefinitionPtr;
 
 } // namespace risk calculation
 } // namespace behavior

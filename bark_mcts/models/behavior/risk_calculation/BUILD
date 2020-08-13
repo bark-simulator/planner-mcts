@@ -4,15 +4,15 @@ cc_library(
         "common.hpp",
         "prior_knowledge_function.hpp",
         "prior_knowledge_region.hpp",
-        "scenario_risk_function.hpp",
-        "prior_knowledge_function_definition.hpp"
+        "scenario_risk_function.hpp"
     ],
     srcs = [
         "prior_knowledge_function.cpp",
         "prior_knowledge_region.cpp"
     ],
     deps = [
-        "@bark_project//bark/commons/params:params"
+        "@bark_project//bark/commons/params:params",
+        "//bark_mcts/models/behavior/risk_calculation/knowledge_function_definition:knowledge_function_definition",
     ],
     visibility = ["//visibility:public"],
 )
