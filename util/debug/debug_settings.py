@@ -9,8 +9,8 @@ repo_paths = ["bark_project", "bark_project/python", "benchmark_database", "com_
         "com_github_interaction_dataset_interaction_dataset/python", "planner_uct"]
 
 executed_file = sys.argv[0]
-tmp = "bazel-bin/bark".join(executed_file.rsplit("bark",1))
-tmp = tmp.replace("python_wrapper/", "bazel-bin/python_wrapper/")
+tmp = "bark_hypothesis_uct/bazel-bin".join(executed_file.rsplit("bark_hypothesis_uct",1))
+#tmp = tmp.replace("python_wrapper/", "bazel-bin/python_wrapper/")
 runfiles_dir = tmp.replace(".py", ".runfiles")
 
 sys.path.append(runfiles_dir)

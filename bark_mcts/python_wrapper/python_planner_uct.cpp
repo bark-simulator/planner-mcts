@@ -8,7 +8,7 @@
 #include "bark/python_wrapper/polymorphic_conversion.hpp"
 #include <memory>
 #include "bark_mcts/models/behavior/behavior_uct_single_agent.hpp"
-//#include "bark/models/behavior/behavior_uct_single_agent_macro_actions.hpp"
+#include "bark_mcts/models/behavior/belief_calculator/belief_calculator.hpp"
 #include "bark_mcts/models/behavior/behavior_uct_hypothesis.hpp"
 #include "bark_mcts/models/behavior/behavior_uct_cooperative.hpp"
 #include "bark_mcts/models/behavior/behavior_uct_risk_constraint.hpp"
@@ -39,7 +39,7 @@ void python_planner_uct(py::module m) {
         return new BehaviorUCTSingleAgent(PythonToParams(t[0].cast<py::tuple>()));
       }));
   
- /* py::class_<BehaviorUCTSingleAgentMacroActions, BehaviorModel,
+/*  py::class_<BehaviorUCTSingleAgentMacroActions, BehaviorModel,
              std::shared_ptr<BehaviorUCTSingleAgentMacroActions>>(
       m, "BehaviorUCTSingleAgentMacroActions")
       .def(py::init<const bark::commons::ParamsPtr &>())
@@ -54,8 +54,7 @@ void python_planner_uct(py::module m) {
         if (t.size() != 1)
           throw std::runtime_error("Invalid behavior model state!");
         return new BehaviorUCTSingleAgentMacroActions(PythonToParams(t[0].cast<py::tuple>()));
-      }));
-*/
+      })); */
 
  py::class_<BehaviorUCTHypothesis, BehaviorModel,
              std::shared_ptr<BehaviorUCTHypothesis>>(
@@ -78,7 +77,6 @@ void python_planner_uct(py::module m) {
       [](py::tuple t) {
         if (t.size() != 2)
           throw std::runtime_error("Invalid behavior model state!");
-        /* Create a new C++ instance */
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
@@ -128,7 +126,6 @@ void python_planner_uct(py::module m) {
       [](py::tuple t) {
         if (t.size() != 3)
           throw std::runtime_error("Invalid behavior model state!");
-        /* Create a new C++ instance */
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
@@ -161,6 +158,14 @@ void python_planner_uct(py::module m) {
         return new BehaviorHypothesisIDM(PythonToParams(t[0].cast<py::tuple>()));
       }));
 
-      python_risk_calculation(m.def_submodule("risk_calculation"));
+    py::class_<BeliefCalculator,
+             std::shared_ptr<BeliefCalculator>>(m,
+    "BeliefCalculator")
+    .def(py::init<const bark::commons::ParamsPtr&,
+              const std::vector<BehaviorModelPtr>&>())
+    .def("BeliefUpdate", &BeliefCalculator::BeliefUpdate)
+    .def("GetBeliefs", &BeliefCalculator::GetBeliefs);
+
+     python_risk_calculation(m.def_submodule("risk_calculation"));
 
 }

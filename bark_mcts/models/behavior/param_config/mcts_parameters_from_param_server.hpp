@@ -13,6 +13,19 @@ namespace bark{
 namespace models {
 namespace behavior {
 
+inline mcts::MctsParameters::HypothesisBeliefTrackerParameters BeliefTrackerParametersFromParamServer(const commons::ParamsPtr& params,
+                    std::unordered_map<unsigned int, unsigned int> fixed_hypothesis_set = {}) {
+    mcts::MctsParameters::HypothesisBeliefTrackerParameters belief_tracker_parameters;
+
+    belief_tracker_parameters.RANDOM_SEED_HYPOTHESIS_SAMPLING = params->GetInt("BeliefTracker::RandomSeedHypSampling", "Seed for hypothesis sampling", 2000);
+    belief_tracker_parameters.HISTORY_LENGTH = params->GetInt("BeliefTracker::HistoryLength", "Length of probability history", 10);
+    belief_tracker_parameters.PROBABILITY_DISCOUNT = params->GetReal("BeliefTracker::ProbabilityDiscount", "Discount factor for probabilities", 0.7f);
+    belief_tracker_parameters.POSTERIOR_TYPE = params->GetInt("BeliefTracker::PosteriorType", "Zero for product, One for sum", 1);
+    belief_tracker_parameters.FIXED_HYPOTHESIS_SET = fixed_hypothesis_set;
+
+    return belief_tracker_parameters;
+}
+
 
 inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsPtr& params,
                     std::unordered_map<unsigned int, unsigned int> fixed_hypothesis_set = {}) {
@@ -41,11 +54,7 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
     parameters.hypothesis_statistic.PROGRESSIVE_WIDENING_K = params->GetReal("Mcts::HypothesisStatistic::ProgressiveWidening::K", "K used for prog. widening", 4);
     parameters.hypothesis_statistic.EXPLORATION_CONSTANT = params->GetReal("Mcts::HypothesisStatistic::ExplorationConstant", "Exploration constant", 0.7);
 
-    parameters.hypothesis_belief_tracker.RANDOM_SEED_HYPOTHESIS_SAMPLING = params->GetInt("Mcts::BeliefTracker::RandomSeedHypSampling", "Seed for hypothesis sampling", 2000);
-    parameters.hypothesis_belief_tracker.HISTORY_LENGTH = params->GetInt("Mcts::BeliefTracker::HistoryLength", "Length of probability history", 10);
-    parameters.hypothesis_belief_tracker.PROBABILITY_DISCOUNT = params->GetReal("Mcts::BeliefTracker::ProbabilityDiscount", "Discount factor for probabilities", 0.7f);
-    parameters.hypothesis_belief_tracker.POSTERIOR_TYPE = params->GetInt("Mcts::BeliefTracker::PosteriorType", "Zero for product, One for sum", 1);
-    parameters.hypothesis_belief_tracker.FIXED_HYPOTHESIS_SET = fixed_hypothesis_set;
+    parameters.hypothesis_belief_tracker = BeliefTrackerParametersFromParamServer(params->AddChild("Mcts"));
 
     parameters.cost_constrained_statistic.LAMBDA = params->GetReal("Mcts::CostConstrainedStatistic::LambdaInit", "Initial lambda value", 2.0f);
     parameters.cost_constrained_statistic.COST_UPPER_BOUND = parameters.hypothesis_statistic.UPPER_COST_BOUND;

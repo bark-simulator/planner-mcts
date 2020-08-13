@@ -142,6 +142,32 @@ cc_test(
 )
 
 cc_test(
+    name = "belief_calculator_test",
+    srcs = [
+        "belief_calculator_test.cc"
+    ],
+    copts = ["-Iexternal/gtest/include"],
+    deps = [
+        "//bark_mcts/models/behavior/belief_calculator:belief_calculator",
+        "//bark_mcts/models/behavior/action_store:behavior_action_store",
+        "//bark_mcts/models/behavior/hypothesis/idm:hypothesis_idm",
+        ":test_helpers",
+        "@bark_project//bark/world:world",
+        "@bark_project//bark/world/tests:make_test_world",
+        "@bark_project//bark/models/behavior:behavior",
+        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
+        "@bark_project//bark/models/behavior/idm/stochastic:stochastic",
+        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
+        "@bark_project//bark/models/execution/interpolation:interpolation",
+        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
+        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
+        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
+        "@bark_project//bark/world/goal_definition:goal_definition",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "behavior_uct_cooperative_test",
     srcs = [
         "behavior_uct_cooperative_test.cc"

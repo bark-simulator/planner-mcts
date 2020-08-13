@@ -40,3 +40,17 @@ py_test(
     "@bark_project//bark/runtime:runtime",
   ]
 )
+
+py_test(
+  name = "py_belief_calculator_test",
+  srcs = [
+      "py_belief_calculator_test.py"
+    ],
+  data = ['@bark_project//bark:generate_core',
+         '@bark_project//bark/runtime/tests:xodr_data'],
+  deps = ["@bark_project//bark/runtime/commons:commons",
+          "@bark_project//bark/runtime/scenario/scenario_generation:scenario_generation",
+          "//bark_mcts/runtime/scenario:config_readers",
+          "//bark_mcts/runtime/scenario:scenario_set_generation",
+          "//util/debug:debug_settings"],
+)
