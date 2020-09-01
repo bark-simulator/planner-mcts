@@ -4,11 +4,13 @@ cc_library(
   name = "planner_uct",
   srcs = [
       "python_planner_uct.cpp",
-      "python_risk_calculation.cpp"
+      "python_risk_calculation.cpp",
+      "polymorphic_conversion.cpp"
   ],
   hdrs = [
       "python_planner_uct.hpp",
-        "python_risk_calculation.hpp"
+      "python_risk_calculation.hpp",
+      "polymorphic_conversion.hpp",
   ],
   deps = [
     "@bark_project//bark/python_wrapper:common",

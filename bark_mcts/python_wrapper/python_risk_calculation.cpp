@@ -3,6 +3,7 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
+#include "bark_mcts/python_wrapper/polymorphic_conversion.hpp"
 #include "bark/python_wrapper/polymorphic_conversion.hpp"
 
 #include "bark_mcts/python_wrapper/python_risk_calculation.hpp"
@@ -27,10 +28,11 @@ void python_risk_calculation(py::module m) {
       return "bark.behavior.KnowledgeFunctionDefinition";
     })
     .def("Sample", &KnowledgeFunctionDefinition::Sample)
+    .def_property_readonly("supporting_region", &KnowledgeFunctionDefinition::GetSupportingRegion)
     .def("CalculateIntegral", &KnowledgeFunctionDefinition::CalculateIntegral);
 
-    py::class_<LinearKnowledgeFunctionDefinition, KnowledgeFunctionDefinition,
-             std::shared_ptr<KnowledgeFunctionDefinition>>(m,
+   py::class_<LinearKnowledgeFunctionDefinition, KnowledgeFunctionDefinition,
+             std::shared_ptr<LinearKnowledgeFunctionDefinition>>(m,
     "LinearKnowledgeFunctionDefinition")
     .def(py::init<const PriorKnowledgeRegion&,
         const bark::commons::ParamsPtr& >())
@@ -40,12 +42,12 @@ void python_risk_calculation(py::module m) {
     .def(py::pickle(
       [](const LinearKnowledgeFunctionDefinition& pkf) {
         // We throw away other information such as last trajectories
-        return py::make_tuple(py::make_tuple(ParamsToPython(pkf.GetParams())););
+        return py::make_tuple(pkf.GetSupportingRegion(), ParamsToPython(pkf.GetParams()));
       },
       [](py::tuple t) {
-        if (t.size() != 1)
+        if (t.size() != 2)
           throw std::runtime_error("Invalid LinearKnowledgeFunctionDefinition state!");
-        return new LinearKnowledgeFunctionDefinition(t[0].cast<py::tuple>());
+        return new LinearKnowledgeFunctionDefinition(t[0].cast<PriorKnowledgeRegion>(), PythonToParams(t[1].cast<py::tuple>()));
     }));
 
   py::class_<PriorKnowledgeRegion,
@@ -96,24 +98,24 @@ void python_risk_calculation(py::module m) {
   py::class_<ScenarioRiskFunction,
              std::shared_ptr<ScenarioRiskFunction>>(m,
     "ScenarioRiskFunction")
-    .def(py::init<const ScenarioRiskFunctionDefinition&, 
+    .def(py::init<const KnowledgeFunctionDefinitionPtr&, 
              const double&>())
     .def("__repr__", [](const ScenarioRiskFunction &m) {
       return "bark.behavior.ScenarioRiskFunction";
     })
     .def_property_readonly("normalization_constant", &ScenarioRiskFunction::GetNormalizationConstant)
-    .def_property_readonly("scenario_risk_function_template", &ScenarioRiskFunction::GetScenarioRiskFunctionDefinition)
+    .def_property_readonly("scenario_risk_function_definition", &ScenarioRiskFunction::GetRiskFunctionDefinition)
     .def("CalculateIntegralValue", &ScenarioRiskFunction::CalculateIntegralValue)
     .def(py::pickle(
       [](const ScenarioRiskFunction& srf) {
         // We throw away other information such as last trajectories
-        return py::make_tuple(srf.GetScenarioRiskFunctionDefinition(),
+        return py::make_tuple(KnowledgeFunctionDefinitionToPython(srf.GetRiskFunctionDefinition()),
                             srf.GetNormalizationConstant());
       },
       [](py::tuple t) {
         if (t.size() != 2)
           throw std::runtime_error("Invalid ScenarioRiskFunction state!");
-        return new ScenarioRiskFunction(t[0].cast<ScenarioRiskFunctionDefinition>(),
+        return new ScenarioRiskFunction(PythonToKnowledgeFunctionDefinition(t[0].cast<py::tuple>()),
                                       t[1].cast<double>());
       }));
 

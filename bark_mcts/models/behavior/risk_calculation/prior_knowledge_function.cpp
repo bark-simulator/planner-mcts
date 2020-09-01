@@ -11,7 +11,7 @@ KnowledgeValue PriorKnowledgeFunction::GetIntegralKnowledeValue(const RegionBoun
   return knowledge_function_->CalculateIntegral(knowledge_region);
 }
 
-ScenarioRiskFunctionPtr PriorKnowledgeFunction::CalculateScenarioRiskFunction(const ScenarioRiskFunctionDefinition& template_scenario_risk_function) const {
+ScenarioRiskFunctionPtr PriorKnowledgeFunction::CalculateScenarioRiskFunction(const KnowledgeFunctionDefinitionPtr& template_scenario_risk_function) const {
     // idea we give a template function as lambda with fixed parameters depending on
     // the region value, e.g (1*x +2) or (x + 0.1x*x), the normalization scaling c is then calcuated that
     // the integral gets 1

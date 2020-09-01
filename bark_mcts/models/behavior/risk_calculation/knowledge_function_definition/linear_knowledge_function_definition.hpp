@@ -21,24 +21,25 @@ class LinearKnowledgeFunctionDefinition : public KnowledgeFunctionDefinition {
      LinearKnowledgeFunctionDefinition(const PriorKnowledgeRegion& supporting_region,
                                 const ParamsPtr& params) :
                             KnowledgeFunctionDefinition(supporting_region, params),
-                            function_params_ {
+                            function_params_() {
       for(const auto& region_def : supporting_region.GetDefinition()) {
         function_params_[region_def.first] = LinearFunctionParams{
             params->GetReal("LinearKnowledgeFunction::" + region_def.first + "::a", "parameter a", 1.0),
-            params->GetReal("LinearKnowledgeFunction::" + region_def.first + "::b", "parameter a", 1.0)}
+            params->GetReal("LinearKnowledgeFunction::" + region_def.first + "::b", "parameter b", 1.0)};
       }
     }
 
-    virtual KnowledgeValue CalculateIntegral(const RegionBoundaries& integral_region) const {
+    virtual KnowledgeValue CalculateIntegral(const RegionBoundaries& integral_region) const override {
       KnowledgeValue mean_in_region = 0.0;
       for (const auto& region : integral_region) {
           const auto& range = region.second;
-          mean_in_region += ( (a*range.first + b) + (a*range.second + b) ) / 2.0;
+          const auto& rp = function_params_.at(region.first);
+          mean_in_region += ( (rp.a*range.first + rp.b) + (rp.a*range.second + rp.b) ) / 2.0;
       }
       return mean_in_region / integral_region.size() * CalculateRegionBoundariesArea(integral_region);
     }
 
-    virtual KnowledgeSample Sample(const PriorKnowledgeRegion& sampling_region) const  {
+    virtual KnowledgeSample Sample(const PriorKnowledgeRegion& sampling_region) const override {
       throw std::runtime_error("Sampling not implemented for linear function definition");
     };
 

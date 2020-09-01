@@ -33,7 +33,7 @@ class PriorKnowledgeFunction : public bark::commons::BaseType {
 
     KnowledgeValue GetIntegralKnowledeValue(const RegionBoundaries& knowledge_region) const;
 
-    ScenarioRiskFunctionPtr CalculateScenarioRiskFunction(const ScenarioRiskFunctionDefinition& template_scenario_risk_function) const;
+    ScenarioRiskFunctionPtr CalculateScenarioRiskFunction(const KnowledgeFunctionDefinitionPtr& template_scenario_risk_function) const;
 
     PriorKnowledgeRegion GetPriorKnowledgeRegion() const { return prior_knowledge_region_; }
 

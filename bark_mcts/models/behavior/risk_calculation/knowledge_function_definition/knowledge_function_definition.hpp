@@ -9,6 +9,7 @@
 
 #include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
 #include "bark/commons/distribution/distribution.hpp"
+#include "bark/commons/params/params.hpp"
 
 namespace bark {
 namespace models {
@@ -29,6 +30,8 @@ class KnowledgeFunctionDefinition : public bark::commons::BaseType {
     // Second probability gives the probability of sample distribution (to correct using importance sampling)
     typedef std::tuple<RegionValue, bark::commons::Probability, bark::commons::Probability> KnowledgeSample;
     virtual KnowledgeSample Sample(const PriorKnowledgeRegion& sampling_region) const = 0;
+
+    PriorKnowledgeRegion GetSupportingRegion() const { return supporting_region_; }
 
     private:
       PriorKnowledgeRegion supporting_region_;

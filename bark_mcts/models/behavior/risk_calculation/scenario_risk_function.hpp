@@ -17,11 +17,9 @@ namespace models {
 namespace behavior {
 namespace risk_calculation {
 
-typedef KnowledgeFunctionDefinitionPtr ScenarioRiskFunctionDefinition;
-
 class ScenarioRiskFunction {
   public:
-    ScenarioRiskFunction(const ScenarioRiskFunctionDefinition& risk_function_definition,
+    ScenarioRiskFunction(const KnowledgeFunctionDefinitionPtr& risk_function_definition,
                         const double& normalization_constant) : 
                 risk_function_definition_(risk_function_definition),
                 normalization_constant_(normalization_constant) {}
@@ -37,10 +35,10 @@ class ScenarioRiskFunction {
 
     double GetNormalizationConstant() const { return normalization_constant_;}
 
-    ScenarioRiskFunctionDefinition GetScenarioRiskFunctionDefinition() const { return risk_function_definition_;}
+    KnowledgeFunctionDefinitionPtr GetRiskFunctionDefinition() const { return risk_function_definition_;}
 
   private:
-    ScenarioRiskFunctionDefinition risk_function_definition_;
+    KnowledgeFunctionDefinitionPtr risk_function_definition_;
     double normalization_constant_;
 };
 
