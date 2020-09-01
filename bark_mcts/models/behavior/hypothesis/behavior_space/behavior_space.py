@@ -18,7 +18,6 @@ from bark.runtime.commons.parameters import ParameterServer
 class DefaultKnowledgeFunctionDefinition(KnowledgeFunctionDefinition):
   def __init__(self, params, supporting_region):
     super().__init__(supporting_region, params.AddChild("WeibullKnowledgeFunctionDefinition"))
-    self.supporting_region = supporting_region
     self.SetDefaultDistributionParams(self.supporting_region.definition)
 
   def SetDefaultDistributionParams(self, supporting_region):

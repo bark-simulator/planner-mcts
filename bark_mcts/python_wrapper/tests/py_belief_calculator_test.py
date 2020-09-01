@@ -59,7 +59,7 @@ class BeliefCalculatorTest(unittest.TestCase):
         agent_id_list = list(world.agents.keys())
         observed_world = ObservedWorld(world, agent_id_list[0])
         belief_calculator = BeliefCalculator(params_server, hypothesis_set)
-        for idx in range(0, 100):
+        for idx in range(0, 1):
           observed_world.Step(0.2)
           print(observed_world.agents)
           belief_calculator.BeliefUpdate(observed_world)
