@@ -15,13 +15,10 @@ from bark.core.models.behavior import *
 from bark.core.models.behavior.risk_calculation import *
 from bark.runtime.commons.parameters import ParameterServer
 
-class DefaultKnowledgeFunctionDefinition(PriorKnowledgeFunctionDefinition):
+class DefaultKnowledgeFunctionDefinition(KnowledgeFunctionDefinition):
   def __init__(self, params, supporting_region):
-    super().__init__(supporting_region)
-    self.params = params.AddChild("WeibullKnowledgeFunctionDefinition")
-    self.supporting_region = supporting_region
+    super().__init__(supporting_region, params.AddChild("WeibullKnowledgeFunctionDefinition"))
     self.SetDefaultDistributionParams(self.supporting_region.definition)
-
 
   def SetDefaultDistributionParams(self, supporting_region):
     self._dist_funcs = {}
@@ -244,7 +241,7 @@ class BehaviorSpace:
     # Prior Knowledge Parameters
     self._prior_knowledge_function_params = self._behavior_space_definition.AddChild("PriorKnowledgeFunction")
     prior_knowledge_definition_name = self._prior_knowledge_function_params["FunctionDefinition",
-             "Specifies which class derived of PriorKnowledgeFunctionDefinition should be used to define priior knowledge", \
+             "Specifies which class derived of KnowledgeFunctionDefinition should be used to define priior knowledge", \
                 "DefaultKnowledgeFunctionDefinition"]
     ranges, _ = self._divide_distribution_ranges_and_fixed(self._behavior_space_range_params)
     self._prior_knowledge_region = PriorKnowledgeRegion(ranges)

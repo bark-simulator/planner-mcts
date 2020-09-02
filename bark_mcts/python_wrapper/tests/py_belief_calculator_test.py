@@ -50,7 +50,8 @@ class BeliefCalculatorTest(unittest.TestCase):
         params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["Width"] = [0.1, 0.3]
         params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["DesiredVelDistribution"]["DistributionType"] = "FixedValue"
 
-        behavior_space = BehaviorSpace(params_server)
+        params_server_behavior = ParameterServer()
+        behavior_space = BehaviorSpace(params_server_behavior)
         hypothesis_set, hypothesis_params = behavior_space.create_hypothesis_set_fixed_split(split = 2)
         world = MakeTestWorldHighway()
         for agent_id, agent in world.agents.items():
@@ -58,14 +59,14 @@ class BeliefCalculatorTest(unittest.TestCase):
         agent_id_list = list(world.agents.keys())
         observed_world = ObservedWorld(world, agent_id_list[0])
         belief_calculator = BeliefCalculator(params_server, hypothesis_set)
-        for idx in range(0, 100):
+        for idx in range(0, 1):
           observed_world.Step(0.2)
           print(observed_world.agents)
           belief_calculator.BeliefUpdate(observed_world)
           beliefs = belief_calculator.GetBeliefs()
           print(beliefs)
         
-        print(hypothesis_set)
+        params_server_behavior.Save(filename="./default_params_behavior_space")
 
 if __name__ == '__main__':
     unittest.main()

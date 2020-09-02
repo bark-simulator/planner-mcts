@@ -5,6 +5,7 @@
 
 #include "bark_mcts/python_wrapper/python_planner_uct.hpp"
 #include "bark_mcts/python_wrapper/python_risk_calculation.hpp"
+#include "bark_mcts/python_wrapper/polymorphic_conversion.hpp"
 #include "bark/python_wrapper/polymorphic_conversion.hpp"
 #include <memory>
 #include "bark_mcts/models/behavior/behavior_uct_single_agent.hpp"
@@ -115,7 +116,7 @@ void python_planner_uct(py::module m) {
       .def_property_readonly("hypotheses", &BehaviorUCTRiskConstraint::GetBehaviorHypotheses)
       .def_property_readonly("scenario_risk_function", &BehaviorUCTRiskConstraint::GetScenarioRiskFunction)
       .def(py::pickle(
-      [](const BehaviorUCTRiskConstraint& b) {
+      [](const BehaviorUCTRiskConstraint& b) -> py::tuple {
         py::list list;
         auto hypotheses = b.GetBehaviorHypotheses();
         for (const auto& hypothesis : hypotheses) {
@@ -132,7 +133,8 @@ void python_planner_uct(py::module m) {
           hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
         }
         return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
-                hypotheses, t[2].cast<risk_calculation::ScenarioRiskFunctionPtr>());
+                hypotheses, std::make_shared<risk_calculation::ScenarioRiskFunction>(
+                                    t[2].cast<risk_calculation::ScenarioRiskFunction>()));
       }));
 
   py::class_<BehaviorHypothesis,

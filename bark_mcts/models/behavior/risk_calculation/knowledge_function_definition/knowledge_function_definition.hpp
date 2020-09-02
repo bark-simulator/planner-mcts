@@ -9,6 +9,7 @@
 
 #include "bark_mcts/models/behavior/risk_calculation/prior_knowledge_region.hpp"
 #include "bark/commons/distribution/distribution.hpp"
+#include "bark/commons/params/params.hpp"
 
 namespace bark {
 namespace models {
@@ -16,10 +17,12 @@ namespace behavior {
 namespace risk_calculation {
 
 
-class PriorKnowledgeFunctionDefinition {
+class KnowledgeFunctionDefinition : public bark::commons::BaseType {
   public:
-     PriorKnowledgeFunctionDefinition(const PriorKnowledgeRegion& supporting_region) : 
-        supporting_region_(supporting_region) {}
+     KnowledgeFunctionDefinition(const PriorKnowledgeRegion& supporting_region,
+                                const bark::commons::ParamsPtr& params) :
+                            bark::commons::BaseType(params),
+                            supporting_region_(supporting_region) {}
 
     virtual KnowledgeValue CalculateIntegral(const RegionBoundaries& integral_region) const = 0;
 
@@ -28,11 +31,13 @@ class PriorKnowledgeFunctionDefinition {
     typedef std::tuple<RegionValue, bark::commons::Probability, bark::commons::Probability> KnowledgeSample;
     virtual KnowledgeSample Sample(const PriorKnowledgeRegion& sampling_region) const = 0;
 
+    PriorKnowledgeRegion GetSupportingRegion() const { return supporting_region_; }
+
     private:
       PriorKnowledgeRegion supporting_region_;
 };
 
-typedef std::shared_ptr<PriorKnowledgeFunctionDefinition> PriorKnowledgeFunctionDefinitionPtr;
+typedef std::shared_ptr<KnowledgeFunctionDefinition> KnowledgeFunctionDefinitionPtr;
 
 } // namespace risk calculation
 } // namespace behavior

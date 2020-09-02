@@ -260,7 +260,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   auto action = behavior_uct.GetLastAction();
   EXPECT_TRUE(boost::get<Continuous1DAction>(action) < 0.0f); // some decceleration should occur
 }
-
+/*
 TEST(behavior_uct_single_agent, change_lane) {
   // Test if the planner reaches the goal at some point when agent is slower and in front
   auto params = std::make_shared<SetterParams>(false);
@@ -587,6 +587,7 @@ TEST(behavior_uct_single_agent_macro_actions, normalization) {
     EXPECT_TRUE(false);
   }
 }
+*/
 
 int main(int argc, char **argv) {
   ::testing::InitGoogleTest(&argc, argv);
