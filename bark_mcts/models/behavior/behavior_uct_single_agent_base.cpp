@@ -11,8 +11,6 @@
 #include "mcts/statistics/uct_statistic.h"
 #include "bark_mcts/models/behavior/mcts_state/mcts_state_single_agent.hpp"
 
-#include "bark/models/behavior/constant_velocity/constant_velocity.hpp"
-#include "bark/models/behavior/idm/idm_classic.hpp"
 #include "bark/models/behavior/motion_primitives/continuous_actions.hpp"
 #include "bark/models/dynamic/single_track.hpp"
 #include "bark/world/observed_world.hpp"

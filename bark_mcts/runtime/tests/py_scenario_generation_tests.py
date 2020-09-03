@@ -27,9 +27,7 @@ class ScenarioGenerationTests(unittest.TestCase):
       "SourceSink": [[5111.626, 5006.8305],  [5110.789, 5193.1725] ],
       "Description": "left_lane",
       "ConfigAgentStatesGeometries": {"Type": "UniformVehicleDistribution", "LanePositions": [0]},
-      "ConfigBehaviorModels": {"Type": "BehaviorSpaceSampling", "ModelType" : "BehaviorIDMStochastic", \
-           "ModelParams" : {"BehaviorIDMStochastic::HeadwayDistribution::Range" : [10, 20],
-                            "BehaviorIDMStochastic::HeadwayDistribution::Width": [0.5, 1.0]}},
+      "ConfigBehaviorModels": {"Type": "BehaviorSpaceSampling", "ModelType" : "BehaviorIDMStochastic"},
       "ConfigExecutionModels": {"Type": "FixedExecutionType"},
       "ConfigDynamicModels": {"Type": "FixedDynamicType"},
       "ConfigGoalDefinitions": {"Type": "FixedGoalTypes"},
