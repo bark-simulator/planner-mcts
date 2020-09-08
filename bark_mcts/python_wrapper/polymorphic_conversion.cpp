@@ -26,7 +26,7 @@ KnowledgeFunctionDefinitionPtr PythonToKnowledgeFunctionDefinition(py::tuple t) 
   if (knowledge_function_definition_name.compare("LinearKnowledgeFunctionDefinition") == 0) {
     return std::make_shared<LinearKnowledgeFunctionDefinition>(
         t[0].cast<LinearKnowledgeFunctionDefinition>());
-  } else {
+  }  else {
        LOG(FATAL) << "Unknown KnowledeFunctioDefinition for polymorphic conversion to cpp: "
                << knowledge_function_definition_name;
   }
