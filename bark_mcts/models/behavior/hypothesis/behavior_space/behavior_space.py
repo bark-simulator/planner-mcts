@@ -7,68 +7,13 @@ import math
 import itertools
 import numpy as np
 import logging
-import scipy.stats 
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
 
 from bark.core.models.behavior import *
 from bark.core.models.behavior.risk_calculation import *
 from bark.runtime.commons.parameters import ParameterServer
-
-class DefaultKnowledgeFunctionDefinition(KnowledgeFunctionDefinition):
-  def __init__(self, params, supporting_region):
-    super().__init__(supporting_region, params.AddChild("WeibullKnowledgeFunctionDefinition"))
-    self.SetDefaultDistributionParams(self.supporting_region.definition)
-
-  def SetDefaultDistributionParams(self, supporting_region):
-    self._dist_funcs = {}
-    for reg_desc, region in supporting_region.items():
-      _ = self.params[reg_desc]["Mean", "Shape of Weibull", 5]
-      _ = self.params[reg_desc]["Std", "Scale of Weibull", 1]
-
-  def GetDistFunc(self, region_params, region_range, random_state):
-    mean = region_params["Mean"]
-    std = region_params["Std"]
-    a, b = (region_range[0] - mean) / std, (region_range[1] - mean) / std
-    dist_func = scipy.stats.truncnorm(a=a, b=b, loc=mean, scale=std)
-    dist_func.random_state = random_state
-    return dist_func
-  def CalculateIntegral(self, region_boundaries):
-    #todo improve with mean
-    pdf_product = 1.0
-    for reg_desc, reg_range in region_boundaries:
-      reg_center = reg_range[1] -reg_range[0]
-      pdf_val = self.GetDistFunc(self.params[reg_desc], reg_range, random_state).pdf(reg_center)
-      pdf_product *= pdf_val
-    return pdf_product*CalculateRegionBoundariesArea(region_boundaries)
-
-  def _SampleFromRegion(self, sampling_region, random_state):
-    sampled_values = {}
-    total_values_prob = 1.0
-    for reg_desc, reg_range in sampling_region.items():
-      sampled_val = random_state.uniform(low=reg_range[0], high=reg_range[1])
-      val_prob = self.GetDistFunc(self.params[reg_desc], reg_range, random_state).pdf(sampled_val)
-      total_values_prob *= val_prob
-      sampled_values[reg_desc] = sampled_val
-    return sampled_values, total_values_prob, 1/CalculateRegionBoundariesArea(sampling_region)
-
-  def _SampleFromDensity(self, random_state):
-    sampled_values = {}
-    total_values_prob = 1.0
-    for reg_desc, reg_range in self.supporting_region.definition.items():
-      dist_funct = self.GetDistFunc(self.params[reg_desc], reg_range, random_state)
-      sampled_val = dist_funct.rvs(size=1)
-      val_prob = dist_funct.pdf(sampled_val)
-      total_values_prob *= val_prob[0]
-      sampled_values[reg_desc] = sampled_val[0]
-    return sampled_values, total_values_prob, total_values_prob
-
-  def Sample(self, sampling_region, random_state):
-    if sampling_region:
-      return self._SampleFromRegion(sampling_region, random_state)
-    else:
-      return self._SampleFromDensity(random_state)
-
+from bark_mcts.models.behavior.hypothesis.behavior_space.knowledge_function_definitions import *
 
 class BehaviorSpace:
   def __init__(self, params):
@@ -92,7 +37,6 @@ class BehaviorSpace:
       sampling_region_boundaries, _ = \
           self._divide_distribution_ranges_and_fixed(partitioned_behavior_space_range_params)
 
-    # todo: add prior knowledge function definitiion: None
     mean_space_params, knowledge_probability, \
       importance_sampling_probability = \
            self._sample_mean_params_from_prior_knowledge_function(behavior_space_range_params, \
@@ -242,7 +186,7 @@ class BehaviorSpace:
     self._prior_knowledge_function_params = self._behavior_space_definition.AddChild("PriorKnowledgeFunction")
     prior_knowledge_definition_name = self._prior_knowledge_function_params["FunctionDefinition",
              "Specifies which class derived of KnowledgeFunctionDefinition should be used to define priior knowledge", \
-                "DefaultKnowledgeFunctionDefinition"]
+                "TruncatedNormalKnowledgeFunctionDefinition"]
     ranges, _ = self._divide_distribution_ranges_and_fixed(self._behavior_space_range_params)
     self._prior_knowledge_region = PriorKnowledgeRegion(ranges)
     self._prior_knowledge_function_definition = eval("{}(self._prior_knowledge_function_params, \
@@ -250,6 +194,7 @@ class BehaviorSpace:
     self._prior_knowledge_function = PriorKnowledgeFunction(self._prior_knowledge_region, 
                                                     self._prior_knowledge_function_definition,
                                                     self._prior_knowledge_function_params)
+    self._scenario_risk_function = None
   def _divide_distribution_ranges_and_fixed(self, behavior_space_range_params):
     def filter_distributions(dct):
       found_ranges = {}
@@ -276,6 +221,16 @@ class BehaviorSpace:
 
   def get_prior_knowledge_function(self):
     return self._prior_knowledge_function 
+
+  def get_scenario_risk_function(self):
+    if not self._scenario_risk_function:
+      scenario_risk_function_params = self._behavior_space_definition.AddChild("ScenarioRiskFunctionFunction")
+      scenario_risk_func_def_name = scenario_risk_function_params["FunctionName", "Name of scenario risk function definition", "LinearKnowledgeFunctionDefinition"]
+      scenario_risk_function_def = eval("{}(self._prior_knowledge_region, scenario_risk_function_params)".format(scenario_risk_func_def_name))
+
+      self._scenario_risk_function = self._prior_knowledge_function.CalculateScenarioRiskFunction(
+                              scenario_risk_function_def)
+    return self._scenario_risk_function
 
   def _sample_mean_params_from_prior_knowledge_function(self, behavior_space_range_params, sample_region):
     mean_params = behavior_space_range_params.clone()

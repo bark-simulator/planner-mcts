@@ -8,7 +8,6 @@ try:
 except:
   pass
 
-
 import unittest
 import os
 import numpy as np
@@ -18,6 +17,12 @@ from operator import itemgetter
 from bark.runtime.commons.parameters import ParameterServer
 from bark_mcts.models.behavior.hypothesis.behavior_space.behavior_space import BehaviorSpace
 from bark.core.models.behavior import *
+
+import matplotlib
+
+import matplotlib.pyplot as plt
+matplotlib.use("Qt5Agg")
+
 
 import scipy
 
@@ -229,9 +234,6 @@ class PyBehaviorSpaceTests(unittest.TestCase):
 
   def test_prior_knowledge_probability_estimation(self):
     params_server = ParameterServer()
-
-
-
     # fixed param ranges without sampling for all distributions ...
     params_server["BehaviorSpace"]["Sampling"]["BehaviorIDMStochastic"]["SpacingDistribution"]["DistributionType"] = "FixedValue"
     params_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["SpacingDistribution"] = [2]
@@ -255,9 +257,9 @@ class PyBehaviorSpaceTests(unittest.TestCase):
     truncated_region = [1.8, 2.8] # equal to desired vel distribution boundaries, selected partition 1
     mean = 4
     std = 0.1
-    params_server["BehaviorSpace"]["Definition"]["PriorKnowledgeFunction"]["WeibullKnowledgeFunctionDefinition"]\
+    params_server["BehaviorSpace"]["Definition"]["PriorKnowledgeFunction"]["TruncatedNormalKnowledgeFunctionDefinition"]\
         ["BehaviorIDMStochastic::DesiredVelDistribution"]["Mean"] = mean
-    params_server["BehaviorSpace"]["Definition"]["PriorKnowledgeFunction"]["WeibullKnowledgeFunctionDefinition"]\
+    params_server["BehaviorSpace"]["Definition"]["PriorKnowledgeFunction"]["TruncatedNormalKnowledgeFunctionDefinition"]\
         ["BehaviorIDMStochastic::DesiredVelDistribution"]["Std"] = std
     a, b = (truncated_region[0] - mean) / std, (truncated_region[1] - mean) / std
     dist_func = scipy.stats.truncnorm(a=a, b=b, loc=mean, scale=std)
@@ -272,6 +274,17 @@ class PyBehaviorSpaceTests(unittest.TestCase):
       desired_prob_prior = dist_func.pdf(sampled_value)
       self.assertAlmostEqual(prob_prior, desired_prob_prior, 4)
       self.assertAlmostEqual(prob_sampling, 1.0, 4) # probability of uniform distribution density between 1.8 and 2.8
+
+    # plot prior knowledge
+    prior_knowledge_function_def = space.get_prior_knowledge_function().knowledge_function_definition
+    dist = prior_knowledge_function_def.GetDistFuncOfRegion("BehaviorIDMStochastic::DesiredVelDistribution")
+    fig, ax = plt.subplots(1, 1)
+    x = np.linspace(-5.0, 5.0, 1000)
+    ax.plot(x, dist.pdf(x), 'k-', lw=2)
+    fig.show()
+
+    # calculate scenario risk function
+  #  risk_function = space.get_scenario_risk_function()
 
 
 
