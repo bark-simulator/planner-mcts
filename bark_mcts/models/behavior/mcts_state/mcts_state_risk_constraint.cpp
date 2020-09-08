@@ -58,19 +58,17 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::clone() const 
 
 std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
                                                         std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
-  const auto next_state_sequence_probability = state_sequence_probability_ * calculation_state_transition_probability(*predicted_world);
   rewards.resize(this->get_num_agents(), 0.0f);
   rewards[this->ego_agent_idx] =
       (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * state_parameters_.COLLISION_REWARD +
       evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
 
-  float unnormalized_ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * 1.0 / next_state_sequence_probability;
-  ego_cost = std::min(unnormalized_ego_cost, state_parameters_.COLLISION_COST);
+  ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * 1.0;
   VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
   return std::make_shared<MctsStateRiskConstraint>(
       predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
-      ego_agent_id_, state_parameters_, current_hypothesis_beliefs_, next_state_sequence_probability);
+      ego_agent_id_, state_parameters_, current_hypothesis_beliefs_, state_sequence_probability_);
 }
 
 bark::commons::Probability MctsStateRiskConstraint::calculation_state_transition_probability(
@@ -97,7 +95,6 @@ bark::commons::Probability MctsStateRiskConstraint::calculate_sequence_probabili
 bark::commons::Probability MctsStateRiskConstraint::get_state_sequence_probability() const {
   return state_sequence_probability_;
 }
-
 
 
 }  // namespace behavior
