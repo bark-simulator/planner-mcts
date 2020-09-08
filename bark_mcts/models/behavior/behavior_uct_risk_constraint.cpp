@@ -74,6 +74,7 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
 
   // Do the search
   auto current_mcts_parameters = mcts_parameters_;
+  current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT = current_scenario_risk_;
   mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
              mcts::RandomHeuristic>  mcts_risk_constrained(current_mcts_parameters);
   mcts_risk_constrained.search(*mcts_hypothesis_state_ptr, belief_tracker_);
