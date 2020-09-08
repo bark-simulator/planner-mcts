@@ -64,7 +64,8 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::generate_next_
       evaluation_results.goal_reached * state_parameters_.GOAL_REWARD;
 
   ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * 1.0;
-  VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
+  VLOG_IF_EVERY_N(5, ego_cost != 0.0f, 5) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
+  VLOG_IF_EVERY_N(5, rewards[this->ego_agent_idx] != 0.0f, 5) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
   return std::make_shared<MctsStateRiskConstraint>(
       predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
       current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
