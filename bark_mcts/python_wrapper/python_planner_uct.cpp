@@ -122,19 +122,28 @@ void python_planner_uct(py::module m) {
         for (const auto& hypothesis : hypotheses) {
           list.append(BehaviorModelToPython(hypothesis));
         }
-        return py::make_tuple(ParamsToPython(b.GetParams()), list, b.GetScenarioRiskFunction());
+        if ( b.GetScenarioRiskFunction()) {
+          return py::make_tuple(ParamsToPython(b.GetParams()), list, b.GetScenarioRiskFunction());
+        } else {
+          return py::make_tuple(ParamsToPython(b.GetParams()), list);
+        }
       },
       [](py::tuple t) {
-        if (t.size() != 3)
+        if (t.size() != 2 && t.size() != 3)
           throw std::runtime_error("Invalid behavior model state!");
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
           hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
         }
-        return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
+        if (t.size() == 3) {
+          return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
                 hypotheses, std::make_shared<risk_calculation::ScenarioRiskFunction>(
                                     t[2].cast<risk_calculation::ScenarioRiskFunction>()));
+        } else {
+          return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
+                hypotheses, nullptr);
+        }
       }));
 
   py::class_<BehaviorHypothesis,
