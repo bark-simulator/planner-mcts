@@ -261,7 +261,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 2.0);
   params->SetReal("BehaviorUctBase::Mcts::LowerCostBound", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 100.0);
-  params->SetReal("BehaviorUctRiskConstraint::DefaultAvailableRisk", 2.0f);
+  params->SetReal("BehaviorUctRiskConstraint::DefaultAvailableRisk", 0.1f);
   params->SetBool("BehaviorUctRiskConstraint::EstimateScenarioRisk", false);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
