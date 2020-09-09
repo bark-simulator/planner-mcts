@@ -84,7 +84,7 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   auto sampled_policy = mcts_risk_constrained.get_root().get_ego_int_node().greedy_policy(
               0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR);
       VLOG(3) << "Constraint: " << current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT << ", Action: " << sampled_policy.first << "\n" <<
-                mcts_risk_constrained.get_root().get_ego_int_node().print_edge_information(0) << "\n" << mcts::CostConstrainedStatistic::print_policy(sampled_policy.second);
+                mcts_risk_constrained.get_root().get_ego_int_node().print_edge_information(sampled_policy.first) << mcts::CostConstrainedStatistic::print_policy(sampled_policy.second);
 
   // Update the constraint based on policy
   if(initialized_available_risk_ && update_scenario_risk_) {
