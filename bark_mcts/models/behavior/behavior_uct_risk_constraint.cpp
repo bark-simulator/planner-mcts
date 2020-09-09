@@ -21,6 +21,8 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                 current_scenario_risk_(default_available_risk_),
                                 estimate_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
                                       ->GetBool("EstimateScenarioRisk", "Should scenario risk be estimated from scenario risk function", false)),
+                                update_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
+                                      ->GetBool("UpdateScenarioRisk", "Should scenario risk be estimated from scenario risk function", true)),
                                 initialized_available_risk_(!estimate_scenario_risk_),
                                 scenario_risk_function_(scenario_risk_function) {}
 
@@ -85,9 +87,10 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
                 mcts_risk_constrained.get_root().get_ego_int_node().print_edge_information(0);
 
   // Update the constraint based on policy
-  if(initialized_available_risk_) {
+  if(initialized_available_risk_ && update_scenario_risk_) {
     current_scenario_risk_ = mcts_risk_constrained.get_root().get_ego_int_node().
                       calc_updated_constraint_based_on_policy(sampled_policy, current_scenario_risk_);
+    current_scenario_risk_ = std::min(std::max(0.0, current_scenario_risk_), 1.0);
   }
 
   // Postprocessing

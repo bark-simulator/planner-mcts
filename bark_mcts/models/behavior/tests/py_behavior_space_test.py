@@ -21,7 +21,6 @@ from bark.core.models.behavior import *
 import matplotlib
 
 import matplotlib.pyplot as plt
-matplotlib.use("Qt5Agg")
 
 
 import scipy
@@ -276,7 +275,6 @@ class PyBehaviorSpaceTests(unittest.TestCase):
       self.assertAlmostEqual(prob_sampling, 1.0, 4) # probability of uniform distribution density between 1.8 and 2.8
 
     # plot prior knowledge
-    matplotlib.use("Qt5Agg")
     prior_knowledge_function_def = space.get_prior_knowledge_function().knowledge_function_definition
     dist = prior_knowledge_function_def.GetDistFuncOfRegion("BehaviorIDMStochastic::DesiredVelDistribution")
     fig, ax = plt.subplots(1, 1)
