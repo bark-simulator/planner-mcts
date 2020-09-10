@@ -128,7 +128,7 @@ const mcts::AgentIdx MctsStateBase<T>::get_ego_agent_idx() const {
 
 template<class T>
 std::vector<mcts::AgentIdx> MctsStateBase<T>::update_other_agent_ids() const {
-  world::AgentMap agent_map = observed_world_->GetOtherAgents();
+  world::AgentMap agent_map = observed_world_->GetValidOtherAgents();
   std::vector<mcts::AgentIdx> ids;
   for (const auto &agent : agent_map) {
     ids.push_back(agent.first);
