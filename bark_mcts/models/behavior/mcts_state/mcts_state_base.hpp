@@ -39,6 +39,7 @@ typedef struct StateParameters {
   float GOAL_COST;
   float COLLISION_COST;
   float COOPERATION_FACTOR;
+  float STEP_REWARD;
 } StateParameters;
 
 typedef struct EvaluationResults {
@@ -56,8 +57,8 @@ typedef struct EvaluationResults {
 } EvaluationResults;
 
 inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
-  return (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * parameters.COLLISION_REWARD +
-            evaluation_results.goal_reached * parameters.GOAL_REWARD;
+  return float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * parameters.COLLISION_REWARD +
+            float(evaluation_results.goal_reached) * parameters.GOAL_REWARD + parameters.STEP_REWARD;
 };
 
 template<class T>

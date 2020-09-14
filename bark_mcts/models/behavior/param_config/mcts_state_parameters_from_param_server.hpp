@@ -26,6 +26,8 @@ inline StateParameters MctsStateParametersFromParamServer(const commons::ParamsP
 
     parameters.COOPERATION_FACTOR = params->GetReal("Mcts::State::CooperationFactor", "Cooperative MCTS, coop. factor", 0.2f);
 
+    parameters.STEP_REWARD = params->GetReal("Mcts::State::StepReward", "Reward given for each step in environment", -5.0f);
+
     return parameters;
 }
 
