@@ -73,8 +73,6 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
                        const StateParameters& state_parameters,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis);
 
-    mcts::ActionIdx get_num_actions(mcts::AgentIdx agent_idx) const { return num_ego_actions_; }
-
     bool is_terminal() const { return is_terminal_state_; };
 
     const std::vector<mcts::AgentIdx> get_other_agent_idx() const;

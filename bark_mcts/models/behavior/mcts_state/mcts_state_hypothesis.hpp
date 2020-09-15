@@ -71,6 +71,14 @@ public:
 
     typedef BarkAction ActionType; // required for template-mechanism to compile
 
+  mcts::ActionIdx get_num_actions(mcts::AgentIdx agent_idx) const { 
+    if(agent_idx == this->get_ego_agent_idx()) {
+        return num_ego_actions_;
+    } else {
+      return std::numeric_limits<mcts::ActionIdx>::max();
+    }
+  }
+
  protected:
     ObservedWorldPtr predict(const mcts::JointAction& joint_action) const;
 

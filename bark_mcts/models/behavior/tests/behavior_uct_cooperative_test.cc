@@ -125,7 +125,7 @@ TEST(cooperative_mcts_state, execute) {
   }
   const auto cf = params->GetReal("Mcts::State::CooperationFactor", "", 1.0f);
   const auto cr = params->GetReal("Mcts::State::CollisionReward", "", 1.0);
-  const auto desired_collision_reward = (cr + cf * cr) * 0.5;
+  const auto desired_collision_reward = ((1 - cf) * cr + cf * cr) * 0.5;
   EXPECT_TRUE(next_mcts_state->is_terminal()); // < acceleration should lead to a collision with other agent
   EXPECT_NEAR(rewards[0], desired_collision_reward, 0.00001);
   EXPECT_NEAR(cost, - desired_collision_reward, 0.00001);
@@ -140,7 +140,7 @@ TEST(cooperative_mcts_state, execute) {
     next_mcts_state = next_mcts_state->execute(JointAction({0, 2}), rewards, cost);
   }
   const auto gr = params->GetReal("Mcts::State::GoalReward", "", 1.0);
-  const auto desired_goal_reward =  ( gr ) * 0.5;
+  const auto desired_goal_reward =  ( (1 - cf)* gr + cf * 0.0 ) / 2.0;
   EXPECT_NEAR(rewards[0], desired_goal_reward , 0.00001); // < reward should be one when reaching the goal 
   EXPECT_NEAR(cost, - desired_goal_reward , 0.00001);
 }
@@ -168,6 +168,7 @@ TEST(behavior_uct_cooperative, no_agent_in_front_accelerate) {
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>();
+  params->SetReal("Mcts::State::CooperationFactor", 0.2);
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
