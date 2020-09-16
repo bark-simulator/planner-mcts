@@ -34,7 +34,7 @@ class BehaviorUCTBase : public BehaviorModel {
         mcts_edge_infos_ = mcts_edge_infos; }
 
   template< class Mcts, class State>
-  static std::vector<BarkMctsEdgeInfo> ExtractMctsEdgeInfo(Mcts& mcts);
+  static std::vector<BarkMctsEdgeInfo> ExtractMctsEdgeInfo(Mcts& mcts, unsigned int max_depth);
 
  protected:
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
@@ -43,13 +43,14 @@ class BehaviorUCTBase : public BehaviorModel {
   const mcts::MctsParameters mcts_parameters_;
   bool dump_tree_;
   bool extract_edge_info_;
+  unsigned int max_extraction_depth_;
   double prediction_time_span_;
   StateParameters mcts_state_parameters_;
   std::vector<BarkMctsEdgeInfo> mcts_edge_infos_;
 };
 
 template< class Mcts, class State>
-std::vector<BehaviorUCTBase::BarkMctsEdgeInfo> BehaviorUCTBase::ExtractMctsEdgeInfo(Mcts& mcts) {
+std::vector<BehaviorUCTBase::BarkMctsEdgeInfo> BehaviorUCTBase::ExtractMctsEdgeInfo(Mcts& mcts, unsigned int max_depth) {
   const std::function<Trajectory(const State&, 
                         const State&,
                         const mcts::AgentIdx&)> edge_info_extractor = [](const State& start_state, 
@@ -57,7 +58,7 @@ std::vector<BehaviorUCTBase::BarkMctsEdgeInfo> BehaviorUCTBase::ExtractMctsEdgeI
                                         const mcts::AgentIdx& agent_idx) {
         return end_state.get_observed_world().GetAgents().at(agent_idx)->GetBehaviorTrajectory();                                  
     };
-  return mcts.visit_mcts_tree_edges(edge_info_extractor);
+  return mcts.visit_mcts_tree_edges(edge_info_extractor, max_depth);
 }
 
 

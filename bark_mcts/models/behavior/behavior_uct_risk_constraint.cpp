@@ -103,7 +103,7 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
 
   if(extract_edge_info_) {
     SetLastMctsEdgeInfo(BehaviorUCTBase::ExtractMctsEdgeInfo<mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
-             mcts::RandomHeuristic>, MctsStateHypothesis<MctsStateRiskConstraint>>(mcts_risk_constrained));
+             mcts::RandomHeuristic>, MctsStateHypothesis<MctsStateRiskConstraint>>(mcts_risk_constrained, max_extraction_depth_));
   }
 
   const auto& best_action = sampled_policy.first;

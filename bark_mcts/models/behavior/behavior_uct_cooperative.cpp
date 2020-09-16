@@ -53,7 +53,7 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
 
   if(extract_edge_info_) {
     SetLastMctsEdgeInfo(BehaviorUCTBase::ExtractMctsEdgeInfo<mcts::Mcts<MctsStateCooperative, mcts::UctStatistic, mcts::UctStatistic,
-             mcts::RandomHeuristic>, MctsStateCooperative>(mcts_cooperative));
+             mcts::RandomHeuristic>, MctsStateCooperative>(mcts_cooperative, max_extraction_depth_));
   }
 
   VLOG(2) << "BehaviorUCTCooperative, iterations: " << mcts_cooperative.numIterations()

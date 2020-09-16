@@ -21,6 +21,9 @@ BehaviorUCTBase::BehaviorUCTBase(
       extract_edge_info_(GetParams()->AddChild("BehaviorUctBase")->GetBool(
           "ExtractEdgeInfo",
           "If true, policy tree is maintained in each step", true)),
+    max_extraction_depth_(GetParams()->AddChild("BehaviorUctBase")
+                                        ->GetInt("MaxExtractionDepth",
+          "Max depth tree is extracted", 10)),
       prediction_time_span_(GetParams()->AddChild("BehaviorUctBase")
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",

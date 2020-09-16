@@ -69,7 +69,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
 
   if(extract_edge_info_) {
     SetLastMctsEdgeInfo(BehaviorUCTBase::ExtractMctsEdgeInfo<mcts::Mcts<MctsStateHypothesis<>, mcts::UctStatistic, mcts::HypothesisStatistic,
-             mcts::RandomHeuristic>, MctsStateHypothesis<>>(mcts_hypothesis));
+             mcts::RandomHeuristic>, MctsStateHypothesis<>>(mcts_hypothesis, max_extraction_depth_));
   }
 
   VLOG(2) << "BehaviorUCTHypothesis, iterations: " << mcts_hypothesis.numIterations()
