@@ -243,9 +243,9 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", -1.0);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", -0.1);
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionCost", 1.0);
-  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 1000);
+  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 100);
   params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 1000000.0);
-  params->SetInt("BehaviorUctBase::MaxExtractionDepth", 2000);
+  params->SetInt("BehaviorUctBase::MaxExtractionDepth", 10);
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
@@ -268,6 +268,13 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   EXPECT_TRUE(boost::get<Continuous1DAction>(action) < 0.0f); // some decceleration should occur
   const auto mcts_edges = behavior_uct.GetLastMctsEdgeInfo();
   EXPECT_EQ(mcts_edges.size(), 1000*3); // num iterations * num agents
+  unsigned int largest_depth = 0;
+  for (const auto& edge : mcts_edges) {
+    if(std::get<1>(edge) > largest_depth) {
+      largest_depth = std::get<1>(edge);
+    }
+  }
+  EXPECT_TRUE(largest_depth > 3);
 }
 /*
 TEST(behavior_uct_single_agent, change_lane) {
