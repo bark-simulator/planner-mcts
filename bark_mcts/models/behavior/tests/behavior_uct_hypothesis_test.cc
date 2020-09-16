@@ -239,6 +239,10 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>();
+  params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 0.1);
+  params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", -1.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", -0.1);
+  params->SetReal("BehaviorUctBase::Mcts::State::CollisionCost", 1.0);
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
