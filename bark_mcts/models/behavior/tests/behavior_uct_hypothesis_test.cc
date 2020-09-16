@@ -243,7 +243,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", -1.0);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", -0.1);
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionCost", 1.0);
-  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 100);
+  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 1000);
   params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 1000000.0);
   params->SetInt("BehaviorUctBase::MaxExtractionDepth", 2000);
 
@@ -267,7 +267,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   auto action = behavior_uct.GetLastAction();
   EXPECT_TRUE(boost::get<Continuous1DAction>(action) < 0.0f); // some decceleration should occur
   const auto mcts_edges = behavior_uct.GetLastMctsEdgeInfo();
-  EXPECT_EQ(mcts_edges.size(), 100*3); // num iterations * num agents
+  EXPECT_EQ(mcts_edges.size(), 1000*3); // num iterations * num agents
 }
 /*
 TEST(behavior_uct_single_agent, change_lane) {
