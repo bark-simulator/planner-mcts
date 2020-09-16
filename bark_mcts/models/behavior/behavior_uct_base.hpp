@@ -56,7 +56,7 @@ std::vector<BehaviorUCTBase::BarkMctsEdgeInfo> BehaviorUCTBase::ExtractMctsEdgeI
                         const mcts::AgentIdx&)> edge_info_extractor = [](const State& start_state, 
                                         const State& end_state,
                                         const mcts::AgentIdx& agent_idx) {
-        return end_state.get_observed_world().GetAgents().at(agent_idx)->GetBehaviorTrajectory();                                  
+        return end_state.get_observed_world().GetAgents().at(agent_idx)->GetExecutionTrajectory();                                  
     };
   return mcts.visit_mcts_tree_edges(edge_info_extractor, max_depth);
 }
