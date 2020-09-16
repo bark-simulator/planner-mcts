@@ -101,6 +101,11 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
     mcts_risk_constrained.printTreeToDotFile(filename.str());
   }
 
+  if(extract_edge_info_) {
+    SetLastMctsEdgeInfo(BehaviorUCTBase::ExtractMctsEdgeInfo<mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
+             mcts::RandomHeuristic>, MctsStateHypothesis<MctsStateRiskConstraint>>(mcts_risk_constrained));
+  }
+
   const auto& best_action = sampled_policy.first;
   VLOG(2) << "BehaviorUCTRiskContraint, iterations: " << mcts_risk_constrained.numIterations()
             << ", search time " << mcts_risk_constrained.searchTime()

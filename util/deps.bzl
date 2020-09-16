@@ -26,7 +26,7 @@ cc_library(
     _maybe(
     git_repository,
     name = "mamcts_project",
-    commit="1df86a3327a0ffe01665b734e7139369ae245b7f",
+    commit="c9b5b8163a5b29271d0ff2698059d4e9a15bb48d",
     remote = "https://github.com/juloberno/mamcts",
     )
 
