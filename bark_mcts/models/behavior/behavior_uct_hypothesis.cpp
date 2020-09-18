@@ -40,7 +40,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
                                 prediction_time_span_, 
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypotheses_,
-                                ego_behavior_model_,
+                                std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_behavior_model_->Clone()),
                                 ego_id,
                                 mcts_state_parameters_);
 

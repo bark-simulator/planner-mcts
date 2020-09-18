@@ -52,7 +52,7 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::clone() const 
       std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
   return std::make_shared<MctsStateRiskConstraint>(
       worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
-      current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
+      current_agents_hypothesis_, behavior_hypotheses_, std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_behavior_model_->Clone()),
       ego_agent_id_, state_parameters_, current_hypothesis_beliefs_, state_sequence_probability_);
 }
 
@@ -66,7 +66,7 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::generate_next_
   VLOG_IF_EVERY_N(5, rewards[this->ego_agent_idx] != 0.0f, 5) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
   return std::make_shared<MctsStateRiskConstraint>(
       predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
-      current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
+      current_agents_hypothesis_, behavior_hypotheses_, std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_behavior_model_->Clone()),
       ego_agent_id_, state_parameters_, current_hypothesis_beliefs_, state_sequence_probability_);
 }
 
