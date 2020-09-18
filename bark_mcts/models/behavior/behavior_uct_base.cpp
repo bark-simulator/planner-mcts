@@ -33,6 +33,16 @@ BehaviorUCTBase::BehaviorUCTBase(
       mcts_edge_infos_() {}
 
 
+std::string BehaviorUCTBase::GetPrimitiveName(mcts::ActionIdx action) const {
+    auto macro_actions_model = std::dynamic_pointer_cast<BehaviorMPMacroActions>(ego_behavior_model_);
+    if(macro_actions_model) {
+      return macro_actions_model->GetMotionPrimitives().at(action)->GetName();
+    } else {
+      return "Unknown";
+    }
+}
+
+
 }  // namespace behavior
 }  // namespace models
 }  // namespace bark

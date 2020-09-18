@@ -36,6 +36,9 @@ class BehaviorUCTBase : public BehaviorModel {
   template< class Mcts, class State>
   static std::vector<BarkMctsEdgeInfo> ExtractMctsEdgeInfo(Mcts& mcts, unsigned int max_depth);
 
+  std::string GetPrimitiveName(mcts::ActionIdx action) const; 
+    
+
  protected:
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
 

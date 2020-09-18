@@ -109,7 +109,7 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   const auto& best_action = sampled_policy.first;
   VLOG(2) << "BehaviorUCTRiskContraint, iterations: " << mcts_risk_constrained.numIterations()
             << ", search time " << mcts_risk_constrained.searchTime()
-            << ", best action: " << best_action;
+            << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);
   VLOG_EVERY_N(3, 3) << belief_tracker_.sprintf();
 
   // Convert action to a trajectory
