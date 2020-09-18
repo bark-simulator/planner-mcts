@@ -44,6 +44,8 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
     parameters.uct_statistic.LOWER_BOUND = params->GetReal("Mcts::ReturnLowerBound", "Lower return bound used for normalization in UCT Statistic", -1000);
     parameters.uct_statistic.UPPER_BOUND = params->GetReal("Mcts::ReturnUpperBound", "Upper return bound used for normalization in UCT Statistic", 100);
     parameters.uct_statistic.EXPLORATION_CONSTANT = params->GetReal("Mcts::UctStatistic::ExplorationConstant", "Exploration constant of UCT", 0.7);
+    parameters.uct_statistic.PROGRESSIVE_WIDENING_K = params->GetReal("Mcts::UctStatistic::ProgressiveWidening::K", "Upper return bound used for normalization in UCT Statistic", 1);
+    parameters.uct_statistic.PROGRESSIVE_WIDENING_ALPHA = params->GetReal("Mcts::UctStatistic::ProgressiveWidening::Alpha", "Upper return bound used for normalization in UCT Statistic", 0.1);
 
     parameters.hypothesis_statistic.COST_BASED_ACTION_SELECTION = params->GetBool("Mcts::HypothesisStatistic::CostBasedActionSelection", "True, if costs instead of rewards are used for action selection", false);
     parameters.hypothesis_statistic.LOWER_COST_BOUND = params->GetReal("Mcts::LowerCostBound", "Upper cost bound used for normalization in UCT Statistic", 0);

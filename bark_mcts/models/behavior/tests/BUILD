@@ -67,6 +67,7 @@ cc_library(
         "@bark_project//bark/models/behavior/idm/stochastic:stochastic",
         "@bark_project//bark/world/tests:make_test_xodr_map",
         "@com_github_eigen_eigen//:eigen",
+        "@gtest//:gtest_main",
     ],
     visibility = ["//visibility:public"],
 )
