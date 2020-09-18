@@ -11,7 +11,7 @@
 #include "bark/world/tests/make_test_world.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
 #include "bark/models/behavior/motion_primitives/macro_actions.hpp"
-#include "bark/models/behavior/constant_velocity/constant_velocity.hpp"
+#include "bark/models/behavior/constant_acceleration/constant_acceleration.hpp"
 #include "bark/models/dynamic/single_track.hpp"
 #include "bark/commons/params/default_params.hpp"
 #include "bark/commons/params/setter_params.hpp"

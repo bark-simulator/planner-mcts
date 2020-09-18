@@ -15,7 +15,7 @@
 #include "bark/world/tests/make_test_xodr_map.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
 #include "bark/models/behavior/motion_primitives/macro_actions.hpp"
-#include "bark/models/behavior/constant_velocity/constant_velocity.hpp"
+#include "bark/models/behavior/constant_acceleration/constant_acceleration.hpp"
 #include "bark_mcts/models/behavior/hypothesis/idm/hypothesis_idm.hpp"
 #include "bark/models/dynamic/single_track.hpp"
 
@@ -98,7 +98,7 @@ ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float
 
     return params;
 }
-/*
+
 TEST(hypothesis_mcts_state, execute) {
   // Setup prediction models for ego agent and other agents   
   auto params = std::make_shared<SetterParams>(false);
@@ -235,7 +235,7 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   auto action = behavior_uct.GetLastAction();
   EXPECT_TRUE(boost::get<Continuous1DAction>(action)>= 0.0); // << max, available acceleration is action 2
 }
-*/
+
 
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front

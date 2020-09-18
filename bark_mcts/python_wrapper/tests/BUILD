@@ -11,7 +11,7 @@ cc_binary(
     "//bark_mcts/models/behavior/hypothesis/idm:hypothesis_idm",
     "//bark_mcts/models/behavior/action_store:behavior_action_store",
     "@bark_project//bark/python_wrapper:behavior",
-    "@bark_project//bark/models/behavior/constant_velocity:constant_velocity",
+    "@bark_project//bark/models/behavior/constant_acceleration:constant_acceleration",
     "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
     "@bark_project//bark/models/behavior/dynamic_model:dynamic_model",
     "@bark_project//bark/models/behavior/idm:idm_classic",
