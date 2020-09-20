@@ -40,7 +40,8 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRisk
     mcts::Cost default_available_risk_;
     mcts::Cost current_scenario_risk_;
     bool estimate_scenario_risk_; // Should scenario risk be estimated from scenario risk function
-    bool initialized_available_risk_; // Was scenario risk initialized from scenario risk function after belief was initialized;
+    bool initialized_available_risk_; // Was scenario risk initialized from scenario risk function after belief was initialized
+    bool update_scenario_risk_; // Should scenario risk be updated during scenario execution based on policy and executed actions
     risk_calculation::ScenarioRiskFunctionPtr scenario_risk_function_;
 };
 

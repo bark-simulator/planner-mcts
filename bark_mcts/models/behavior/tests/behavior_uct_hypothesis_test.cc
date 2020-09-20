@@ -15,7 +15,7 @@
 #include "bark/world/tests/make_test_xodr_map.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
 #include "bark/models/behavior/motion_primitives/macro_actions.hpp"
-#include "bark/models/behavior/constant_velocity/constant_velocity.hpp"
+#include "bark/models/behavior/constant_acceleration/constant_acceleration.hpp"
 #include "bark_mcts/models/behavior/hypothesis/idm/hypothesis_idm.hpp"
 #include "bark/models/dynamic/single_track.hpp"
 
@@ -236,9 +236,23 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   EXPECT_TRUE(boost::get<Continuous1DAction>(action)>= 0.0); // << max, available acceleration is action 2
 }
 
+
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>();
+  params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 0.1);
+  params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", -1.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", -0.1);
+  params->SetReal("BehaviorUctBase::Mcts::State::CollisionCost", 1.0);
+  params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::Alpha", 0.4);
+  params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::K", 0.1);
+  params->SetReal("BehaviorUctBase::Mcts::UctStatistic::ProgressiveWidening::Alpha", 0.5);
+  params->SetReal("BehaviorUctBase::Mcts::UctStatistic::ProgressiveWidening::K", 0.4);
+  params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::CostBasedActionSelection", true);
+  params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::HypothesisBased", true);
+  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 4000);
+  params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 1000000.0);
+  params->SetInt("BehaviorUctBase::MaxExtractionDepth", 10);
 
   float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
@@ -259,6 +273,32 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
   EXPECT_TRUE(boost::get<Continuous1DAction>(action) < 0.0f); // some decceleration should occur
+
+  // Check correct exploration depth/progressive widening
+  const auto mcts_edges = behavior_uct.GetLastMctsEdgeInfo();
+  unsigned int largest_depth = 0;
+  std::unordered_map<AgentIdx, std::unordered_map<ActionIdx, unsigned int>> agent_action_depth_count;
+  for (const auto& agent : observed_world.GetAgents()) {
+    // init
+    auto& counts = agent_action_depth_count[agent.first];
+  }
+  for (const auto& edge : mcts_edges) {
+    if(std::get<1>(edge) > largest_depth) {
+      largest_depth = std::get<1>(edge);
+    }
+    // count num expanded actions for root
+    if(std::get<1>(edge) == 0) {
+      agent_action_depth_count[std::get<0>(edge)][std::get<2>(edge)]++;
+    }
+    
+  }
+  EXPECT_TRUE(IsBetweenInclusive(largest_depth, 6, 10));
+
+  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 4, 7));
+  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetOtherAgents().begin()->first].size(), 3, 10));
+
+  // second agent always chooses same actions since hypthesis does not affect desired velocity driving
+  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[std::next(observed_world.GetOtherAgents().begin())->first].size(), 1, 1));
 }
 /*
 TEST(behavior_uct_single_agent, change_lane) {

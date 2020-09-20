@@ -43,6 +43,14 @@ public:
 
   bark::commons::Probability get_state_sequence_probability() const;
 
+  mcts::ActionIdx get_num_actions(mcts::AgentIdx agent_idx) const { 
+    if(agent_idx == this->get_ego_agent_idx()) {
+        return num_ego_actions_;
+    } else {
+      return std::numeric_limits<mcts::ActionIdx>::max();
+    }
+  }
+
  private:
   bark::commons::Probability calculation_state_transition_probability(const ObservedWorld& to) const;
 

@@ -10,6 +10,8 @@ from bark.core.models.behavior.risk_calculation import *
 from bark.core.models.dynamic import SingleTrackModel
 from bark.runtime.commons.parameters import ParameterServer
 
+import copy
+
 def pickle_unpickle(object):
     with open('temp.pickle','wb') as f:
         pickle.dump(object,f)
@@ -59,7 +61,7 @@ class PickleTests(unittest.TestCase):
         scenario_risk_func_def_before = LinearKnowledgeFunctionDefinition(prior_knowledge_region_before, scenario_risk_params)
         scenario_risk_func_before = ScenarioRiskFunction(scenario_risk_func_def_before, 0.3456)
         behavior = BehaviorUCTRiskConstraint(params, [hypothesis], scenario_risk_func_before)
-        unpickled = pickle_unpickle(behavior)
+        unpickled = copy.deepcopy(behavior)
         unpickled_hypothesis = unpickled.hypotheses
         self.assertEqual(len(unpickled_hypothesis), 1)
         hyp1 = unpickled_hypothesis[0]
@@ -86,6 +88,17 @@ class PickleTests(unittest.TestCase):
         self.assertAlmostEqual(unpickled_params.getReal("LinearKnowledgeFunction::DimensionName2::a", "", 1.0), 0.8123, 5)
         self.assertAlmostEqual(unpickled_params.getReal("LinearKnowledgeFunction::DimensionName2::b", "", 1.0), 0.32, 5)
 
+        behavior_without_scenario_risk = BehaviorUCTRiskConstraint(params, [hypothesis], None)
+        unpickled = copy.deepcopy(behavior_without_scenario_risk)
+        unpickled_hypothesis = unpickled.hypotheses
+        self.assertEqual(len(unpickled_hypothesis), 1)
+        hyp1 = unpickled_hypothesis[0]
+        self.assertTrue(isinstance(hyp1, BehaviorHypothesisIDM))
+        self.assertAlmostEqual(hyp1.params.getReal("BehaviorIDMStochastic::HeadwayDistribution::LowerBound", "", 1.0), \
+                         1.343412233123232323, 5)
+        self.assertAlmostEqual(hyp1.params.getReal("BehaviorIDMStochastic::HeadwayDistribution::UpperBound", "", 3.0), \
+                         1.75656563123232323, 5)
+        self.assertEqual(hyp1.params.getInt("BehaviorHypothesisIDM::NumSamples", "", 1), 13423434)
 
 if __name__ == '__main__':
     unittest.main()

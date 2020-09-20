@@ -21,6 +21,8 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                 current_scenario_risk_(default_available_risk_),
                                 estimate_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
                                       ->GetBool("EstimateScenarioRisk", "Should scenario risk be estimated from scenario risk function", false)),
+                                update_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
+                                      ->GetBool("UpdateScenarioRisk", "Should scenario risk be estimated from scenario risk function", true)),
                                 initialized_available_risk_(!estimate_scenario_risk_),
                                 scenario_risk_function_(scenario_risk_function) {}
 
@@ -74,6 +76,7 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
 
   // Do the search
   auto current_mcts_parameters = mcts_parameters_;
+  current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT = current_scenario_risk_;
   mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
              mcts::RandomHeuristic>  mcts_risk_constrained(current_mcts_parameters);
   mcts_risk_constrained.search(*mcts_hypothesis_state_ptr, belief_tracker_);
@@ -81,12 +84,14 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   auto sampled_policy = mcts_risk_constrained.get_root().get_ego_int_node().greedy_policy(
               0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR);
       VLOG(3) << "Constraint: " << current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT << ", Action: " << sampled_policy.first << "\n" <<
-                mcts_risk_constrained.get_root().get_ego_int_node().print_edge_information(0);
+                mcts_risk_constrained.get_root().get_ego_int_node().print_edge_information(sampled_policy.first) << mcts::CostConstrainedStatistic::print_policy(sampled_policy.second) << "\n"
+                << "Expected risk: " << mcts_risk_constrained.get_root().get_ego_int_node().expected_policy_cost(sampled_policy.second);
 
   // Update the constraint based on policy
-  if(initialized_available_risk_) {
+  if(initialized_available_risk_ && update_scenario_risk_) {
     current_scenario_risk_ = mcts_risk_constrained.get_root().get_ego_int_node().
                       calc_updated_constraint_based_on_policy(sampled_policy, current_scenario_risk_);
+    current_scenario_risk_ = std::min(std::max(0.0, current_scenario_risk_), 1.0);
   }
 
   // Postprocessing
@@ -96,10 +101,15 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
     mcts_risk_constrained.printTreeToDotFile(filename.str());
   }
 
+  if(extract_edge_info_) {
+    SetLastMctsEdgeInfo(BehaviorUCTBase::ExtractMctsEdgeInfo<mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
+             mcts::RandomHeuristic>, MctsStateHypothesis<MctsStateRiskConstraint>>(mcts_risk_constrained, max_extraction_depth_));
+  }
+
   const auto& best_action = sampled_policy.first;
   VLOG(2) << "BehaviorUCTRiskContraint, iterations: " << mcts_risk_constrained.numIterations()
             << ", search time " << mcts_risk_constrained.searchTime()
-            << ", best action: " << best_action;
+            << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);
   VLOG_EVERY_N(3, 3) << belief_tracker_.sprintf();
 
   // Convert action to a trajectory

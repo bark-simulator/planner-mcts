@@ -51,9 +51,14 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
     mcts_cooperative.printTreeToDotFile(filename.str());
   }
 
+  if(extract_edge_info_) {
+    SetLastMctsEdgeInfo(BehaviorUCTBase::ExtractMctsEdgeInfo<mcts::Mcts<MctsStateCooperative, mcts::UctStatistic, mcts::UctStatistic,
+             mcts::RandomHeuristic>, MctsStateCooperative>(mcts_cooperative, max_extraction_depth_));
+  }
+
   VLOG(2) << "BehaviorUCTCooperative, iterations: " << mcts_cooperative.numIterations()
             << ", search time " << mcts_cooperative.searchTime()
-            << ", best action: " << best_action;
+            << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);
 
   // Convert action to a trajectory
   ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));

@@ -66,6 +66,7 @@ void python_planner_uct(py::module m) {
         return "bark.behavior.BehaviorUCTHypothesis";
       })
       .def_property_readonly("hypotheses", &BehaviorUCTHypothesis::GetBehaviorHypotheses)
+      .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTHypothesis::GetLastMctsEdgeInfo)
       .def(py::pickle(
       [](const BehaviorUCTHypothesis& b) {
         py::list list;
@@ -94,6 +95,7 @@ void python_planner_uct(py::module m) {
       .def("__repr__", [](const BehaviorUCTCooperative &m) {
         return "bark.behavior.BehaviorUCTCooperative";
       })
+      .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTCooperative::GetLastMctsEdgeInfo)
       .def(py::pickle(
       [](const BehaviorUCTCooperative& b) {
         return py::make_tuple(ParamsToPython(b.GetParams()));
@@ -114,6 +116,7 @@ void python_planner_uct(py::module m) {
         return "bark.behavior.BehaviorUCTRiskConstraint";
       })
       .def_property_readonly("hypotheses", &BehaviorUCTRiskConstraint::GetBehaviorHypotheses)
+      .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTRiskConstraint::GetLastMctsEdgeInfo)
       .def_property_readonly("scenario_risk_function", &BehaviorUCTRiskConstraint::GetScenarioRiskFunction)
       .def(py::pickle(
       [](const BehaviorUCTRiskConstraint& b) -> py::tuple {
@@ -122,19 +125,28 @@ void python_planner_uct(py::module m) {
         for (const auto& hypothesis : hypotheses) {
           list.append(BehaviorModelToPython(hypothesis));
         }
-        return py::make_tuple(ParamsToPython(b.GetParams()), list, b.GetScenarioRiskFunction());
+        if ( b.GetScenarioRiskFunction()) {
+          return py::make_tuple(ParamsToPython(b.GetParams()), list, b.GetScenarioRiskFunction());
+        } else {
+          return py::make_tuple(ParamsToPython(b.GetParams()), list);
+        }
       },
       [](py::tuple t) {
-        if (t.size() != 3)
+        if (t.size() != 2 && t.size() != 3)
           throw std::runtime_error("Invalid behavior model state!");
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
           hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
         }
-        return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
+        if (t.size() == 3) {
+          return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
                 hypotheses, std::make_shared<risk_calculation::ScenarioRiskFunction>(
                                     t[2].cast<risk_calculation::ScenarioRiskFunction>()));
+        } else {
+          return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
+                hypotheses, nullptr);
+        }
       }));
 
   py::class_<BehaviorHypothesis,

@@ -80,6 +80,7 @@ void python_risk_calculation(py::module m) {
       return "bark.behavior.PriorKnowledgeFunction";
     })
     .def("CalculateScenarioRiskFunction", &PriorKnowledgeFunction::CalculateScenarioRiskFunction)
+    .def_property_readonly("knowledge_function_definition", &PriorKnowledgeFunction::GetKnowledgeFunction)
     .def(py::pickle(
       [](const PriorKnowledgeFunction& pkf) {
         // We throw away other information such as last trajectories

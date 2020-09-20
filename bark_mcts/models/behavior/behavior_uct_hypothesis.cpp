@@ -67,9 +67,14 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
     mcts_hypothesis.printTreeToDotFile(filename.str());
   }
 
+  if(extract_edge_info_) {
+    SetLastMctsEdgeInfo(BehaviorUCTBase::ExtractMctsEdgeInfo<mcts::Mcts<MctsStateHypothesis<>, mcts::UctStatistic, mcts::HypothesisStatistic,
+             mcts::RandomHeuristic>, MctsStateHypothesis<>>(mcts_hypothesis, max_extraction_depth_));
+  }
+
   VLOG(2) << "BehaviorUCTHypothesis, iterations: " << mcts_hypothesis.numIterations()
             << ", search time " << mcts_hypothesis.searchTime()
-            << ", best action: " << best_action;
+            << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);
   VLOG_EVERY_N(3, 3) << belief_tracker_.sprintf();
 
   // Covert action to a trajectory

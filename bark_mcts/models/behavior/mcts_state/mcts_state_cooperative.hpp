@@ -39,6 +39,11 @@ class MctsStateCooperative : public MctsStateBase<MctsStateCooperative> {
 
     std::shared_ptr<MctsStateCooperative> clone() const;
 
+    mcts::ActionIdx get_num_actions(mcts::AgentIdx agent_idx) const { 
+        return num_ego_actions_;
+    }
+
+
  protected:
     ObservedWorldPtr predict(const mcts::JointAction& joint_action) const;
 

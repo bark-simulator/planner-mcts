@@ -39,6 +39,7 @@ typedef struct StateParameters {
   float GOAL_COST;
   float COLLISION_COST;
   float COOPERATION_FACTOR;
+  float STEP_REWARD;
 } StateParameters;
 
 typedef struct EvaluationResults {
@@ -56,8 +57,8 @@ typedef struct EvaluationResults {
 } EvaluationResults;
 
 inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
-  return (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * parameters.COLLISION_REWARD +
-            evaluation_results.goal_reached * parameters.GOAL_REWARD;
+  return float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * parameters.COLLISION_REWARD +
+            float(evaluation_results.goal_reached) * parameters.GOAL_REWARD + parameters.STEP_REWARD;
 };
 
 template<class T>
@@ -71,8 +72,6 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis);
-
-    mcts::ActionIdx get_num_actions(mcts::AgentIdx agent_idx) const { return num_ego_actions_; }
 
     bool is_terminal() const { return is_terminal_state_; };
 
@@ -128,7 +127,7 @@ const mcts::AgentIdx MctsStateBase<T>::get_ego_agent_idx() const {
 
 template<class T>
 std::vector<mcts::AgentIdx> MctsStateBase<T>::update_other_agent_ids() const {
-  world::AgentMap agent_map = observed_world_->GetOtherAgents();
+  world::AgentMap agent_map = observed_world_->GetValidOtherAgents();
   std::vector<mcts::AgentIdx> ids;
   for (const auto &agent : agent_map) {
     ids.push_back(agent.first);
