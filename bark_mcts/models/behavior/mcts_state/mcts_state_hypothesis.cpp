@@ -69,7 +69,6 @@ auto MctsStateHypothesis<T>::execute(
 
 template <typename T>
 ObservedWorldPtr MctsStateHypothesis<T>::predict(const mcts::JointAction& joint_action) const {
-  ego_behavior_model_->ActionToBehavior(DiscreteAction(joint_action[this->ego_agent_idx]));
   auto predicted_behaviors_ = behaviors_stored_;
   mcts::AgentIdx action_idx = 1;
   for (const auto& agent_id : this->get_other_agent_idx()) {
@@ -77,8 +76,10 @@ ObservedWorldPtr MctsStateHypothesis<T>::predict(const mcts::JointAction& joint_
             ->MakeBehaviorActive(static_cast<ActionHash>(joint_action[action_idx]));
     action_idx++;
   }
+  auto new_ego_behavior = ego_behavior_model_->Clone();
+  new_ego_behavior->ActionToBehavior(DiscreteAction(joint_action[this->ego_agent_idx]));
   const auto predicted_world = 
-            observed_world_->Predict(prediction_time_span_, ego_behavior_model_, predicted_behaviors_);
+            observed_world_->Predict(prediction_time_span_, new_ego_behavior, predicted_behaviors_);
   return predicted_world;
 }
 

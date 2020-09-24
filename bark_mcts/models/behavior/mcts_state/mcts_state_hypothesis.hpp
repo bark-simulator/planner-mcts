@@ -100,8 +100,8 @@ public:
           std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
       return std::make_shared<MctsStateHypothesis<T>>(
           worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
-          MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, ego_behavior_model_,
-          ego_agent_id_, state_parameters_);
+          MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_,
+            ego_behavior_model_, ego_agent_id_, state_parameters_);
     }
 
     auto impl_generate_next_state(std::true_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
