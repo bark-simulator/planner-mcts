@@ -35,7 +35,6 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
                                 false, // terminal
                                 num, // num action 
                                 prediction_time_span_, 
-                                ego_behavior_model_,
                                 ego_id,
                                 mcts_state_parameters_);
 

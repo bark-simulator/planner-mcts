@@ -42,7 +42,6 @@ void BeliefCalculator::BeliefUpdate(
                                 0.0, 
                                 belief_tracker_->sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypotheses_,
-                                nullptr,
                                 0,
                                 state_parameters);
 

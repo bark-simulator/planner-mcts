@@ -36,6 +36,8 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
     this->DefineTrueBehaviorsAsHypothesis(observed_world);
   }
 
+  mcts_observed_world->GetEgoAgent()->SetBehaviorModel(ego_behavior_model_);
+
   const ObservedWorldPtr const_mcts_observed_world =
       std::const_pointer_cast<ObservedWorld>(mcts_observed_world);
   BehaviorMotionPrimitives::MotionIdx num =
@@ -50,7 +52,6 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
                                 prediction_time_span_, 
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypotheses_,
-                                ego_behavior_model_,
                                 ego_id,
                                 mcts_state_parameters_,
                                 belief_tracker_.get_beliefs(),

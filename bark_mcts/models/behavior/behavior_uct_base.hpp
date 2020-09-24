@@ -26,8 +26,6 @@ class BehaviorUCTBase : public BehaviorModel {
   explicit BehaviorUCTBase(const commons::ParamsPtr& params);
   virtual ~BehaviorUCTBase() {}
 
-  BehaviorMotionPrimitivesPtr GetEgoBehavior() const { return ego_behavior_model_; }
-
   using BarkMctsEdgeInfo = mcts::MctsEdgeInfo<Trajectory>;
   std::vector<BarkMctsEdgeInfo> GetLastMctsEdgeInfo() const {return mcts_edge_infos_; };
   void SetLastMctsEdgeInfo(const std::vector<BarkMctsEdgeInfo>& mcts_edge_infos)  {

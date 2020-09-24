@@ -28,7 +28,6 @@ public:
                        const float& prediction_time_span,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorModelPtr>& behavior_hypothesis,
-                       const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters,
                        const std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>>& current_hypothesis_beliefs,
