@@ -254,28 +254,35 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>();
-  params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 2.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 1.0);
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", 0.0);
-  params->SetReal("BehaviorUctBase::Mcts::State::CollisionCost", 100.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", 0.0);
+  params->SetReal("BehaviorUctBase::Mcts::State::CollisionCost", 1.0);
   params->SetReal("BehaviorUctBase::Mcts::ReturnLowerBound", 0.0);
-  params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 2.0);
+  params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 1.0);
   params->SetReal("BehaviorUctBase::Mcts::LowerCostBound", 0.0);
-  params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 100.0);
+  params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 1.0);
   params->SetReal("BehaviorUctRiskConstraint::DefaultAvailableRisk", 0.1f);
   params->SetBool("BehaviorUctRiskConstraint::EstimateScenarioRisk", false);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
-  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 1000);
+  params->SetReal("BehaviorUctBase::Mcts::UctStatistic::ProgressiveWidening::Alpha", 0.5);
+  params->SetReal("BehaviorUctBase::Mcts::UctStatistic::ProgressiveWidening::K", 0.4);
+  params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::CostBasedActionSelection", true);
+  params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::HypothesisBased", true);
+  params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::Alpha", 0.4);
+  params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::K", 0.1);
+  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 4000);
   params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 400000);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", 2.0f);
-  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 10.0f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 0.5f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::GradientUpdateScaling",  1.0f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::TauGradientClip", 1.0f);
-  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::ActionFilterFactor", 0.0f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::ActionFilterFactor", 2.0f);
 
-  float ego_velocity = 5.0, rel_distance = 2.0, velocity_difference=2.0, prediction_time_span=0.5f;
-  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
-  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(150, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
+  float ego_velocity = 5.0, rel_distance = 1.0, velocity_difference=2.0, prediction_time_span=0.5f;
+  Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 2), Point2d(-3, 2), Point2d(3, 2), Point2d(3, -2), Point2d(-3, -2)});
+  std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(10, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
   
   auto observed_world = make_test_observed_world(2,rel_distance, ego_velocity, velocity_difference, goal_definition_ptr);
@@ -291,7 +298,34 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  EXPECT_TRUE(boost::get<Continuous1DAction>(action) < 0.0f); // some decceleration should occur
+  auto motion_idx = behavior_uct.GetLastMotionIdx();
+  EXPECT_TRUE(motion_idx == 6 || motion_idx == 4); // some decceleration should occur or a lane change to the right
+
+  // Check correct exploration depth/progressive widening
+  const auto mcts_edges = behavior_uct.GetLastMctsEdgeInfo();
+  unsigned int largest_depth = 0;
+  std::unordered_map<AgentIdx, std::unordered_map<ActionIdx, unsigned int>> agent_action_depth_count;
+  for (const auto& agent : observed_world.GetAgents()) {
+    // init
+    auto& counts = agent_action_depth_count[agent.first];
+  }
+  for (const auto& edge : mcts_edges) {
+    if(std::get<1>(edge) > largest_depth) {
+      largest_depth = std::get<1>(edge);
+    }
+    // count num expanded actions for root
+    if(std::get<1>(edge) == 0) {
+      agent_action_depth_count[std::get<0>(edge)][std::get<2>(edge)]++;
+    }
+    
+  }
+  EXPECT_TRUE(IsBetweenInclusive(largest_depth, 6, 10));
+
+  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 4, 7));
+  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetOtherAgents().begin()->first].size(), 3, 10));
+
+  // second agent always chooses same actions since hypthesis does not affect desired velocity driving
+  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[std::next(observed_world.GetOtherAgents().begin())->first].size(), 1, 1));
 }
 
 

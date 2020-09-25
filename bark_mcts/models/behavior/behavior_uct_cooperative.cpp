@@ -43,6 +43,7 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
              mcts::RandomHeuristic> mcts_cooperative(mcts_parameters_);
   mcts_cooperative.search(*mcts_cooperative_state_ptr);
   mcts::ActionIdx best_action = mcts_cooperative.returnBestAction();
+  last_motion_idx_ = best_action;
 
   if (dump_tree_) {
     std::stringstream filename;
