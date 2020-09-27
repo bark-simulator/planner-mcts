@@ -31,14 +31,12 @@ MctsStateHypothesis<T>::MctsStateHypothesis(
                        const float& prediction_time_span,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorModelPtr>& behavior_hypothesis,
-                       const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters) :
                         MctsStateBase<MctsStateHypothesis<T>>(observed_world,
                                       is_terminal_state,
                                       num_ego_actions,
                                       prediction_time_span,
-                                      ego_behavior_model,
                                       ego_agent_id,
                                       state_parameters,
                                       current_agents_hypothesis),
@@ -69,7 +67,6 @@ auto MctsStateHypothesis<T>::execute(
 
 template <typename T>
 ObservedWorldPtr MctsStateHypothesis<T>::predict(const mcts::JointAction& joint_action) const {
-  ego_behavior_model_->ActionToBehavior(DiscreteAction(joint_action[this->ego_agent_idx]));
   auto predicted_behaviors_ = behaviors_stored_;
   mcts::AgentIdx action_idx = 1;
   for (const auto& agent_id : this->get_other_agent_idx()) {
@@ -77,8 +74,10 @@ ObservedWorldPtr MctsStateHypothesis<T>::predict(const mcts::JointAction& joint_
             ->MakeBehaviorActive(static_cast<ActionHash>(joint_action[action_idx]));
     action_idx++;
   }
+  auto ego_behavior = observed_world_->GetEgoAgent()->GetBehaviorModel()->Clone();
+  ego_behavior->ActionToBehavior(DiscreteAction(joint_action[this->ego_agent_idx]));
   const auto predicted_world = 
-            observed_world_->Predict(prediction_time_span_, ego_behavior_model_, predicted_behaviors_);
+            observed_world_->Predict(prediction_time_span_, ego_behavior, predicted_behaviors_);
   return predicted_world;
 }
 
