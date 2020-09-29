@@ -269,7 +269,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctBase::Mcts::UctStatistic::ProgressiveWidening::Alpha", 0.5);
   params->SetReal("BehaviorUctBase::Mcts::UctStatistic::ProgressiveWidening::K", 0.4);
   params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::CostBasedActionSelection", true);
-  params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::HypothesisBased", true);
+  params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::HypothesisBased", false);
   params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::Alpha", 0.4);
   params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::K", 0.1);
   params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 4000);
