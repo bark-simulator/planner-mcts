@@ -35,7 +35,6 @@ class MctsStateHypothesis : public MctsStateBase<MctsStateHypothesis<T>> {
     using MctsStateBase<MctsStateHypothesis<T>>::other_agent_ids_;
     using MctsStateBase<MctsStateHypothesis<T>>::ego_agent_id_;
     using MctsStateBase<MctsStateHypothesis<T>>::state_parameters_;
-    using MctsStateBase<MctsStateHypothesis<T>>::ego_behavior_model_;
 
 public:
     MctsStateHypothesis(const bark::world::ObservedWorldPtr& observed_world,
@@ -44,7 +43,6 @@ public:
                        const float& prediction_time_span,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorModelPtr>& behavior_hypothesis,
-                       const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters);
 
@@ -100,9 +98,8 @@ public:
           std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
       return std::make_shared<MctsStateHypothesis<T>>(
           worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
-          MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, 
-          std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_behavior_model_->Clone()),
-          ego_agent_id_, state_parameters_);
+          MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_,
+            ego_agent_id_, state_parameters_);
     }
 
     auto impl_generate_next_state(std::true_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
@@ -117,7 +114,6 @@ public:
         return std::make_shared<MctsStateHypothesis<T>>(
                     predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
                     MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, 
-                    std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_behavior_model_->Clone()),
                     ego_agent_id_, state_parameters_);
     }
 

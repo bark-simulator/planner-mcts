@@ -13,6 +13,7 @@ BehaviorUCTBase::BehaviorUCTBase(
       ego_behavior_model_(models::behavior::
           BehaviorMacroActionsFromParamServer(GetParams()
             ->AddChild("BehaviorUctBase")->AddChild("EgoBehavior"))),
+      last_motion_idx_(),
       mcts_parameters_(models::behavior::MctsParametersFromParamServer(
           GetParams()->AddChild("BehaviorUctBase"))),
       dump_tree_(GetParams()->AddChild("BehaviorUctBase")->GetBool(

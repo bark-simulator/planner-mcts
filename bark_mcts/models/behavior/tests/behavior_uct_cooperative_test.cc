@@ -94,7 +94,6 @@ TEST(cooperative_mcts_state, execute) {
                         false,
                        num_ego_actions,
                        prediction_time_span,
-                       ego_behavior_model,
                        ego_agent_id,
                        state_params);
 

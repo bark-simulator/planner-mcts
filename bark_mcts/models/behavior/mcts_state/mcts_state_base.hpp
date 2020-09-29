@@ -68,7 +68,6 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
                        const float& prediction_time_span,
-                       const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis);
@@ -93,7 +92,6 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
   const std::vector<mcts::AgentIdx> other_agent_ids_;
   const mcts::AgentIdx ego_agent_id_;
   const StateParameters state_parameters_;
-  const BehaviorMotionPrimitivesPtr& ego_behavior_model_;
 };
 
 template<class T>
@@ -101,7 +99,6 @@ MctsStateBase<T>::MctsStateBase(const bark::world::ObservedWorldPtr& observed_wo
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
                        const float& prediction_time_span,
-                       const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis) :
@@ -110,7 +107,6 @@ MctsStateBase<T>::MctsStateBase(const bark::world::ObservedWorldPtr& observed_wo
       is_terminal_state_(is_terminal_state),
       num_ego_actions_(num_ego_actions),
       prediction_time_span_(prediction_time_span),
-      ego_behavior_model_(ego_behavior_model),
       other_agent_ids_(update_other_agent_ids()),
       ego_agent_id_(ego_agent_id),
       state_parameters_(state_parameters) {}

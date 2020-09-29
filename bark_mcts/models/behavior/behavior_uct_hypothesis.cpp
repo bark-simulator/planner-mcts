@@ -21,6 +21,8 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   ObservedWorldPtr mcts_observed_world =
       std::dynamic_pointer_cast<ObservedWorld>(observed_world.Clone());
 
+  mcts_observed_world->GetEgoAgent()->SetBehaviorModel(ego_behavior_model_);
+
   // Check if we can shall use existing behavior models as hypothesis
   if(use_true_behaviors_as_hypothesis_) {
     this->DefineTrueBehaviorsAsHypothesis(observed_world);
@@ -40,7 +42,6 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
                                 prediction_time_span_, 
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypotheses_,
-                                std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_behavior_model_->Clone()),
                                 ego_id,
                                 mcts_state_parameters_);
 
@@ -60,6 +61,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   mcts_hypothesis.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
   mcts::ActionIdx best_action = mcts_hypothesis.returnBestAction();
+  last_motion_idx_ = best_action;
 
   if (dump_tree_) {
     std::stringstream filename;

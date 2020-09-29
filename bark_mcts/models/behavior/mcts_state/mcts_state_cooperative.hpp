@@ -29,7 +29,6 @@ class MctsStateCooperative : public MctsStateBase<MctsStateCooperative> {
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
                        const float& prediction_time_span,
-                       const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters);
 

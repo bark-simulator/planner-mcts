@@ -121,6 +121,7 @@ TEST(hypothesis_mcts_state, execute) {
   auto observed_world = std::dynamic_pointer_cast<ObservedWorld>(
         make_test_observed_world(1, rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
   observed_world->SetRemoveAgents(true);
+  observed_world->GetEgoAgent()->SetBehaviorModel(ego_behavior_model);
   auto const_observed_world = std::const_pointer_cast<ObservedWorld>(observed_world);
   const auto num_ego_actions = std::dynamic_pointer_cast<BehaviorMotionPrimitives>(ego_behavior_model)->GetNumMotionPrimitives(const_observed_world);
 
@@ -143,7 +144,6 @@ TEST(hypothesis_mcts_state, execute) {
                        prediction_time_span,
                        belief_tracker.sample_current_hypothesis(),
                        behavior_hypothesis,
-                       ego_behavior_model,
                        ego_agent_id,
                        state_params);
   

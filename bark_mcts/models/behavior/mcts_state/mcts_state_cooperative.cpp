@@ -25,14 +25,12 @@ MctsStateCooperative::MctsStateCooperative(
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
                        const float& prediction_time_span,
-                       const BehaviorMotionPrimitivesPtr& ego_behavior_model,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters) :
                         MctsStateBase<MctsStateCooperative>(observed_world,
                                       is_terminal_state,
                                       num_ego_actions,
                                       prediction_time_span,
-                                      ego_behavior_model,
                                       ego_agent_id,
                                       state_parameters,
                                       std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>()){}
@@ -42,7 +40,7 @@ std::shared_ptr<MctsStateCooperative> MctsStateCooperative::clone() const {
         std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
     return std::make_shared<MctsStateCooperative>(
                     worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
-                    ego_behavior_model_, ego_agent_id_, state_parameters_); 
+                    ego_agent_id_, state_parameters_); 
 }
 
 std::shared_ptr<MctsStateCooperative> MctsStateCooperative::execute(
@@ -111,7 +109,7 @@ std::shared_ptr<MctsStateCooperative> MctsStateCooperative::generate_next_state(
 
     return std::make_shared<MctsStateCooperative>(
                     predicted_world, ego_evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
-                    ego_behavior_model_, ego_agent_id_, state_parameters_);
+                    ego_agent_id_, state_parameters_);
 }
 
 

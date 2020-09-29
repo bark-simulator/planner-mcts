@@ -35,7 +35,6 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
                                 false, // terminal
                                 num, // num action 
                                 prediction_time_span_, 
-                                ego_behavior_model_,
                                 ego_id,
                                 mcts_state_parameters_);
 
@@ -44,6 +43,7 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
              mcts::RandomHeuristic> mcts_cooperative(mcts_parameters_);
   mcts_cooperative.search(*mcts_cooperative_state_ptr);
   mcts::ActionIdx best_action = mcts_cooperative.returnBestAction();
+  last_motion_idx_ = best_action;
 
   if (dump_tree_) {
     std::stringstream filename;
