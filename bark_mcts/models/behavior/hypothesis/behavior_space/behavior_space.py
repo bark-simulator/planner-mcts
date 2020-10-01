@@ -75,7 +75,8 @@ class BehaviorSpace:
     _ = hypothesis_parameters["RandomSeed", "Seed for hypothesis", 1000]
     hypothesis_model_type = hypothesis_parameters["HypothesisModel", "", "BehaviorHypothesisIDM"]
     _, defaults_hypothesis_model = self._model_from_model_type(hypothesis_model_type, ParameterServer())
-    hypothesis_parameters[hypothesis_model_type] = defaults_hypothesis_model[hypothesis_model_type]
+    if len(hypothesis_parameters[hypothesis_model_type].ConvertToDict()) == 0:
+      hypothesis_parameters[hypothesis_model_type] = defaults_hypothesis_model[hypothesis_model_type]
     partition_parameters = hypothesis_parameters.AddChild("Partitions")
 
     def add_default_partition_params(range_params, part_params):
