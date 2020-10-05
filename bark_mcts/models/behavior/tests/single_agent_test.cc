@@ -72,7 +72,7 @@ TEST(single_agent_mcts_state, execute) {
   MctsStateSingleAgent mcts_state(observed_world, false, num_ego_actions, prediction_time_span);
   
   std::vector<mcts::Reward> rewards;
-  mcts::Cost cost;
+  mcts::EgoCosts cost;
   auto next_mcts_state = mcts_state.execute(JointAction({0}), rewards, cost);
 
   // Checking reward of zero if we are neither colliding or at goal
@@ -138,7 +138,7 @@ TEST(single_agent_mcts_state, execute_goal_reached_state_limits) {
   
   // Checking goal reached: Do multiple steps and expect that goal is reached
   std::vector<mcts::Reward> rewards;
-  mcts::Cost cost;
+  mcts::EgoCosts cost;
   bool reached = false;
   auto next_mcts_state = mcts_state.execute(JointAction({0}), rewards, cost);
   reached = next_mcts_state->is_terminal();

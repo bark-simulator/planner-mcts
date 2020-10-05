@@ -148,7 +148,7 @@ TEST(hypothesis_mcts_state, execute) {
                        state_params);
   
   std::vector<mcts::Reward> rewards;
-  mcts::Cost cost;
+  mcts::EgoCosts cost;
   belief_tracker.belief_update(mcts_state, mcts_state);
   belief_tracker.sample_current_hypothesis();
   auto t1 = std::chrono::high_resolution_clock::now();
@@ -173,7 +173,7 @@ TEST(hypothesis_mcts_state, execute) {
                                                 // a long driving corridor along x exists
                                                 // no collision should occur after one action
   EXPECT_NEAR(rewards[0], 0.0f , 0.00001);
-  EXPECT_NEAR(cost, 0,0.001);
+  EXPECT_NEAR(cost.at(0), 0,0.001);
 
   // Clone test
   const auto cloned_state = mcts_state.clone();
@@ -193,7 +193,7 @@ TEST(hypothesis_mcts_state, execute) {
   }
   EXPECT_TRUE(next_mcts_state->is_terminal()); // < acceleration should lead to a collision with other agent
   EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::CollisionReward", "", 1.0) , 0.00001);
-  EXPECT_NEAR(cost, params->GetReal("Mcts::State::CollisionCost", "", 1.0) , 0.00001);
+  EXPECT_NEAR(cost.at(0), params->GetReal("Mcts::State::CollisionCost", "", 1.0) , 0.00001);
 
 
   // Checking goal reached: Do multiple steps and expect that goal is reached
@@ -206,7 +206,7 @@ TEST(hypothesis_mcts_state, execute) {
     next_mcts_state = next_mcts_state->execute(JointAction({0, action_idx2}), rewards, cost);
   }
   EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::GoalReward", "", 1.0)  , 0.00001); // < reward should be one when reaching the goal 
-  EXPECT_NEAR(cost, params->GetReal("Mcts::State::GoalCost", "", 1.0) , 0.00001);
+  EXPECT_NEAR(cost.at(0), params->GetReal("Mcts::State::GoalCost", "", 1.0) , 0.00001);
 }
 
 

@@ -70,6 +70,20 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
     parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR = params->GetReal("Mcts::CostConstrainedStatistic::ActionFilterFactor",
                "Scales node counts in relation to value differences, favoring less visited nodes", 0.5f);
 
+    auto float_to_bool_vec = [](const std::vector<float>& float_vec) {
+        std::vector<bool> bool_vec(float_vec.size());
+        std::transform(float_vec.begin(), float_vec.end(), bool_vec.begin(), [](const float& v){return v == 1.0 ? true : false;});
+        return bool_vec;
+    };
+    parameters.cost_constrained_statistic.USE_COST_THRESHOLDING = float_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseCostTresholding",
+               "Specify 1.0 if cost thresholding enabled for cost index", {0.0f}));
+    parameters.cost_constrained_statistic.USE_CHANCE_CONSTRAINED_UPDATES = float_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseChanceConstrainedUpdate",
+               "Track violations instead of cumulative cost during backpropagation", {0.0f}));
+    parameters.cost_constrained_statistic.COST_THRESHOLDS = params->GetListFloat("Mcts::CostConstrainedStatistic::CostThresholds",
+               "Cost thresholds for thresholded cost constraining", {0.1f});
+    parameters.cost_constrained_statistic.USE_LAMBDA_POLICY = params->GetBool("Mcts::CostConstrainedStatistic::UseLambdaPolicy",
+               "Lambda policy applied to first cost entry?", true);
+
     return parameters;
 }
 

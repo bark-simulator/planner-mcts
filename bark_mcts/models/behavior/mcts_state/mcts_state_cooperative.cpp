@@ -45,7 +45,7 @@ std::shared_ptr<MctsStateCooperative> MctsStateCooperative::clone() const {
 
 std::shared_ptr<MctsStateCooperative> MctsStateCooperative::execute(
     const mcts::JointAction& joint_action, std::vector<mcts::Reward>& rewards,
-    mcts::Cost& ego_cost) const {
+    mcts::EgoCosts& ego_cost) const {
   BARK_EXPECT_TRUE(!this->is_terminal());
 
   const auto predicted_world = predict(joint_action);
@@ -68,7 +68,7 @@ ObservedWorldPtr MctsStateCooperative::predict(const mcts::JointAction& joint_ac
 }
 
 std::shared_ptr<MctsStateCooperative> MctsStateCooperative::generate_next_state(const ObservedWorldPtr& predicted_world,
-                                                        std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+                                                        std::vector<mcts::Reward>& rewards,  mcts::EgoCosts& ego_cost) const {
     const auto ego_evaluation_results = mcts_observed_world_evaluation(*predicted_world);
     const auto ego_agent_reward = reward_from_evaluation_results(ego_evaluation_results, state_parameters_);
     std::unordered_map<mcts::AgentIdx, mcts::Reward> other_agents_rewards;
@@ -105,7 +105,8 @@ std::shared_ptr<MctsStateCooperative> MctsStateCooperative::generate_next_state(
     rewards[this->ego_agent_idx] = 1.0/double(other_agents_rewards.size() + 1) *
              ((1 - state_parameters_.COOPERATION_FACTOR) * ego_agent_reward + state_parameters_.COOPERATION_FACTOR * rest_reward);
     VLOG_IF(5, rewards[this->ego_agent_idx] >= 0.1 || rewards[this->ego_agent_idx] <= -0.1) << "Ego Agent r = " << rewards[this->ego_agent_idx] << "reward sum" << reward_sum;
-    ego_cost = - rewards[this->ego_agent_idx];
+    ego_cost.resize(1);
+    ego_cost[0] = - rewards[this->ego_agent_idx];
 
     return std::make_shared<MctsStateCooperative>(
                     predicted_world, ego_evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,

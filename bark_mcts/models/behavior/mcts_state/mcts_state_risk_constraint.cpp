@@ -55,12 +55,13 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::clone() const 
 }
 
 std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
-                                                        std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+                                                        std::vector<mcts::Reward>& rewards,  mcts::EgoCosts& ego_cost) const {
   rewards.resize(this->get_num_agents(), 0.0f);
   rewards[this->ego_agent_idx] = reward_from_evaluation_results(evaluation_results, state_parameters_);
-
-  ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * 1.0;
-  VLOG_IF_EVERY_N(5, ego_cost != 0.0f || rewards[this->ego_agent_idx] != 0.0, 5) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
+  
+  ego_cost.resize(1);
+  ego_cost[0] = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * 1.0;
+  VLOG_IF_EVERY_N(5, ego_cost[0] != 0.0f || rewards[this->ego_agent_idx] != 0.0, 5) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost[0];
   VLOG_IF_EVERY_N(5, rewards[this->ego_agent_idx] != 0.0f, 5) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
   return std::make_shared<MctsStateRiskConstraint>(
       predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,

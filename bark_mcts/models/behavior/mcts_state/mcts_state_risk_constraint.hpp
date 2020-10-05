@@ -38,7 +38,7 @@ public:
   typedef BarkAction ActionType; // required for template-mechanism to compile
 
   std::shared_ptr<MctsStateRiskConstraint> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
-                                                        std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
+                                                        std::vector<mcts::Reward>& rewards,  mcts::EgoCosts& ego_cost) const;
 
   bark::commons::Probability get_state_sequence_probability() const;
 

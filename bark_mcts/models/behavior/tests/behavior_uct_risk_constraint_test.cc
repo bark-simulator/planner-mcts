@@ -157,7 +157,7 @@ TEST(risk_constraint_mcts_state, execute) {
                        1.0f);
 
   std::vector<mcts::Reward> rewards;
-  mcts::Cost cost;
+  mcts::EgoCosts cost;
   belief_tracker.belief_update(mcts_state, mcts_state);
   belief_tracker.sample_current_hypothesis();
   auto t1 = std::chrono::high_resolution_clock::now();
@@ -188,7 +188,7 @@ TEST(risk_constraint_mcts_state, execute) {
     auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(front_agent_id);
     next_mcts_state = next_mcts_state->execute(JointAction({2, action_idx2}), rewards, cost);
     auto last_bark_action = next_mcts_state->get_observed_world().GetAgents()[front_agent_id]->GetBehaviorModel()->GetLastAction();
-    LOG(INFO) <<  "cost calculated: " << cost;
+    LOG(INFO) <<  "cost calculated: " << cost.at(0);
     bark::commons::Probability agent_action_probability = 0.0;
     for (std::size_t hyp_id = 0; hyp_id <  behavior_hypothesis.size(); ++hyp_id) {
       auto last_action_prob = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypothesis[hyp_id])

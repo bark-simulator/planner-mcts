@@ -40,7 +40,7 @@ std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::clone() const {
 
 std::shared_ptr<MctsStateSingleAgent> MctsStateSingleAgent::execute(
     const mcts::JointAction& joint_action, std::vector<mcts::Reward>& rewards,
-    mcts::Cost& ego_cost) const {
+    mcts::EgoCosts& ego_cost) const {
   BARK_EXPECT_TRUE(!is_terminal());
 
   // TODO: parameter for prediction time span

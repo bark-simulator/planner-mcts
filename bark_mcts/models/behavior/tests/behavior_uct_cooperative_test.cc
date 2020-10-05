@@ -98,7 +98,7 @@ TEST(cooperative_mcts_state, execute) {
                        state_params);
 
   std::vector<mcts::Reward> rewards;
-  mcts::Cost cost;
+  mcts::EgoCosts cost;
   auto next_mcts_state = mcts_state.execute(JointAction({0, 2}), rewards, cost);
 
   // Checking reward of zero if we are neither colliding or at goal
@@ -106,7 +106,7 @@ TEST(cooperative_mcts_state, execute) {
                                                 // a long driving corridor along x exists
                                                 // no collision should occur after one action
   EXPECT_NEAR(rewards[0], 0.0f , 0.00001);
-  EXPECT_NEAR(cost, 0,0.001);
+  EXPECT_NEAR(cost.at(0), 0,0.001);
 
   // Clone test
   const auto cloned_state = mcts_state.clone();
@@ -127,7 +127,7 @@ TEST(cooperative_mcts_state, execute) {
   const auto desired_collision_reward = ((1 - cf) * cr + cf * cr) * 0.5;
   EXPECT_TRUE(next_mcts_state->is_terminal()); // < acceleration should lead to a collision with other agent
   EXPECT_NEAR(rewards[0], desired_collision_reward, 0.00001);
-  EXPECT_NEAR(cost, - desired_collision_reward, 0.00001);
+  EXPECT_NEAR(cost.at(0), - desired_collision_reward, 0.00001);
 
 
   // Checking goal reached: Do multiple steps and expect that goal is reached
@@ -141,7 +141,7 @@ TEST(cooperative_mcts_state, execute) {
   const auto gr = params->GetReal("Mcts::State::GoalReward", "", 1.0);
   const auto desired_goal_reward =  ( (1 - cf)* gr + cf * 0.0 ) / 2.0;
   EXPECT_NEAR(rewards[0], desired_goal_reward , 0.00001); // < reward should be one when reaching the goal 
-  EXPECT_NEAR(cost, - desired_goal_reward , 0.00001);
+  EXPECT_NEAR(cost.at(0), - desired_goal_reward , 0.00001);
 }
 
 TEST(behavior_uct_cooperative, no_agent_in_front_accelerate) {

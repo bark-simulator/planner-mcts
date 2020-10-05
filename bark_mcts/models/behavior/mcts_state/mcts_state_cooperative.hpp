@@ -34,7 +34,7 @@ class MctsStateCooperative : public MctsStateBase<MctsStateCooperative> {
 
     std::shared_ptr<MctsStateCooperative> execute(const mcts::JointAction& joint_action,
                                             std::vector<mcts::Reward>& rewards,
-                                            mcts::Cost& ego_cost) const;
+                                            mcts::EgoCosts& ego_cost) const;
 
     std::shared_ptr<MctsStateCooperative> clone() const;
 
@@ -47,7 +47,7 @@ class MctsStateCooperative : public MctsStateBase<MctsStateCooperative> {
     ObservedWorldPtr predict(const mcts::JointAction& joint_action) const;
 
     std::shared_ptr<MctsStateCooperative> generate_next_state(const ObservedWorldPtr& predicted_world,
-                                                          std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
+                                                          std::vector<mcts::Reward>& rewards,  mcts::EgoCosts& ego_cost) const;
 };
 
 }  // namespace behavior
