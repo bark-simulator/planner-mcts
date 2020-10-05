@@ -213,6 +213,7 @@ TEST(hypothesis_mcts_state, execute) {
 TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   // Test if uct planner accelerates if there is no agent in front
   auto params = std::make_shared<SetterParams>();
+  params->SetBool("BehaviorUctBase::EgoBehavior::BehaviorMPMacroActions::CheckValidityInPlan", false);
 
   float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
@@ -240,6 +241,7 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>();
+  params->SetBool("BehaviorUctBase::EgoBehavior::BehaviorMPMacroActions::CheckValidityInPlan", false);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 0.1);
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", -1.0);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", -0.1);
@@ -294,7 +296,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   }
   EXPECT_TRUE(IsBetweenInclusive(largest_depth, 6, 10));
 
-  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 4, 7));
+  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 4, 10));
   EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetOtherAgents().begin()->first].size(), 3, 10));
 
   // second agent always chooses same actions since hypthesis does not affect desired velocity driving

@@ -218,6 +218,7 @@ TEST(risk_constraint_mcts_state, execute) {
 TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   // Test if uct planner accelerates if there is no agent in front
   auto params = std::make_shared<SetterParams>();
+  params->SetBool("BehaviorUctBase::EgoBehavior::BehaviorMPMacroActions::CheckValidityInPlan", false);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 2.0);
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::ReturnLowerBound", 0.0);
@@ -254,6 +255,7 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>();
+  params->SetBool("BehaviorUctBase::EgoBehavior::BehaviorMPMacroActions::CheckValidityInPlan", false);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 1.0);
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", 0.0);
