@@ -105,7 +105,7 @@ std::shared_ptr<MctsStateCooperative> MctsStateCooperative::generate_next_state(
     rewards[this->ego_agent_idx] = 1.0/double(other_agents_rewards.size() + 1) *
              ((1 - state_parameters_.COOPERATION_FACTOR) * ego_agent_reward + state_parameters_.COOPERATION_FACTOR * rest_reward);
     VLOG_IF(5, rewards[this->ego_agent_idx] >= 0.1 || rewards[this->ego_agent_idx] <= -0.1) << "Ego Agent r = " << rewards[this->ego_agent_idx] << "reward sum" << reward_sum;
-    ego_cost.resize(1);
+    ego_cost.resize(this->get_num_costs(), 0.0f);
     ego_cost[0] = - rewards[this->ego_agent_idx];
 
     return std::make_shared<MctsStateCooperative>(

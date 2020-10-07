@@ -107,7 +107,7 @@ public:
         rewards.resize(this->get_num_agents(), 0.0f);
         rewards[this->ego_agent_idx] = reward_from_evaluation_results(evaluation_results, state_parameters_);
 
-        ego_cost.resize(1);
+        ego_cost.resize(this->get_num_costs(), 0.0f);
         ego_cost[0] = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) *state_parameters_.COLLISION_COST +
             evaluation_results.goal_reached * state_parameters_.GOAL_COST;
         VLOG_IF_EVERY_N(5, ego_cost[0] != 0.0f || rewards[this->ego_agent_idx] != 0.0, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost[0];

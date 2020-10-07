@@ -76,11 +76,11 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
         return bool_vec;
     };
     parameters.cost_constrained_statistic.USE_COST_THRESHOLDING = float_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseCostTresholding",
-               "Specify 1.0 if cost thresholding enabled for cost index", {0.0f}));
+               "Specify 1.0 if cost thresholding enabled for cost index", {0.0f, 0.0f}));
     parameters.cost_constrained_statistic.USE_CHANCE_CONSTRAINED_UPDATES = float_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseChanceConstrainedUpdate",
-               "Track violations instead of cumulative cost during backpropagation", {0.0f}));
+               "Track violations instead of cumulative cost during backpropagation", {0.0f, 0.0f}));
     parameters.cost_constrained_statistic.COST_THRESHOLDS = params->GetListFloat("Mcts::CostConstrainedStatistic::CostThresholds",
-               "Cost thresholds for thresholded cost constraining", {0.1f});
+               "Cost thresholds for thresholded cost constraining", {0.1f, 0.0f});
     parameters.cost_constrained_statistic.USE_LAMBDA_POLICY = params->GetBool("Mcts::CostConstrainedStatistic::UseLambdaPolicy",
                "Lambda policy applied to first cost entry?", true);
 

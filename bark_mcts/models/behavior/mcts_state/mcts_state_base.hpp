@@ -78,6 +78,8 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
 
     const mcts::AgentIdx get_ego_agent_idx() const;
 
+    const std::size_t get_num_costs() const;
+
     std::string sprintf() const;
 
     const ObservedWorld& get_observed_world() const { return *observed_world_; }
@@ -119,6 +121,11 @@ const std::vector<mcts::AgentIdx> MctsStateBase<T>::get_other_agent_idx() const 
 template<class T>
 const mcts::AgentIdx MctsStateBase<T>::get_ego_agent_idx() const {
   return ego_agent_id_;
+}
+
+template<class T>
+const std::size_t MctsStateBase<T>::get_num_costs() const {
+  return 2;
 }
 
 template<class T>

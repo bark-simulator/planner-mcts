@@ -277,7 +277,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 4000);
   params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 400000);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", 2.0f);
-  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 0.5f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 10.0f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::GradientUpdateScaling",  1.0f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::TauGradientClip", 1.0f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::ActionFilterFactor", 2.0f);
