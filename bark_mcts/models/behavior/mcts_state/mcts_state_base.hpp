@@ -11,6 +11,7 @@
 #include "bark/world/evaluation/evaluator_collision_ego_agent.hpp"
 #include "bark/world/evaluation/evaluator_drivable_area.hpp"
 #include "bark/world/evaluation/evaluator_goal_reached.hpp"
+#include "bark/world/evaluation/ltl/label_functions/safe_distance_label_function.hpp"
 #include "bark/world/observed_world.hpp"
 #include "bark/models/behavior/behavior_model.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
@@ -32,24 +33,42 @@ using bark::world::ObservedWorldPtr;
 using bark::world::evaluation::EvaluatorCollisionEgoAgent;
 using bark::world::evaluation::EvaluatorDrivableArea;
 using bark::world::evaluation::EvaluatorGoalReached;
+using bark::world::evaluation::SafeDistanceLabelFunction;
+
+typedef struct EvaluationParameters {
+  EvaluationParameters() : add_safe_dist(false),
+         safe_distance_label_function("safe_dist", 0.0f, 0.0f, 0.0f, 0.0f) {}
+  EvaluationParameters(bool add_safe_dist, const SafeDistanceLabelFunction& safe_distance_label_function) : add_safe_dist(false),
+         safe_distance_label_function(safe_distance_label_function) {}
+  bool add_safe_dist;
+  SafeDistanceLabelFunction safe_distance_label_function;
+} EvaluationParameters;
 
 typedef struct StateParameters {
   float GOAL_REWARD;
   float COLLISION_REWARD;
+  float SAFE_DIST_VIOLATED_REWARD;
   float GOAL_COST;
   float COLLISION_COST;
+  float SAFE_DIST_VIOLATED_COST;
   float COOPERATION_FACTOR;
   float STEP_REWARD;
+  bool split_safe_dist_collision;
+  EvaluationParameters evaluation_parameters;
 } StateParameters;
+
+
 
 typedef struct EvaluationResults {
   EvaluationResults() : 
       collision_other_agent(false),
       collision_drivable_area(false),
+      safe_distance_violated(false),
       goal_reached(false),
       out_of_map(false),
       is_terminal(false) {}
   bool collision_other_agent;
+  bool safe_distance_violated;
   bool collision_drivable_area;
   bool goal_reached;
   bool out_of_map;
@@ -58,7 +77,24 @@ typedef struct EvaluationResults {
 
 inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
   return float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * parameters.COLLISION_REWARD +
-            float(evaluation_results.goal_reached) * parameters.GOAL_REWARD + parameters.STEP_REWARD;
+        (parameters.evaluation_parameters.add_safe_dist ? float(evaluation_results.safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_REWARD : 0.0f) +
+          float(evaluation_results.goal_reached) * parameters.GOAL_REWARD + parameters.STEP_REWARD;
+};
+
+inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
+  mcts::EgoCosts ego_costs(2, 0.0f);
+  const mcts::Cost safe_dist_cost = float(evaluation_results.safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_COST;
+  const mcts::Cost total_costs = float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * parameters.COLLISION_COST +
+        ((parameters.evaluation_parameters.add_safe_dist && !parameters.split_safe_dist_collision) ? float(evaluation_results.safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_COST : 0.0f) +
+          float(evaluation_results.goal_reached) * parameters.GOAL_COST;
+  if(parameters.split_safe_dist_collision) {
+    ego_costs[0] = safe_dist_cost; // The constrained policy is always calculated over the first index
+    ego_costs[1] = total_costs;
+  } else {
+    ego_costs[0] = total_costs; // The constrained policy is always calculated over the first index
+    ego_costs[1] = 0.0f;
+  }
+  return ego_costs;
 };
 
 template<class T>
@@ -148,7 +184,7 @@ std::string MctsStateBase<T>::sprintf() const {
     return ss.str();
 }
 
-inline EvaluationResults mcts_observed_world_evaluation(const ObservedWorld& observed_world) {
+inline EvaluationResults mcts_observed_world_evaluation(const ObservedWorld& observed_world, const EvaluationParameters& evaluation_parameters) {
     EvaluationResults evaluation_results;
 
   if (observed_world.GetEgoAgent()) {
@@ -164,6 +200,12 @@ inline EvaluationResults mcts_observed_world_evaluation(const ObservedWorld& obs
     evaluation_results.goal_reached =
         boost::get<bool>(evaluator_goal_reached.Evaluate(observed_world));
     evaluation_results.out_of_map = false;
+
+    if(evaluation_parameters.add_safe_dist) {
+      auto label_result = evaluation_parameters.safe_distance_label_function.Evaluate(observed_world);
+        evaluation_results.safe_distance_violated = label_result.begin()->second;
+    }
+
   } else {
     evaluation_results.out_of_map = true;
   }

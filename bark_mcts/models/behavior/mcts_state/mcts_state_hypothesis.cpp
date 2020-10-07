@@ -60,7 +60,7 @@ auto MctsStateHypothesis<T>::execute(
 
   const auto predicted_world = MctsStateHypothesis<T>::predict(joint_action);
 
-  EvaluationResults evaluation_results = mcts_observed_world_evaluation(*predicted_world);
+  EvaluationResults evaluation_results = mcts_observed_world_evaluation(*predicted_world, state_parameters_.evaluation_parameters);
 
   return MctsStateHypothesis<T>::generate_next_state(evaluation_results, predicted_world, rewards, ego_cost);
 }
