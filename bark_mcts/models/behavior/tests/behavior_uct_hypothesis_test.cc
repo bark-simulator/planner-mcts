@@ -148,7 +148,7 @@ TEST(hypothesis_mcts_state, execute) {
                        state_params);
   
   std::vector<mcts::Reward> rewards;
-  mcts::Cost cost;
+  mcts::EgoCosts cost;
   belief_tracker.belief_update(mcts_state, mcts_state);
   belief_tracker.sample_current_hypothesis();
   auto t1 = std::chrono::high_resolution_clock::now();
@@ -173,7 +173,7 @@ TEST(hypothesis_mcts_state, execute) {
                                                 // a long driving corridor along x exists
                                                 // no collision should occur after one action
   EXPECT_NEAR(rewards[0], 0.0f , 0.00001);
-  EXPECT_NEAR(cost, 0,0.001);
+  EXPECT_NEAR(cost.at(0), 0,0.001);
 
   // Clone test
   const auto cloned_state = mcts_state.clone();
@@ -193,7 +193,7 @@ TEST(hypothesis_mcts_state, execute) {
   }
   EXPECT_TRUE(next_mcts_state->is_terminal()); // < acceleration should lead to a collision with other agent
   EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::CollisionReward", "", 1.0) , 0.00001);
-  EXPECT_NEAR(cost, params->GetReal("Mcts::State::CollisionCost", "", 1.0) , 0.00001);
+  EXPECT_NEAR(cost.at(0), params->GetReal("Mcts::State::CollisionCost", "", 1.0) , 0.00001);
 
 
   // Checking goal reached: Do multiple steps and expect that goal is reached
@@ -206,13 +206,14 @@ TEST(hypothesis_mcts_state, execute) {
     next_mcts_state = next_mcts_state->execute(JointAction({0, action_idx2}), rewards, cost);
   }
   EXPECT_NEAR(rewards[0], params->GetReal("Mcts::State::GoalReward", "", 1.0)  , 0.00001); // < reward should be one when reaching the goal 
-  EXPECT_NEAR(cost, params->GetReal("Mcts::State::GoalCost", "", 1.0) , 0.00001);
+  EXPECT_NEAR(cost.at(0), params->GetReal("Mcts::State::GoalCost", "", 1.0) , 0.00001);
 }
 
 
 TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   // Test if uct planner accelerates if there is no agent in front
   auto params = std::make_shared<SetterParams>();
+  params->SetBool("BehaviorUctBase::EgoBehavior::BehaviorMPMacroActions::CheckValidityInPlan", false);
 
   float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
@@ -240,6 +241,7 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>();
+  params->SetBool("BehaviorUctBase::EgoBehavior::BehaviorMPMacroActions::CheckValidityInPlan", false);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 0.1);
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", -1.0);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", -0.1);
@@ -294,7 +296,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   }
   EXPECT_TRUE(IsBetweenInclusive(largest_depth, 6, 10));
 
-  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 4, 7));
+  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 4, 10));
   EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetOtherAgents().begin()->first].size(), 3, 10));
 
   // second agent always chooses same actions since hypthesis does not affect desired velocity driving

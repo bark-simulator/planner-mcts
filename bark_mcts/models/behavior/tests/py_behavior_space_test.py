@@ -176,6 +176,10 @@ class PyBehaviorSpaceTests(unittest.TestCase):
 
   def test_multiple_hypothesis_sets_creation(self):
     param_server = ParameterServer()
+    hypothesis_lower_bound = param_server["BehaviorSpace"]["Hypothesis"]["BehaviorHypothesisIDM"]["BucketsLowerBound"] = -1.5321
+    hypothesis_upper_bound = param_server["BehaviorSpace"]["Hypothesis"]["BehaviorHypothesisIDM"]["BucketsUpperBound"] = 5.2323
+    hypothesis_num_samples = param_server["BehaviorSpace"]["Hypothesis"]["BehaviorHypothesisIDM"]["NumSamples"] = 100433
+    hypothesis_buckets = param_server["BehaviorSpace"]["Hypothesis"]["BehaviorHypothesisIDM"]["NumBuckets"] = 12553
     behavior_space_range1 = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["HeadwayDistribution"] = [5.3434, 10.14]
     behavior_space_range2 = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["ComftBrakingDistribution"] = [1.0]
     behavior_space_range3 = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["MaxAccDistribution"] = [15.3]
@@ -208,6 +212,18 @@ class PyBehaviorSpaceTests(unittest.TestCase):
 
         self.assertAlmostEquals(params.getListFloat("BehaviorIDMStochastic::CoolnessFactorDistribution::FixedValue", "", [2334.0])[0], \
                   behavior_space_range6[0], 5)
+
+        self.assertAlmostEquals(params.getReal("BehaviorHypothesisIDM::BucketsLowerBound", "", 2334.0),
+                  hypothesis_lower_bound, 5)
+
+        self.assertAlmostEquals(params.getReal("BehaviorHypothesisIDM::BucketsUpperBound", "", 2334.0),
+                  hypothesis_upper_bound, 5)
+
+        self.assertAlmostEquals(params.getInt("BehaviorHypothesisIDM::NumSamples", "", 2334),
+                  hypothesis_num_samples, 5)
+
+        self.assertAlmostEquals(params.getInt("BehaviorHypothesisIDM::NumBuckets", "", 2334),
+                  hypothesis_buckets, 5)
 
         lower = params.getReal("BehaviorIDMStochastic::SpacingDistribution::LowerBound", "", 0.0)
         upper = params.getReal("BehaviorIDMStochastic::SpacingDistribution::UpperBound", "", 0.0)

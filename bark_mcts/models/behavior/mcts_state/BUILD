@@ -42,6 +42,7 @@ cc_library(
     copts = ["-Iexternal/bark_project"],
     deps= [
         "@bark_project//bark:include",
+        "@bark_project//bark/world/evaluation/ltl/label_functions:label_function",
         "@mamcts_project//mcts:mamcts",
     ],
     visibility = ["//visibility:public"],

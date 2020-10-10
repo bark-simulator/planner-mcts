@@ -157,7 +157,7 @@ TEST(risk_constraint_mcts_state, execute) {
                        1.0f);
 
   std::vector<mcts::Reward> rewards;
-  mcts::Cost cost;
+  mcts::EgoCosts cost;
   belief_tracker.belief_update(mcts_state, mcts_state);
   belief_tracker.sample_current_hypothesis();
   auto t1 = std::chrono::high_resolution_clock::now();
@@ -188,7 +188,7 @@ TEST(risk_constraint_mcts_state, execute) {
     auto action_idx2 = next_mcts_state->plan_action_current_hypothesis(front_agent_id);
     next_mcts_state = next_mcts_state->execute(JointAction({2, action_idx2}), rewards, cost);
     auto last_bark_action = next_mcts_state->get_observed_world().GetAgents()[front_agent_id]->GetBehaviorModel()->GetLastAction();
-    LOG(INFO) <<  "cost calculated: " << cost;
+    LOG(INFO) <<  "cost calculated: " << cost.at(0);
     bark::commons::Probability agent_action_probability = 0.0;
     for (std::size_t hyp_id = 0; hyp_id <  behavior_hypothesis.size(); ++hyp_id) {
       auto last_action_prob = std::dynamic_pointer_cast<BehaviorHypothesis>(behavior_hypothesis[hyp_id])
@@ -218,6 +218,7 @@ TEST(risk_constraint_mcts_state, execute) {
 TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   // Test if uct planner accelerates if there is no agent in front
   auto params = std::make_shared<SetterParams>();
+  params->SetBool("BehaviorUctBase::EgoBehavior::BehaviorMPMacroActions::CheckValidityInPlan", false);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 2.0);
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::ReturnLowerBound", 0.0);
@@ -254,6 +255,8 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>();
+  params->SetBool("BehaviorUctBase::EgoBehavior::BehaviorMPMacroActions::CheckValidityInPlan", false);
+  params->SetListFloat("BehaviorUctBase::EgoBehavior::AccelerationInputs", {0, 1, -1, -2});
   params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 1.0);
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", 0.0);
@@ -269,9 +272,9 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctBase::Mcts::UctStatistic::ProgressiveWidening::Alpha", 0.5);
   params->SetReal("BehaviorUctBase::Mcts::UctStatistic::ProgressiveWidening::K", 0.4);
   params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::CostBasedActionSelection", true);
-  params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::HypothesisBased", true);
-  params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::Alpha", 0.4);
-  params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::K", 0.1);
+  params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::HypothesisBased", false);
+  params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::Alpha", 0.25);
+  params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::K", 2.0);
   params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 4000);
   params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 400000);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", 2.0f);
@@ -321,7 +324,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   }
   EXPECT_TRUE(IsBetweenInclusive(largest_depth, 6, 10));
 
-  EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 4, 7));
+  EXPECT_EQ(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 7);
   EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetOtherAgents().begin()->first].size(), 3, 10));
 
   // second agent always chooses same actions since hypthesis does not affect desired velocity driving

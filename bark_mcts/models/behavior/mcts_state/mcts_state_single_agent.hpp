@@ -32,7 +32,7 @@ class MctsStateSingleAgent : public mcts::StateInterface<MctsStateSingleAgent> {
 
   std::shared_ptr<MctsStateSingleAgent> execute(
       const mcts::JointAction& joint_action, std::vector<mcts::Reward>& rewards,
-      mcts::Cost& ego_cost) const;
+      mcts::EgoCosts& ego_cost) const;
 
   mcts::ActionIdx get_num_actions(mcts::AgentIdx agent_idx) const;
 

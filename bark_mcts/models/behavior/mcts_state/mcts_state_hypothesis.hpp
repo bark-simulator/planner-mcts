@@ -49,7 +49,7 @@ public:
     
     auto execute(const mcts::JointAction &joint_action,
                                             std::vector<mcts::Reward>& rewards,
-                                            mcts::Cost& ego_cost) const;
+                                            mcts::EgoCosts& ego_cost) const;
 
     std::shared_ptr<MctsStateHypothesis<T>> clone() const;
 
@@ -83,7 +83,7 @@ public:
     EvaluationResults evaluate(const ObservedWorld& observed_world) const;
 
     auto generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
-                                                          std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const;
+                                                          std::vector<mcts::Reward>& rewards,  mcts::EgoCosts& ego_cost) const;
 
     const std::vector<BehaviorModelPtr>& behavior_hypotheses_;
     mutable std::unordered_map<AgentId, BehaviorModelPtr> behaviors_stored_;
@@ -103,13 +103,13 @@ public:
     }
 
     auto impl_generate_next_state(std::true_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
-                                                        std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+                                                        std::vector<mcts::Reward>& rewards,  mcts::EgoCosts& ego_cost) const {
         rewards.resize(this->get_num_agents(), 0.0f);
         rewards[this->ego_agent_idx] = reward_from_evaluation_results(evaluation_results, state_parameters_);
 
-        ego_cost = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) *state_parameters_.COLLISION_COST +
-            evaluation_results.goal_reached * state_parameters_.GOAL_COST;
-        VLOG_IF_EVERY_N(5, ego_cost != 0.0f || rewards[this->ego_agent_idx] != 0.0, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
+        ego_cost.resize(this->get_num_costs(), 0.0f);
+        ego_cost = ego_costs_from_evaluation_results(evaluation_results, state_parameters_);
+        VLOG_IF_EVERY_N(5, ego_cost[0] != 0.0f || rewards[this->ego_agent_idx] != 0.0, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost[0];
 
         return std::make_shared<MctsStateHypothesis<T>>(
                     predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
@@ -118,7 +118,7 @@ public:
     }
 
     auto impl_generate_next_state(std::false_type, const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
-                                                        std::vector<mcts::Reward>& rewards,  mcts::Cost& ego_cost) const {
+                                                        std::vector<mcts::Reward>& rewards,  mcts::EgoCosts& ego_cost) const {
         return static_cast<const T*>(this)->generate_next_state(evaluation_results, predicted_world, rewards, ego_cost);
     }
 };

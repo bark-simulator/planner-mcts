@@ -39,6 +39,8 @@ class BehaviorActionStore : public BehaviorModel {
     active_behavior_ = action_hash;
   }
 
+  std::string print_stored_hashes() const;
+
   virtual std::shared_ptr<BehaviorModel> Clone() const; 
 
   virtual Trajectory Plan(float delta_time, const bark::world::ObservedWorld& observed_world);

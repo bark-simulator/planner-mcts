@@ -26,8 +26,20 @@ ActionHash BehaviorActionStore::Store(const Action& action, const Trajectory& tr
 
 std::tuple<Trajectory, Action, BehaviorStatus> BehaviorActionStore::Retrieve(const ActionHash& action_hash) const {
   auto it = trajectory_store_.find(action_hash);
-  BARK_EXPECT_TRUE(it != trajectory_store_.end());
+  if(it == trajectory_store_.end()) {
+    LOG(FATAL) << "Action " << action_hash << "not found in store. Available: " << print_stored_hashes();
+  }
   return it->second;
+}
+
+std::string BehaviorActionStore::print_stored_hashes() const {
+  std::stringstream ss;
+  ss << "[";
+  for (const auto& stored : trajectory_store_) {
+    ss << stored.first << ", ";
+  }
+  ss << "]";
+  return ss.str();
 }
 
 Trajectory BehaviorActionStore::Plan(float delta_time, const bark::world::ObservedWorld& observed_world) {
