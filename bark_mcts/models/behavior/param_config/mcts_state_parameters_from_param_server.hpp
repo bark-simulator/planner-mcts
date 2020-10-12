@@ -16,14 +16,11 @@ namespace bark{
 namespace models {
 namespace behavior {
 
-inline EvaluationParameters MctsEvaluationParametersFromParamServer(const commons::ParamsPtr& params,
-                    std::unordered_map<unsigned int, unsigned int> fixed_hypothesis_set = {}) {
-    EvaluationParameters parameters{params->GetBool("EvaluationParameters::AddSafeDist", "Calculate safe dist in evaluation", false),
-      SafeDistanceLabelFunction("safe_dist", 
-        params->GetBool("EvaluationParameters::SafeDist::ToRear", "Include rear agent", true),
-        params->GetReal("EvaluationParameters::SafeDist::ReactionTime", "Reward for goal", 100.0f),
-        params->GetReal("EvaluationParameters::SafeDist::MaxEgoDecceleration", "Maximum ego decceleration", -5.0f),
-        params->GetReal("EvaluationParameters::SafeDist::MaxOtherDecceleration", "Maximum other decceleration", -5.0f))};
+inline EvaluationParameters MctsEvaluationParametersFromParamServer(const commons::ParamsPtr& params) {
+    EvaluationParameters parameters(
+                    params->GetBool("EvaluationParameters::AddSafeDist", "Calculate safe dist in evaluation", false),
+                    params->GetBool("EvaluationParameters::StaticSafeDistIsTerminal", "Violating static safe dist gives terminal state", false),
+                    params->AddChild("EvaluatorParams"));
     return parameters;
 }
 

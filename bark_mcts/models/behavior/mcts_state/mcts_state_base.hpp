@@ -11,7 +11,8 @@
 #include "bark/world/evaluation/evaluator_collision_ego_agent.hpp"
 #include "bark/world/evaluation/evaluator_drivable_area.hpp"
 #include "bark/world/evaluation/evaluator_goal_reached.hpp"
-#include "bark/world/evaluation/ltl/label_functions/safe_distance_label_function.hpp"
+#include "bark/world/evaluation/safe_distances/evaluator_dynamic_safe_dist_long.hpp"
+#include "bark/world/evaluation/safe_distances/evaluator_static_safe_dist.hpp"
 #include "bark/world/observed_world.hpp"
 #include "bark/models/behavior/behavior_model.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
@@ -33,15 +34,20 @@ using bark::world::ObservedWorldPtr;
 using bark::world::evaluation::EvaluatorCollisionEgoAgent;
 using bark::world::evaluation::EvaluatorDrivableArea;
 using bark::world::evaluation::EvaluatorGoalReached;
-using bark::world::evaluation::SafeDistanceLabelFunction;
+using bark::world::evaluation::EvaluatorDynamicSafeDistLong;
+using bark::world::evaluation::EvaluatorStaticSafeDist;
 
 typedef struct EvaluationParameters {
-  EvaluationParameters() : add_safe_dist(false),
-         safe_distance_label_function("safe_dist", 0.0f, 0.0f, 0.0f, 0.0f) {}
-  EvaluationParameters(bool add_safe_dist, const SafeDistanceLabelFunction& safe_distance_label_function) : add_safe_dist(false),
-         safe_distance_label_function(safe_distance_label_function) {}
+  EvaluationParameters() : add_safe_dist(false), static_safe_dist_is_terminal(false),
+         evaluator_dynamic_safe_dist_long(nullptr), evaluator_static_safe_dist(nullptr)  {}
+  EvaluationParameters(bool add_safe_dist, bool static_safe_dist_is_terminal, const bark::commons::ParamsPtr& params) : add_safe_dist(add_safe_dist),
+          static_safe_dist_is_terminal(static_safe_dist_is_terminal),
+         evaluator_dynamic_safe_dist_long(std::make_shared<EvaluatorDynamicSafeDistLong>(params)),
+         evaluator_static_safe_dist(std::make_shared<EvaluatorStaticSafeDist>(params))  {}
   bool add_safe_dist;
-  SafeDistanceLabelFunction safe_distance_label_function;
+  bool static_safe_dist_is_terminal;
+  std::shared_ptr<EvaluatorDynamicSafeDistLong> evaluator_dynamic_safe_dist_long;
+  std::shared_ptr<EvaluatorStaticSafeDist> evaluator_static_safe_dist;
 } EvaluationParameters;
 
 typedef struct StateParameters {
@@ -63,12 +69,14 @@ typedef struct EvaluationResults {
   EvaluationResults() : 
       collision_other_agent(false),
       collision_drivable_area(false),
-      safe_distance_violated(false),
+      static_safe_distance_violated(false),
+      dynamic_safe_distance_violated(false),
       goal_reached(false),
       out_of_map(false),
       is_terminal(false) {}
   bool collision_other_agent;
-  bool safe_distance_violated;
+  bool static_safe_distance_violated;
+  bool dynamic_safe_distance_violated;
   bool collision_drivable_area;
   bool goal_reached;
   bool out_of_map;
@@ -76,16 +84,24 @@ typedef struct EvaluationResults {
 } EvaluationResults;
 
 inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
-  return float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * parameters.COLLISION_REWARD +
-        (parameters.evaluation_parameters.add_safe_dist ? float(evaluation_results.safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_REWARD : 0.0f) +
+  const mcts::Reward safe_dist_reward = float(parameters.evaluation_parameters.static_safe_dist_is_terminal ? 
+                              evaluation_results.dynamic_safe_distance_violated : 
+                               evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) 
+                                    * parameters.SAFE_DIST_VIOLATED_REWARD;
+  return float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map ||
+        (parameters.evaluation_parameters.static_safe_dist_is_terminal ?  evaluation_results.static_safe_distance_violated ? false)) * parameters.COLLISION_REWARD +
+        (parameters.evaluation_parameters.add_safe_dist ? safe_dist_reward : 0.0f) +
           float(evaluation_results.goal_reached) * parameters.GOAL_REWARD + parameters.STEP_REWARD;
 };
 
 inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
   mcts::EgoCosts ego_costs(2, 0.0f);
-  const mcts::Cost safe_dist_cost = float(evaluation_results.safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_COST;
-  const mcts::Cost total_costs = float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map) * parameters.COLLISION_COST +
-        ((parameters.evaluation_parameters.add_safe_dist && !parameters.split_safe_dist_collision) ? float(evaluation_results.safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_COST : 0.0f) +
+  const mcts::Cost safe_dist_cost = (parameters.evaluation_parameters.static_safe_dist_is_terminal ? 
+                              evaluation_results.dynamic_safe_distance_violated :
+                               evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_COST;
+  const mcts::Cost total_costs = float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map ||
+         (parameters.evaluation_parameters.static_safe_dist_is_terminal ?  evaluation_results.static_safe_distance_violated ? false)) * parameters.COLLISION_COST +
+        ((parameters.evaluation_parameters.add_safe_dist && !parameters.split_safe_dist_collision) ? safe_dist_cost : 0.0f) +
           float(evaluation_results.goal_reached) * parameters.GOAL_COST;
   if(parameters.split_safe_dist_collision) {
     ego_costs[0] = safe_dist_cost; // The constrained policy is always calculated over the first index
@@ -185,7 +201,7 @@ std::string MctsStateBase<T>::sprintf() const {
 }
 
 inline EvaluationResults mcts_observed_world_evaluation(const ObservedWorld& observed_world, const EvaluationParameters& evaluation_parameters) {
-    EvaluationResults evaluation_results;
+  EvaluationResults evaluation_results;
 
   if (observed_world.GetEgoAgent()) {
     auto ego_id = observed_world.GetEgoAgent()->GetAgentId();
@@ -202,15 +218,16 @@ inline EvaluationResults mcts_observed_world_evaluation(const ObservedWorld& obs
     evaluation_results.out_of_map = false;
 
     if(evaluation_parameters.add_safe_dist) {
-      auto label_result = evaluation_parameters.safe_distance_label_function.Evaluate(observed_world);
-        evaluation_results.safe_distance_violated = label_result.begin()->second;
+      evaluation_results.dynamic_safe_distance_violated = boost::get<bool>(evaluation_parameters.evaluator_dynamic_safe_dist_long->Evaluate(observed_world));
+      evaluation_results.static_safe_distance_violated = boost::get<bool>(evaluation_parameters.evaluator_static_safe_dist->Evaluate(observed_world));
     }
 
   } else {
     evaluation_results.out_of_map = true;
   }
   evaluation_results.is_terminal = (evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent
-                                   || evaluation_results.goal_reached || evaluation_results.out_of_map);
+                                   || evaluation_results.goal_reached || evaluation_results.out_of_map) || 
+                            (evaluation_parameters.static_safe_dist_is_terminal ? evaluation_results.static_safe_distance_violated : false);
   return evaluation_results;
 }
 
