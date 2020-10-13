@@ -29,10 +29,10 @@ inline StateParameters MctsStateParametersFromParamServer(const commons::ParamsP
     StateParameters parameters{
         params->GetReal("Mcts::State::GoalReward", "Reward for goal", 100.0f),
         params->GetReal("Mcts::State::CollisionReward", "Reward for goal", -1000.0f),
-        params->GetReal("Mcts::State::SafeDistViolatedReward", "Reward for safe dist violation", -1.0f),
+        params->GetReal("Mcts::State::SafeDistViolatedReward", "Reward for safe dist violation", 0.0f),
         params->GetReal("Mcts::State::GoalCost", "Reward for goal", -100.0f),
         params->GetReal("Mcts::State::CollisionCost", "Reward for goal", 1000.0f),
-        params->GetReal("Mcts::State::SafeDistViolatedCost", "Reward for goal", 1000.0f),
+        params->GetReal("Mcts::State::SafeDistViolatedCost", "Reward for goal", 0.0f),
         params->GetReal("Mcts::State::CooperationFactor", "Cooperative MCTS, coop. factor", 0.2f),
         params->GetReal("Mcts::State::StepReward", "Reward given for each step in environment", 0.0f),
         params->GetBool("Mcts::State::SplitSafeDistCollision", "Separate costs for safe dist violations", false),

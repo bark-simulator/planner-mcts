@@ -89,18 +89,18 @@ inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& eval
                                evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) 
                                     * parameters.SAFE_DIST_VIOLATED_REWARD;
   const mcts::Reward collision_reward = float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map ||
-        parameters.evaluation_parameters.static_safe_dist_is_terminal ?  evaluation_results.static_safe_distance_violated : false) * parameters.COLLISION_REWARD;
+        (parameters.evaluation_parameters.static_safe_dist_is_terminal ?  evaluation_results.static_safe_distance_violated : false)) * parameters.COLLISION_REWARD;
   return collision_reward + (parameters.evaluation_parameters.add_safe_dist ? safe_dist_reward : 0.0f) +
           float(evaluation_results.goal_reached) * parameters.GOAL_REWARD + parameters.STEP_REWARD;
 };
 
 inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
   mcts::EgoCosts ego_costs(2, 0.0f);
-  const mcts::Cost safe_dist_cost = (parameters.evaluation_parameters.static_safe_dist_is_terminal ? 
+  const mcts::Cost safe_dist_cost = float(parameters.evaluation_parameters.static_safe_dist_is_terminal ? 
                               evaluation_results.dynamic_safe_distance_violated :
                                evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_COST;
   const mcts::Cost total_costs = float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map ||
-         parameters.evaluation_parameters.static_safe_dist_is_terminal ?  evaluation_results.static_safe_distance_violated : false) * parameters.COLLISION_COST +
+         (parameters.evaluation_parameters.static_safe_dist_is_terminal ?  evaluation_results.static_safe_distance_violated : false)) * parameters.COLLISION_COST +
         float((parameters.evaluation_parameters.add_safe_dist && !parameters.split_safe_dist_collision) ? safe_dist_cost : 0.0f) +
           evaluation_results.goal_reached * parameters.GOAL_COST;
   if(parameters.split_safe_dist_collision) {
