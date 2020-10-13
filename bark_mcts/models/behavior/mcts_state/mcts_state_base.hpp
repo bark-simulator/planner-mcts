@@ -218,8 +218,8 @@ inline EvaluationResults mcts_observed_world_evaluation(const ObservedWorld& obs
     evaluation_results.out_of_map = false;
 
     if(evaluation_parameters.add_safe_dist) {
-      evaluation_results.dynamic_safe_distance_violated = boost::get<bool>(evaluation_parameters.evaluator_dynamic_safe_dist_long->Evaluate(observed_world));
-      evaluation_results.static_safe_distance_violated = boost::get<bool>(evaluation_parameters.evaluator_static_safe_dist->Evaluate(observed_world));
+      evaluation_results.dynamic_safe_distance_violated = boost::get<bool>(evaluation_parameters.evaluator_dynamic_safe_dist_long->CheckSafeDistance(observed_world));
+      evaluation_results.static_safe_distance_violated = boost::get<bool>(evaluation_parameters.evaluator_static_safe_dist->CheckSafeDistance(observed_world));
     }
 
   } else {
