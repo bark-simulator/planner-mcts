@@ -42,8 +42,8 @@ typedef struct EvaluationParameters {
          evaluator_dynamic_safe_dist_long(nullptr), evaluator_static_safe_dist(nullptr)  {}
   EvaluationParameters(bool add_safe_dist, bool static_safe_dist_is_terminal, const bark::commons::ParamsPtr& params) : add_safe_dist(add_safe_dist),
           static_safe_dist_is_terminal(static_safe_dist_is_terminal),
-         evaluator_dynamic_safe_dist_long(std::make_shared<EvaluatorDynamicSafeDistLong>(params)),
-         evaluator_static_safe_dist(std::make_shared<EvaluatorStaticSafeDist>(params))  {}
+         evaluator_dynamic_safe_dist_long(std::make_shared<EvaluatorDynamicSafeDistLong>(params, std::numeric_limits<AgentId>::max())),
+         evaluator_static_safe_dist(std::make_shared<EvaluatorStaticSafeDist>(params, std::numeric_limits<AgentId>::max()))  {}
   bool add_safe_dist;
   bool static_safe_dist_is_terminal;
   std::shared_ptr<EvaluatorDynamicSafeDistLong> evaluator_dynamic_safe_dist_long;
