@@ -13,6 +13,7 @@
 #include "bark/world/evaluation/evaluator_goal_reached.hpp"
 #include "bark/world/evaluation/safe_distances/evaluator_dynamic_safe_dist_long.hpp"
 #include "bark/world/evaluation/safe_distances/evaluator_static_safe_dist.hpp"
+#include "bark/world/evaluation/safe_distances/evaluator_safe_dist_drivable_area.hpp"
 #include "bark/world/observed_world.hpp"
 #include "bark/models/behavior/behavior_model.hpp"
 #include "bark/models/behavior/motion_primitives/motion_primitives.hpp"
@@ -36,23 +37,28 @@ using bark::world::evaluation::EvaluatorDrivableArea;
 using bark::world::evaluation::EvaluatorGoalReached;
 using bark::world::evaluation::EvaluatorDynamicSafeDistLong;
 using bark::world::evaluation::EvaluatorStaticSafeDist;
+using bark::world::evaluation::EvaluatorSafeDistDrivableArea;
+
 
 typedef struct EvaluationParameters {
   EvaluationParameters() : add_safe_dist(false), static_safe_dist_is_terminal(false),
         dynamic_safe_dist_is_terminal(false), evaluator_dynamic_safe_dist_long(nullptr), 
-        evaluator_static_safe_dist(nullptr)  {}
+        evaluator_static_safe_dist(nullptr),
+        evaluator_safe_dist_drivable_area(nullptr)  {}
   EvaluationParameters(bool add_safe_dist, bool static_safe_dist_is_terminal,
                bool dynamic_safe_dist_is_terminal, const bark::commons::ParamsPtr& params) : 
                add_safe_dist(add_safe_dist),
                static_safe_dist_is_terminal(static_safe_dist_is_terminal),
                dynamic_safe_dist_is_terminal(dynamic_safe_dist_is_terminal),
          evaluator_dynamic_safe_dist_long(std::make_shared<EvaluatorDynamicSafeDistLong>(params, std::numeric_limits<AgentId>::max())),
-         evaluator_static_safe_dist(std::make_shared<EvaluatorStaticSafeDist>(params, std::numeric_limits<AgentId>::max()))  {}
+         evaluator_static_safe_dist(std::make_shared<EvaluatorStaticSafeDist>(params, std::numeric_limits<AgentId>::max())),
+         evaluator_safe_dist_drivable_area(std::make_shared<EvaluatorSafeDistDrivableArea>(params, std::numeric_limits<AgentId>::max()))  {}
   bool add_safe_dist;
   bool static_safe_dist_is_terminal;
   bool dynamic_safe_dist_is_terminal;
   std::shared_ptr<EvaluatorDynamicSafeDistLong> evaluator_dynamic_safe_dist_long;
   std::shared_ptr<EvaluatorStaticSafeDist> evaluator_static_safe_dist;
+  std::shared_ptr<EvaluatorSafeDistDrivableArea> evaluator_safe_dist_drivable_area;
 } EvaluationParameters;
 
 typedef struct StateParameters {
@@ -212,12 +218,12 @@ inline EvaluationResults mcts_observed_world_evaluation(const ObservedWorld& obs
 
   if (observed_world.GetEgoAgent()) {
     auto ego_id = observed_world.GetEgoAgent()->GetAgentId();
-    auto evaluator_drivable_area = EvaluatorDrivableArea();
+    const auto evaluator_drivable_area = evaluation_parameters.evaluator_safe_dist_drivable_area;
     auto evaluator_collision_ego = EvaluatorCollisionEgoAgent(ego_id);
     auto evaluator_goal_reached = EvaluatorGoalReached(ego_id);
 
     evaluation_results.collision_drivable_area =
-        boost::get<bool>(evaluator_drivable_area.Evaluate(observed_world));
+        !boost::get<bool>(evaluator_drivable_area->CheckSafeDistance(observed_world));
     evaluation_results.collision_other_agent =
         boost::get<bool>(evaluator_collision_ego.Evaluate(observed_world));
     evaluation_results.goal_reached =
