@@ -37,6 +37,7 @@ inline StateParameters MctsStateParametersFromParamServer(const commons::ParamsP
         params->GetReal("Mcts::State::CooperationFactor", "Cooperative MCTS, coop. factor", 0.2f),
         params->GetReal("Mcts::State::StepReward", "Reward given for each step in environment", 0.0f),
         params->GetBool("Mcts::State::SplitSafeDistCollision", "Separate costs for safe dist violations", false),
+        params->GetBool("Mcts::State::ChanceCosts", "Separate costs for safe dist violations", false),
         MctsEvaluationParametersFromParamServer(params->AddChild("Mcts::State"))
     };
 

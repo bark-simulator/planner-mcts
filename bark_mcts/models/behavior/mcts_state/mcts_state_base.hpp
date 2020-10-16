@@ -71,6 +71,7 @@ typedef struct StateParameters {
   float COOPERATION_FACTOR;
   float STEP_REWARD;
   bool split_safe_dist_collision;
+  bool chance_costs;
   EvaluationParameters evaluation_parameters;
 } StateParameters;
 
@@ -117,10 +118,10 @@ inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults&
         float((parameters.evaluation_parameters.add_safe_dist && !parameters.split_safe_dist_collision) ? safe_dist_cost : 0.0f) +
           evaluation_results.goal_reached * parameters.GOAL_COST;
   if(parameters.split_safe_dist_collision) {
-    ego_costs[0] = safe_dist_cost; // The constrained policy is always calculated over the first index
-    ego_costs[1] = total_costs;
+    ego_costs[0] = parameters.chance_costs ? std::min(safe_dist_cost, 1.0) : safe_dist_cost; // The constrained policy is always calculated over the first index
+    ego_costs[1] = parameters.chance_costs ? std::min(total_costs, 1.0) : total_costs;
   } else {
-    ego_costs[0] = total_costs; // The constrained policy is always calculated over the first index
+    ego_costs[0] = parameters.chance_costs ? std::min(total_costs, 1.0) : total_costs; // The constrained policy is always calculated over the first index
     ego_costs[1] = 0.0f;
   }
   return ego_costs;
