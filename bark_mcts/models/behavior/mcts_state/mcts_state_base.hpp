@@ -100,7 +100,7 @@ inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& eval
                                     * parameters.SAFE_DIST_VIOLATED_REWARD;
   const bool use_collision = !(parameters.evaluation_parameters.static_safe_dist_is_terminal &&
                      parameters.evaluation_parameters.dynamic_safe_dist_is_terminal);
-  const mcts::Reward collision_reward = float( (use_collision ? evaluation_results.collision_drivable_area : false) || evaluation_results.collision_other_agent || 
+  const mcts::Reward collision_reward = float( (use_collision ? evaluation_results.collision_other_agent : false) || evaluation_results.collision_drivable_area || 
                 evaluation_results.out_of_map ) * parameters.COLLISION_REWARD;
   return collision_reward + (parameters.evaluation_parameters.add_safe_dist ? safe_dist_reward : 0.0f) +
           float(evaluation_results.goal_reached) * parameters.GOAL_REWARD + parameters.STEP_REWARD;
