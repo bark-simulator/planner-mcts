@@ -105,8 +105,10 @@ TEST(hypothesis_mcts_state, execute) {
 
   params->SetReal("Mcts::State::GoalReward", 200.0);
   params->SetReal("Mcts::State::CollisionReward", -2000.0);
+  params->SetReal("Mcts::State::DrivableCollisionReward", -2000.0);
   params->SetReal("Mcts::State::GoalCost", 10.0);
   params->SetReal("Mcts::State::CollisionCost", 300);
+  params->SetReal("Mcts::State::DrivableCollisionCost", 300.0);
   params->SetListFloat("AccelerationInputs", {0, 1, 4, -1, -8});
 
   auto ego_behavior_model = BehaviorMacroActionsFromParamServer(

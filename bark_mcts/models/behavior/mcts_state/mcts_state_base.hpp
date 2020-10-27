@@ -65,9 +65,11 @@ typedef struct StateParameters {
   float GOAL_REWARD;
   float COLLISION_REWARD;
   float SAFE_DIST_VIOLATED_REWARD;
+  float OUT_OF_DRIVABLE_REWARD;
   float GOAL_COST;
   float COLLISION_COST;
   float SAFE_DIST_VIOLATED_COST;
+  float OUT_OF_DRIVABLE_COST;
   float COOPERATION_FACTOR;
   float STEP_REWARD;
   bool split_safe_dist_collision;
@@ -100,8 +102,8 @@ inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& eval
                                     * parameters.SAFE_DIST_VIOLATED_REWARD;
   const bool use_collision = !(parameters.evaluation_parameters.static_safe_dist_is_terminal &&
                      parameters.evaluation_parameters.dynamic_safe_dist_is_terminal);
-  const mcts::Reward collision_reward = float( (use_collision ? evaluation_results.collision_other_agent : false) || evaluation_results.collision_drivable_area || 
-                evaluation_results.out_of_map ) * parameters.COLLISION_REWARD;
+  const mcts::Reward collision_reward = float(use_collision ? evaluation_results.collision_other_agent : false) * parameters.COLLISION_REWARD + float(evaluation_results.collision_drivable_area || 
+                evaluation_results.out_of_map) * parameters.OUT_OF_DRIVABLE_REWARD;
   return collision_reward + (parameters.evaluation_parameters.add_safe_dist ? safe_dist_reward : 0.0f) +
           float(evaluation_results.goal_reached) * parameters.GOAL_REWARD + parameters.STEP_REWARD;
 };
@@ -111,9 +113,10 @@ inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults&
   const mcts::Cost safe_dist_cost = float(parameters.evaluation_parameters.static_safe_dist_is_terminal ? 
                               evaluation_results.dynamic_safe_distance_violated :
                                evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_COST;
-  const mcts::Cost total_costs = float(evaluation_results.collision_drivable_area || evaluation_results.collision_other_agent || evaluation_results.out_of_map ||
+  const mcts::Cost total_costs = (evaluation_results.collision_other_agent || 
          (parameters.evaluation_parameters.static_safe_dist_is_terminal ?  evaluation_results.static_safe_distance_violated : false)||
         (parameters.evaluation_parameters.dynamic_safe_dist_is_terminal ?  evaluation_results.dynamic_safe_distance_violated : false)) * parameters.COLLISION_COST +
+        float(evaluation_results.collision_drivable_area || evaluation_results.out_of_map ) * parameters.OUT_OF_DRIVABLE_COST +
         float((parameters.evaluation_parameters.add_safe_dist && !parameters.split_safe_dist_collision) ? safe_dist_cost : 0.0f) +
           evaluation_results.goal_reached * parameters.GOAL_COST;
   if(parameters.split_safe_dist_collision) {
