@@ -54,6 +54,7 @@ ObservedWorldPtr BehaviorUCTBase::FilterAgents(const ObservedWorld& observed_wor
     for(const auto& agent : nearest_agents) {
         filtered_world->AddAgent(agent.second);
     }
+    filtered_world->UpdateAgentRTree();
     return filtered_world;
 }
 

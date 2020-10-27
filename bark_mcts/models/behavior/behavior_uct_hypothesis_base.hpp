@@ -30,6 +30,8 @@ class BehaviorUCTHypothesisBase : public BehaviorUCTBase {
 
   std::vector<BehaviorModelPtr> GetBehaviorHypotheses() const { return behavior_hypotheses_; }
 
+  void UpdateBeliefs(const ObservedWorld& observed_world);
+
  protected:
   void DefineTrueBehaviorsAsHypothesis(const world::ObservedWorld& observed_world);
 
@@ -39,7 +41,7 @@ class BehaviorUCTHypothesisBase : public BehaviorUCTBase {
 
   // Belief tracking, we must also maintain previous mcts hypothesis state
   mcts::HypothesisBeliefTracker belief_tracker_;
-  std::shared_ptr<T> last_mcts_hypothesis_state_;
+  std::shared_ptr<MctsStateHypothesis<>> last_mcts_hypothesis_state_;
 };
 
 template<class T>
@@ -66,6 +68,28 @@ void BehaviorUCTHypothesisBase<T>::DefineTrueBehaviorsAsHypothesis(const world::
   belief_tracker_.update_fixed_hypothesis_set(fixed_hypothesis_map);
 }
 
+template<class T>
+void BehaviorUCTHypothesisBase<T>::UpdateBeliefs(const ObservedWorld& observed_world) {
+    auto world_ptr = std::make_shared<ObservedWorld>(observed_world);
+    auto mcts_hypothesis_state_ptr = std::make_shared<MctsStateHypothesis<>>(
+                                world_ptr, 
+                                false, // terminal
+                                0, // num action 
+                                0.0, 
+                                std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>(), // pass hypothesis reference to states
+                                behavior_hypotheses_,
+                                observed_world.GetEgoAgentId(),
+                                this->mcts_state_parameters_);
+    if(!use_true_behaviors_as_hypothesis_) {
+      // if this is first call init belief tracker
+      if(!last_mcts_hypothesis_state_) {
+        belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *mcts_hypothesis_state_ptr);
+      } else {
+        belief_tracker_.belief_update(*last_mcts_hypothesis_state_, *mcts_hypothesis_state_ptr);
+      }
+      last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
+  }
+}
 
 }  // namespace behavior
 }  // namespace models

@@ -56,15 +56,8 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
                                 belief_tracker_.get_beliefs(),
                                 1.0);
 
-  // Belief update only required, if we do not use true behaviors as hypothesis
-  if(!use_true_behaviors_as_hypothesis_) {
-    // if this is first call to Plan init belief tracker
-    if(!last_mcts_hypothesis_state_) {
-      belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *mcts_hypothesis_state_ptr);
-    } else {
-      belief_tracker_.belief_update(*last_mcts_hypothesis_state_, *mcts_hypothesis_state_ptr);
-    }
-  }
+  // Belief update for all agents not only filtered
+  UpdateBeliefs(observed_world);
 
   // Update the constraint if it was not already calculated previously during plan
   if(estimate_scenario_risk_ && 
@@ -80,7 +73,6 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
              mcts::RandomHeuristic>  mcts_risk_constrained(current_mcts_parameters);
   mcts_risk_constrained.search(*mcts_hypothesis_state_ptr, belief_tracker_);
-  last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
   auto sampled_policy = mcts_risk_constrained.get_root().get_ego_int_node().greedy_policy(
               0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR);
       VLOG(3) << "Constraint: " << current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT << ", Action: " << sampled_policy.first << "\n" <<

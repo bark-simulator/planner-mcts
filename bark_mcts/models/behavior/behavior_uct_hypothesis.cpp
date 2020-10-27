@@ -44,21 +44,13 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
                                 ego_id,
                                 mcts_state_parameters_);
 
-  // Belief update only required, if we do not use true behaviors as hypothesis
-  if(!use_true_behaviors_as_hypothesis_) {
-    // if this is first call to Plan init belief tracker
-    if(!last_mcts_hypothesis_state_) {
-      belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *mcts_hypothesis_state_ptr);
-    } else {
-      belief_tracker_.belief_update(*last_mcts_hypothesis_state_, *mcts_hypothesis_state_ptr);
-    }
-  }
+  // Belief update for all agents not only filtered
+  UpdateBeliefs(observed_world);
 
   // Now do the search
   mcts::Mcts<MctsStateHypothesis<>, mcts::UctStatistic, mcts::HypothesisStatistic,
              mcts::RandomHeuristic>mcts_hypothesis(mcts_parameters_);
   mcts_hypothesis.search(*mcts_hypothesis_state_ptr, belief_tracker_);
-  last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
   mcts::ActionIdx best_action = mcts_hypothesis.returnBestAction();
   last_motion_idx_ = best_action;
 
