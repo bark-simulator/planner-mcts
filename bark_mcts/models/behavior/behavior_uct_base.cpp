@@ -28,10 +28,6 @@ BehaviorUCTBase::BehaviorUCTBase(
     max_nearest_agents_(GetParams()->AddChild("BehaviorUctBase")
                                         ->GetInt("MaxNearestAgents",
           "Max sourrounding agents considered for tree search", 5)),
-      prediction_time_span_(GetParams()->AddChild("BehaviorUctBase")
-                                        ->AddChild("PredictionSettings")
-                                        ->GetReal("TimeSpan",
-          "Time in seconds agents are predicted ahead in each expansion and rollout step", 0.5f)),
       mcts_state_parameters_(MctsStateParametersFromParamServer(
           GetParams()->AddChild("BehaviorUctBase"))),
       mcts_edge_infos_() {}

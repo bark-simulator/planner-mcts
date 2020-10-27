@@ -50,7 +50,6 @@ class BehaviorUCTBase : public BehaviorModel {
   bool extract_edge_info_;
   unsigned int max_extraction_depth_;
   unsigned int max_nearest_agents_;
-  double prediction_time_span_;
   StateParameters mcts_state_parameters_;
   std::vector<BarkMctsEdgeInfo> mcts_edge_infos_;
 };
