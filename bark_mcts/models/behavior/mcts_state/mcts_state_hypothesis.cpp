@@ -28,7 +28,7 @@ MctsStateHypothesis<T>::MctsStateHypothesis(
                        const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
-                       const float& prediction_time_span,
+                       const unsigned int& depth,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                        const mcts::AgentIdx& ego_agent_id,
@@ -36,7 +36,7 @@ MctsStateHypothesis<T>::MctsStateHypothesis(
                         MctsStateBase<MctsStateHypothesis<T>>(observed_world,
                                       is_terminal_state,
                                       num_ego_actions,
-                                      prediction_time_span,
+                                      depth,
                                       ego_agent_id,
                                       state_parameters,
                                       current_agents_hypothesis),
@@ -77,7 +77,7 @@ ObservedWorldPtr MctsStateHypothesis<T>::predict(const mcts::JointAction& joint_
   auto ego_behavior = observed_world_->GetEgoAgent()->GetBehaviorModel()->Clone();
   ego_behavior->ActionToBehavior(DiscreteAction(joint_action[this->ego_agent_idx]));
   const auto predicted_world = 
-            observed_world_->Predict(prediction_time_span_, ego_behavior, predicted_behaviors_);
+            observed_world_->Predict(this->calculate_prediction_time_span(), ego_behavior, predicted_behaviors_);
   return predicted_world;
 }
 
@@ -92,7 +92,7 @@ mcts::ActionIdx MctsStateHypothesis<T>::plan_action_current_hypothesis(const mct
     auto bark_agent_id = agent_idx;
     auto observed_world_for_other = observed_world_->ObserveForOtherAgent(bark_agent_id);
     const mcts::HypothesisId agt_hyp_id = this->current_agents_hypothesis_.at(agent_idx);
-    const auto& trajectory = behavior_hypotheses_[agt_hyp_id]->Plan(prediction_time_span_, *observed_world_for_other);
+    const auto& trajectory = behavior_hypotheses_[agt_hyp_id]->Plan(this->calculate_prediction_time_span(), *observed_world_for_other);
     const BarkAction bark_action = behavior_hypotheses_[agt_hyp_id]->GetLastAction();
     const auto& behavior_status = behavior_hypotheses_[agt_hyp_id]->GetBehaviorStatus();
     const mcts::ActionIdx mcts_action = std::dynamic_pointer_cast<BehaviorActionStore>(

@@ -121,7 +121,7 @@ TEST(risk_constraint_mcts_state, execute) {
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(40, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
 
-  double rel_distance = 10.0f, ego_velocity = 5.0f, velocity_difference = -4.0f, prediction_time_span = 1.0f;
+  double rel_distance = 10.0f, ego_velocity = 5.0f, velocity_difference = -4.0f;
   auto observed_world = std::dynamic_pointer_cast<ObservedWorld>(
         make_test_observed_world(1, rel_distance, ego_velocity, velocity_difference, goal_definition_ptr).Clone());
   observed_world->SetRemoveAgents(true);
@@ -150,7 +150,7 @@ TEST(risk_constraint_mcts_state, execute) {
   MctsStateRiskConstraint mcts_state(const_observed_world,
                         false,
                        num_ego_actions,
-                       prediction_time_span,
+                       1,
                        belief_tracker.sample_current_hypothesis(),
                        behavior_hypothesis,
                        ego_agent_id,

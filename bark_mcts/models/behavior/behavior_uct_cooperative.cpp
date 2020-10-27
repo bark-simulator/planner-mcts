@@ -33,7 +33,7 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
                                 mcts_observed_world, 
                                 false, // terminal
                                 num, // num action 
-                                prediction_time_span_, 
+                                1, 
                                 ego_id,
                                 mcts_state_parameters_);
 

@@ -25,7 +25,7 @@ public:
   MctsStateRiskConstraint(const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
-                       const float& prediction_time_span,
+                       const unsigned int& depth,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                        const mcts::AgentIdx& ego_agent_id,

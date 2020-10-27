@@ -38,7 +38,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
                                 mcts_observed_world, 
                                 false, // terminal
                                 num, // num action 
-                                prediction_time_span_, 
+                                1, 
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypotheses_,
                                 ego_id,

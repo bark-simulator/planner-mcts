@@ -72,6 +72,8 @@ typedef struct StateParameters {
   float OUT_OF_DRIVABLE_COST;
   float COOPERATION_FACTOR;
   float STEP_REWARD;
+  float PREDICTION_K;
+  float PREDICTION_ALPHA;
   bool split_safe_dist_collision;
   bool chance_costs;
   EvaluationParameters evaluation_parameters;
@@ -135,7 +137,7 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
     MctsStateBase(const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
-                       const float& prediction_time_span,
+                       const unsigned int& depth,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis);
@@ -152,13 +154,15 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
 
     const ObservedWorld& get_observed_world() const { return *observed_world_; }
 
+    float calculate_prediction_time_span() const;
+
  protected:
   std::vector<mcts::AgentIdx> update_other_agent_ids() const;
 
   const std::shared_ptr<const bark::world::ObservedWorld> observed_world_;
   const bool is_terminal_state_;
   const mcts::ActionIdx num_ego_actions_;
-  const float prediction_time_span_;
+  const unsigned int depth_;
   const std::vector<mcts::AgentIdx> other_agent_ids_;
   const mcts::AgentIdx ego_agent_id_;
   const StateParameters state_parameters_;
@@ -168,7 +172,7 @@ template<class T>
 MctsStateBase<T>::MctsStateBase(const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
-                       const float& prediction_time_span,
+                       const unsigned int& depth,
                        const mcts::AgentIdx& ego_agent_id,
                        const StateParameters& state_parameters,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis) :
@@ -176,7 +180,7 @@ MctsStateBase<T>::MctsStateBase(const bark::world::ObservedWorldPtr& observed_wo
       observed_world_(observed_world),
       is_terminal_state_(is_terminal_state),
       num_ego_actions_(num_ego_actions),
-      prediction_time_span_(prediction_time_span),
+      depth_(depth),
       other_agent_ids_(update_other_agent_ids()),
       ego_agent_id_(ego_agent_id),
       state_parameters_(state_parameters) {}
@@ -214,6 +218,11 @@ std::string MctsStateBase<T>::sprintf() const {
           ", Action: " <<  boost::apply_visitor(action_tostring_visitor(), agent.second->GetBehaviorModel()->GetLastAction()) ;
     }
     return ss.str();
+}
+
+template<class T>
+float MctsStateBase<T>::calculate_prediction_time_span() const {
+  return state_parameters_.PREDICTION_K * std::pow(depth_, state_parameters_.PREDICTION_ALPHA);
 }
 
 inline EvaluationResults mcts_observed_world_evaluation(const ObservedWorld& observed_world, const EvaluationParameters& evaluation_parameters) {

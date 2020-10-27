@@ -31,7 +31,7 @@ class MctsStateHypothesis : public MctsStateBase<MctsStateHypothesis<T>> {
     using MctsStateBase<MctsStateHypothesis<T>>::observed_world_;
     using MctsStateBase<MctsStateHypothesis<T>>::is_terminal_state_;
     using MctsStateBase<MctsStateHypothesis<T>>::num_ego_actions_;
-    using MctsStateBase<MctsStateHypothesis<T>>::prediction_time_span_;
+    using MctsStateBase<MctsStateHypothesis<T>>::depth_;
     using MctsStateBase<MctsStateHypothesis<T>>::other_agent_ids_;
     using MctsStateBase<MctsStateHypothesis<T>>::ego_agent_id_;
     using MctsStateBase<MctsStateHypothesis<T>>::state_parameters_;
@@ -40,7 +40,7 @@ public:
     MctsStateHypothesis(const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
-                       const float& prediction_time_span,
+                       const unsigned int& depth,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                        const mcts::AgentIdx& ego_agent_id,
@@ -97,7 +97,7 @@ public:
       auto worldptr =
           std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
       return std::make_shared<MctsStateHypothesis<T>>(
-          worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
+          worldptr, is_terminal_state_, num_ego_actions_, depth_,
           MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_,
             ego_agent_id_, state_parameters_);
     }
@@ -112,7 +112,7 @@ public:
         VLOG_IF_EVERY_N(5, ego_cost[0] != 0.0f || rewards[this->ego_agent_idx] != 0.0, 20) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost[0];
 
         return std::make_shared<MctsStateHypothesis<T>>(
-                    predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
+                    predicted_world, evaluation_results.is_terminal, num_ego_actions_, depth_+1,
                     MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_, 
                     ego_agent_id_, state_parameters_);
     }
