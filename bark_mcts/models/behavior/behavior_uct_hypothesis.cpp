@@ -18,8 +18,7 @@ BehaviorUCTHypothesis::BehaviorUCTHypothesis(const commons::ParamsPtr& params,
 
 dynamic::Trajectory BehaviorUCTHypothesis::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
-  ObservedWorldPtr mcts_observed_world =
-      std::dynamic_pointer_cast<ObservedWorld>(observed_world.Clone());
+  ObservedWorldPtr mcts_observed_world = BehaviorUCTBase::FilterAgents(observed_world);
 
   mcts_observed_world->GetEgoAgent()->SetBehaviorModel(ego_behavior_model_);
 

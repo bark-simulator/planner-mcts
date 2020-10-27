@@ -28,8 +28,7 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
 
 dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
-  ObservedWorldPtr mcts_observed_world =
-      std::dynamic_pointer_cast<ObservedWorld>(observed_world.Clone());
+  ObservedWorldPtr mcts_observed_world = BehaviorUCTBase::FilterAgents(observed_world);
 
   // Check if we can shall use existing behavior models as hypothesis
   if(use_true_behaviors_as_hypothesis_) {

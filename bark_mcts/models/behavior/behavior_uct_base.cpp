@@ -25,6 +25,9 @@ BehaviorUCTBase::BehaviorUCTBase(
     max_extraction_depth_(GetParams()->AddChild("BehaviorUctBase")
                                         ->GetInt("MaxExtractionDepth",
           "Max depth tree is extracted", 10)),
+    max_nearest_agents_(GetParams()->AddChild("BehaviorUctBase")
+                                        ->GetInt("MaxNearestAgents",
+          "Max sourrounding agents considered for tree search", 5)),
       prediction_time_span_(GetParams()->AddChild("BehaviorUctBase")
                                         ->AddChild("PredictionSettings")
                                         ->GetReal("TimeSpan",
@@ -41,6 +44,17 @@ std::string BehaviorUCTBase::GetPrimitiveName(mcts::ActionIdx action) const {
     } else {
       return "Unknown";
     }
+}
+
+ObservedWorldPtr BehaviorUCTBase::FilterAgents(const ObservedWorld& observed_world) const {
+    const auto ego_position = observed_world.CurrentEgoPosition();
+    const auto nearest_agents = observed_world.GetNearestAgents(ego_position, max_nearest_agents_);
+    auto filtered_world = std::make_shared<ObservedWorld>(observed_world);
+    filtered_world->ClearAgents();
+    for(const auto& agent : nearest_agents) {
+        filtered_world->AddAgent(agent.second);
+    }
+    return filtered_world;
 }
 
 

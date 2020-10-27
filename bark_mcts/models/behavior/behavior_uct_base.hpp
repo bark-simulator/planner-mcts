@@ -38,6 +38,7 @@ class BehaviorUCTBase : public BehaviorModel {
 
   BehaviorMotionPrimitives::MotionIdx GetLastMotionIdx() const { return last_motion_idx_; }
     
+  ObservedWorldPtr FilterAgents(const ObservedWorld& observed_world) const;
 
  protected:
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
@@ -48,6 +49,7 @@ class BehaviorUCTBase : public BehaviorModel {
   bool dump_tree_;
   bool extract_edge_info_;
   unsigned int max_extraction_depth_;
+  unsigned int max_nearest_agents_;
   double prediction_time_span_;
   StateParameters mcts_state_parameters_;
   std::vector<BarkMctsEdgeInfo> mcts_edge_infos_;

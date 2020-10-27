@@ -17,8 +17,7 @@ BehaviorUCTCooperative::BehaviorUCTCooperative(const commons::ParamsPtr& params)
 
 dynamic::Trajectory BehaviorUCTCooperative::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
-  ObservedWorldPtr mcts_observed_world =
-      std::dynamic_pointer_cast<ObservedWorld>(observed_world.Clone());
+  ObservedWorldPtr mcts_observed_world = BehaviorUCTBase::FilterAgents(observed_world);
   for ( auto& agent : mcts_observed_world->GetAgents()) {
     agent.second->SetBehaviorModel(ego_behavior_model_);
   }
