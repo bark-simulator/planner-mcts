@@ -27,7 +27,8 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                 scenario_risk_function_(scenario_risk_function),
                                 last_policy_sampled_(),
                                 last_expected_risk_(),
-                                last_cost_values_() {}
+                                last_cost_values_(),
+                                last_scenario_risk_(current_scenario_risk_) {}
 
 dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
@@ -86,6 +87,7 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   SetLastExpectedRisk(expected_risk);
   SetLastReturnValues(mcts_risk_constrained.get_root().get_ego_int_node().get_reward_statistic().get_policy());
   SetLastCostValues(mcts_risk_constrained.get_root().get_ego_int_node().get_cost_statistic(CONSTRAINT_COST_IDX).get_policy());
+  SetLastScenarioRisk(current_scenario_risk_);
   // Update the constraint based on policy
   if(initialized_available_risk_ && update_scenario_risk_) {
     current_scenario_risk_ = mcts_risk_constrained.get_root().get_ego_int_node().

@@ -37,6 +37,9 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRisk
   risk_calculation::ScenarioRiskFunctionPtr GetScenarioRiskFunction() const { return scenario_risk_function_; }
 
   // For (de)serialization purposes of debug infos
+  mcts::Probability GetLastScenarioRisk() const { return last_scenario_risk_; }
+  void SetLastScenarioRisk(const mcts::Probability& risk) { last_scenario_risk_ = risk; }
+
   mcts::Probability GetLastExpectedRisk() const { return last_expected_risk_; }
   void SetLastExpectedRisk(const mcts::Probability& risk) { last_expected_risk_ = risk; }
 
@@ -60,6 +63,7 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRisk
     PolicySampled last_policy_sampled_;
     mcts::Probability last_expected_risk_;
     mcts::Policy last_cost_values_;
+    mcts::Probability last_scenario_risk_;
 };
 
 inline std::shared_ptr<BehaviorModel> BehaviorUCTRiskConstraint::Clone() const {
