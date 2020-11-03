@@ -40,6 +40,10 @@ class BehaviorUCTBase : public BehaviorModel {
     
   ObservedWorldPtr FilterAgents(const ObservedWorld& observed_world) const;
 
+  // For debug drawing (de)serialization purposes
+  void SetLastReturnValues(const mcts::Policy& return_values) { last_return_values_ = return_values;}
+  mcts::Policy GetLastReturnValues() const { return last_return_values_; }
+
  protected:
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
   BehaviorMotionPrimitives::MotionIdx last_motion_idx_;
@@ -54,6 +58,7 @@ class BehaviorUCTBase : public BehaviorModel {
 
   // Drawing/Debugging Infos
   std::vector<BarkMctsEdgeInfo> mcts_edge_infos_;
+  mcts::Policy last_return_values_;
 };
 
 template< class Mcts, class State>

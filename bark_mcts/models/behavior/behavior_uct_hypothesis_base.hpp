@@ -36,9 +36,6 @@ class BehaviorUCTHypothesisBase : public BehaviorUCTBase {
   std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>> GetCurrentBeliefs() const { return current_beliefs_; } 
   void SetCurrentBeliefs(const std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>>& beliefs) { current_beliefs_ = beliefs; }
 
-  void SetLastReturnValues(const mcts::Policy& return_values) { last_return_values_ = return_values;}
-  mcts::Policy GetLastReturnValues() const { return last_return_values_; }
-
  protected:
   void DefineTrueBehaviorsAsHypothesis(const world::ObservedWorld& observed_world);
 
@@ -52,7 +49,6 @@ class BehaviorUCTHypothesisBase : public BehaviorUCTBase {
 
   // Drawing debugging
   std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>> current_beliefs_;
-  mcts::Policy last_return_values_;
 };
 
 template<class T>
@@ -66,8 +62,7 @@ BehaviorUCTHypothesisBase<T>::BehaviorUCTHypothesisBase(
                                         ->GetBool("UseTrueBehaviorsAsHypothesis", "When true behaviors out of observed world are used as hypothesis", false)),
       belief_tracker_(mcts_parameters_),
       last_mcts_hypothesis_state_(),
-      current_beliefs_(),
-      last_return_values_() {}
+      current_beliefs_() {}
 
 template<class T>
 void BehaviorUCTHypothesisBase<T>::DefineTrueBehaviorsAsHypothesis(const world::ObservedWorld& observed_world) {
