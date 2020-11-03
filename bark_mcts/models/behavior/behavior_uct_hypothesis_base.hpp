@@ -32,6 +32,13 @@ class BehaviorUCTHypothesisBase : public BehaviorUCTBase {
 
   void UpdateBeliefs(const ObservedWorld& observed_world);
 
+  // Only for (de)serialization purposes
+  std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>> GetCurrentBeliefs() const { return current_beliefs_; } 
+  void SetCurrentBeliefs(const std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>>& beliefs) { current_beliefs_ = beliefs; }
+
+  void SetLastReturnValues(const mcts::Policy& return_values) { last_return_values_ = return_values;}
+  mcts::Policy GetLastReturnValues() const { return last_return_values_; }
+
  protected:
   void DefineTrueBehaviorsAsHypothesis(const world::ObservedWorld& observed_world);
 
@@ -42,6 +49,10 @@ class BehaviorUCTHypothesisBase : public BehaviorUCTBase {
   // Belief tracking, we must also maintain previous mcts hypothesis state
   mcts::HypothesisBeliefTracker belief_tracker_;
   std::shared_ptr<MctsStateHypothesis<>> last_mcts_hypothesis_state_;
+
+  // Drawing debugging
+  std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>> current_beliefs_;
+  mcts::Policy last_return_values_;
 };
 
 template<class T>
@@ -54,7 +65,9 @@ BehaviorUCTHypothesisBase<T>::BehaviorUCTHypothesisBase(
                                         ->AddChild("PredictionSettings")
                                         ->GetBool("UseTrueBehaviorsAsHypothesis", "When true behaviors out of observed world are used as hypothesis", false)),
       belief_tracker_(mcts_parameters_),
-      last_mcts_hypothesis_state_() {}
+      last_mcts_hypothesis_state_(),
+      current_beliefs_(),
+      last_return_values_() {}
 
 template<class T>
 void BehaviorUCTHypothesisBase<T>::DefineTrueBehaviorsAsHypothesis(const world::ObservedWorld& observed_world) {
@@ -88,6 +101,7 @@ void BehaviorUCTHypothesisBase<T>::UpdateBeliefs(const ObservedWorld& observed_w
         belief_tracker_.belief_update(*last_mcts_hypothesis_state_, *mcts_hypothesis_state_ptr);
       }
       last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
+      SetCurrentBeliefs(belief_tracker_.get_beliefs());
   }
 }
 

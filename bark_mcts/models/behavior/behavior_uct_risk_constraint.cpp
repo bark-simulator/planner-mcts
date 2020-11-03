@@ -24,7 +24,10 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                 update_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
                                       ->GetBool("UpdateScenarioRisk", "Should scenario risk be estimated from scenario risk function", true)),
                                 initialized_available_risk_(!estimate_scenario_risk_),
-                                scenario_risk_function_(scenario_risk_function) {}
+                                scenario_risk_function_(scenario_risk_function),
+                                last_policy_sampled_(),
+                                last_expected_risk_(),
+                                last_cost_values_() {}
 
 dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
@@ -75,11 +78,14 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   mcts_risk_constrained.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   auto sampled_policy = mcts_risk_constrained.get_root().get_ego_int_node().greedy_policy(
               0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR);
+  auto expected_risk = mcts_risk_constrained.get_root().get_ego_int_node().expected_policy_cost(sampled_policy.second);
       VLOG(3) << "Constraint: " << current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT << ", Action: " << sampled_policy.first << "\n" <<
                 mcts_risk_constrained.get_root().get_ego_int_node().print_edge_information(sampled_policy.first) << mcts::CostConstrainedStatistic::print_policy(sampled_policy.second) << "\n"
-                << "Expected risk: " << mcts_risk_constrained.get_root().get_ego_int_node().expected_policy_cost(sampled_policy.second);
-
-
+                << "Expected risk: " << expected_risk;
+  SetLastPolicySampled(sampled_policy);
+  SetLastExpectedRisk(expected_risk);
+  SetLastReturnValues(mcts_risk_constrained.get_root().get_ego_int_node().get_reward_statistic().get_policy());
+  SetLastCostValues(mcts_risk_constrained.get_root().get_ego_int_node().get_cost_statistic(CONSTRAINT_COST_IDX).get_policy());
   // Update the constraint based on policy
   if(initialized_available_risk_ && update_scenario_risk_) {
     current_scenario_risk_ = mcts_risk_constrained.get_root().get_ego_int_node().

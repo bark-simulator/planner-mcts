@@ -19,6 +19,8 @@ class ObservedWorld;
 namespace models {
 namespace behavior {
 
+typedef std::pair<mcts::ActionIdx, mcts::Policy> PolicySampled;
+
 class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRiskConstraint> {
  public:
   explicit BehaviorUCTRiskConstraint(const commons::ParamsPtr& params,
@@ -34,6 +36,16 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRisk
 
   risk_calculation::ScenarioRiskFunctionPtr GetScenarioRiskFunction() const { return scenario_risk_function_; }
 
+  // For (de)serialization purposes of debug infos
+  mcts::Probability GetLastExpectedRisk() const { return last_expected_risk_; }
+  void SetLastExpectedRisk(const mcts::Probability& risk) { last_expected_risk_ = risk; }
+
+  PolicySampled GetLastPolicySampled() const { return last_policy_sampled_; }
+  void SetLastPolicySampled(const PolicySampled& policy_sampled) { last_policy_sampled_ = policy_sampled; }
+  
+  void SetLastCostValues(const mcts::Policy& cost_values) { last_cost_values_ = cost_values;}
+  mcts::Policy GetLastCostValues() const { return last_cost_values_; }
+
   protected:
     mcts::Cost CalculateAvailableScenarioRisk() const;
 
@@ -43,6 +55,11 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRisk
     bool initialized_available_risk_; // Was scenario risk initialized from scenario risk function after belief was initialized
     bool update_scenario_risk_; // Should scenario risk be updated during scenario execution based on policy and executed actions
     risk_calculation::ScenarioRiskFunctionPtr scenario_risk_function_;
+
+    // Drawing/Debugging purposes
+    PolicySampled last_policy_sampled_;
+    mcts::Probability last_expected_risk_;
+    mcts::Policy last_cost_values_;
 };
 
 inline std::shared_ptr<BehaviorModel> BehaviorUCTRiskConstraint::Clone() const {

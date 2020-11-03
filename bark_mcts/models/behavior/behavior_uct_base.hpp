@@ -51,6 +51,8 @@ class BehaviorUCTBase : public BehaviorModel {
   unsigned int max_extraction_depth_;
   unsigned int max_nearest_agents_;
   StateParameters mcts_state_parameters_;
+
+  // Drawing/Debugging Infos
   std::vector<BarkMctsEdgeInfo> mcts_edge_infos_;
 };
 

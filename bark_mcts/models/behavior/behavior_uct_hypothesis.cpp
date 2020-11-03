@@ -54,6 +54,8 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   mcts::ActionIdx best_action = mcts_hypothesis.returnBestAction();
   last_motion_idx_ = best_action;
 
+  SetLastReturnValues(mcts_hypothesis.get_root().get_ego_int_node().get_policy());
+
   if (dump_tree_) {
     std::stringstream filename;
     filename << "tree_dot_file_" << observed_world.GetWorldTime();
