@@ -227,7 +227,7 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 2.0);
   params->SetReal("BehaviorUctBase::Mcts::LowerCostBound", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 2.0);
-  params->SetReal("BehaviorUctRiskConstraint::DefaultAvailableRisk", 0.1f);
+  params->SetListFloat("BehaviorUctRiskConstraint::DefaultAvailableRisk", {0.1f});
   params->SetBool("BehaviorUctRiskConstraint::EstimateScenarioRisk", false);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
@@ -267,7 +267,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 1.0);
   params->SetReal("BehaviorUctBase::Mcts::LowerCostBound", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 1.0);
-  params->SetReal("BehaviorUctRiskConstraint::DefaultAvailableRisk", 0.1f);
+  params->SetListFloat("BehaviorUctRiskConstraint::DefaultAvailableRisk", {0.1f});
   params->SetBool("BehaviorUctRiskConstraint::EstimateScenarioRisk", false);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
@@ -281,7 +281,9 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 400000);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", 2.0f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 0.5f);
-  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::GradientUpdateScaling",  1.0f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::GradientUpdateScaling",  0.001f);
+  params->SetReal("BehaviorUctBase::Mcts::State::PredictionK", 0.2f),
+  params->SetReal("BehaviorUctBase::Mcts::State::PredictionAlpha", 0.0f),
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::TauGradientClip", 1.0f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::ActionFilterFactor", 2.0f);
 
@@ -304,7 +306,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
   auto motion_idx = behavior_uct.GetLastMotionIdx();
-  EXPECT_TRUE(motion_idx == 6 || motion_idx == 4); // some decceleration should occur or a lane change to the right
+  EXPECT_TRUE(motion_idx == 3 || motion_idx == 4); // some decceleration should occur or a lane change to the right
 
   // Check correct exploration depth/progressive widening
   const auto mcts_edges = behavior_uct.GetLastMctsEdgeInfo();
@@ -326,7 +328,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   }
   EXPECT_TRUE(IsBetweenInclusive(largest_depth, 6, 10));
 
-  EXPECT_EQ(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 7);
+  EXPECT_EQ(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 6);
   EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetOtherAgents().begin()->first].size(), 3, 10));
 
   // second agent always chooses same actions since hypthesis does not affect desired velocity driving

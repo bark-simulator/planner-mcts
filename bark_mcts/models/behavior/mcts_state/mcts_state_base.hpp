@@ -111,7 +111,6 @@ inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& eval
 };
 
 inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
-  mcts::EgoCosts ego_costs(2, 0.0f);
   const mcts::Cost safe_dist_cost = float(parameters.evaluation_parameters.static_safe_dist_is_terminal ? 
                               evaluation_results.dynamic_safe_distance_violated :
                                evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_COST;
@@ -122,13 +121,15 @@ inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults&
         float((parameters.evaluation_parameters.add_safe_dist && !parameters.split_safe_dist_collision) ? safe_dist_cost : 0.0f) +
           evaluation_results.goal_reached * parameters.GOAL_COST;
   if(parameters.split_safe_dist_collision) {
+    mcts::EgoCosts ego_costs(2);
     ego_costs[0] = parameters.chance_costs ? std::min(safe_dist_cost, 1.0) : safe_dist_cost; // The constrained policy is always calculated over the first index
     ego_costs[1] = parameters.chance_costs ? std::min(total_costs, 1.0) : total_costs;
+    return ego_costs;
   } else {
+    mcts::EgoCosts ego_costs(1);
     ego_costs[0] = parameters.chance_costs ? std::min(total_costs, 1.0) : total_costs; // The constrained policy is always calculated over the first index
-    ego_costs[1] = 0.0f;
+    return ego_costs;
   }
-  return ego_costs;
 };
 
 template<class T>
@@ -197,7 +198,7 @@ const mcts::AgentIdx MctsStateBase<T>::get_ego_agent_idx() const {
 
 template<class T>
 const std::size_t MctsStateBase<T>::get_num_costs() const {
-  return 2;
+  return state_parameters_.split_safe_dist_collision ? 2 : 1;
 }
 
 template<class T>
