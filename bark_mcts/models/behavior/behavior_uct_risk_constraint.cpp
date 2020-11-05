@@ -16,8 +16,14 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                                 const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function) :
                                 BehaviorUCTHypothesisBase(params, behavior_hypothesis),
-                                default_available_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
-                                      ->GetReal("DefaultAvailableRisk", "Risk used when belief not initialized", 0.0f)),
+                                default_available_risk_([&]() {
+                                const auto float_vec = GetParams()->AddChild("BehaviorUctRiskConstraint")
+                                    ->GetListFloat("DefaultAvailableRisk", "Risk used when belief not initialized", {0.0f});
+                                std::vector<double> double_vec(float_vec.size());
+                                std::transform(double_vec.begin(), double_vec.end(), double_vec.begin(),
+                                       [](const float& v){return static_cast<double>(v);});
+                                return double_vec;
+                                }()),
                                 current_scenario_risk_(default_available_risk_),
                                 estimate_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
                                       ->GetBool("EstimateScenarioRisk", "Should scenario risk be estimated from scenario risk function", false)),
@@ -67,20 +73,21 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   if(estimate_scenario_risk_ && 
     !initialized_available_risk_ && 
     belief_tracker_.beliefs_initialized()) {
-    current_scenario_risk_ = CalculateAvailableScenarioRisk();
+    // Assuming first risk is to be estimated second collision risk
+    current_scenario_risk_[0] = CalculateAvailableScenarioRisk();
     initialized_available_risk_ = true;
   }
 
   // Do the search
   auto current_mcts_parameters = mcts_parameters_;
-  current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT = current_scenario_risk_;
+  current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINTS = current_scenario_risk_;
   mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
              mcts::RandomHeuristic>  mcts_risk_constrained(current_mcts_parameters);
   mcts_risk_constrained.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   auto sampled_policy = mcts_risk_constrained.get_root().get_ego_int_node().greedy_policy(
               0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR);
   auto expected_risk = mcts_risk_constrained.get_root().get_ego_int_node().expected_policy_cost(sampled_policy.second);
-      VLOG(3) << "Constraint: " << current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT << ", Action: " << sampled_policy.first << "\n" <<
+      VLOG(3) << "Constraint: " << current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINTS << ", Action: " << sampled_policy.first << "\n" <<
                 mcts_risk_constrained.get_root().get_ego_int_node().print_edge_information(sampled_policy.first) << mcts::CostConstrainedStatistic::print_policy(sampled_policy.second) << "\n"
                 << "Expected risk: " << expected_risk;
   SetLastPolicySampled(sampled_policy);
@@ -91,8 +98,10 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   // Update the constraint based on policy
   if(initialized_available_risk_ && update_scenario_risk_) {
     current_scenario_risk_ = mcts_risk_constrained.get_root().get_ego_int_node().
-                      calc_updated_constraint_based_on_policy(sampled_policy, current_scenario_risk_);
-    current_scenario_risk_ = std::min(std::max(0.0, current_scenario_risk_), 1.0);
+                      calc_updated_constraints_based_on_policy(sampled_policy, current_scenario_risk_);
+    for (auto& risk : current_scenario_risk_) {
+      risk = std::min(std::max(0.0, risk), 1.0);
+    }
   }
 
   // Postprocessing
