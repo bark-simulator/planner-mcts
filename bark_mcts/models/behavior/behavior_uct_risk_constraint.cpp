@@ -20,7 +20,7 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                 const auto float_vec = GetParams()->AddChild("BehaviorUctRiskConstraint")
                                     ->GetListFloat("DefaultAvailableRisk", "Risk used when belief not initialized", {0.0f});
                                 std::vector<double> double_vec(float_vec.size());
-                                std::transform(double_vec.begin(), double_vec.end(), double_vec.begin(),
+                                std::transform(float_vec.begin(), float_vec.end(), double_vec.begin(),
                                        [](const float& v){return static_cast<double>(v);});
                                 return double_vec;
                                 }()),
