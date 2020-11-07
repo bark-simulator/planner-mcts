@@ -99,6 +99,9 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
   if(initialized_available_risk_ && update_scenario_risk_) {
     current_scenario_risk_ = mcts_risk_constrained.get_root().get_ego_int_node().
                       calc_updated_constraints_based_on_policy(sampled_policy, current_scenario_risk_);
+    if(current_scenario_risk_.size() > 1) {
+          current_scenario_risk_[1] = default_available_risk_.at(1);
+    }
     for (auto& risk : current_scenario_risk_) {
       risk = std::min(std::max(0.0, risk), 1.0);
     }
