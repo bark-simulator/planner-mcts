@@ -178,8 +178,26 @@ void python_planner_uct(py::module m) {
     .def(py::init<const bark::commons::ParamsPtr&,
               const std::vector<BehaviorModelPtr>&>())
     .def("BeliefUpdate", &BeliefCalculator::BeliefUpdate)
-    .def("GetBeliefs", &BeliefCalculator::GetBeliefs);
-
-     python_risk_calculation(m.def_submodule("risk_calculation"));
+    .def("GetBeliefs", &BeliefCalculator::GetBeliefs)
+    .def(py::pickle(
+      [](const BeliefCalculator& bc) {
+        py::list list;
+        auto hypotheses = bc.GetBehaviorHypotheses();
+        for (const auto& hypothesis : hypotheses) {
+          list.append(BehaviorModelToPython(hypothesis));
+        }
+        return py::make_tuple(ParamsToPython(bc.GetParams()), list);
+      },
+      [](py::tuple t) {
+        if (t.size() != 2)
+          throw std::runtime_error("Invalid belief calculator state!");
+        std::vector<BehaviorModelPtr> hypotheses;
+        const auto& list =  t[1].cast<py::list>();
+        for (const auto& el : list) {
+          hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
+        }        
+        return new BeliefCalculator(PythonToParams(t[0].cast<py::tuple>()), hypotheses);
+      }));
+      python_risk_calculation(m.def_submodule("risk_calculation"));
 
 }

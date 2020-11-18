@@ -27,6 +27,10 @@ class BeliefCalculator {
     void BeliefUpdate(const world::ObservedWorld& observed_world);
 
     std::unordered_map<bark::world::AgentId, std::vector<mcts::Belief>> GetBeliefs() { return belief_tracker_->get_beliefs(); };
+    
+    std::vector<BehaviorModelPtr> GetBehaviorHypotheses() const { return behavior_hypotheses_; }
+
+    commons::ParamsPtr GetParams() const { return params_; }
 
     void Reset();
 
@@ -35,6 +39,7 @@ class BeliefCalculator {
     std::shared_ptr<mcts::HypothesisBeliefTracker> belief_tracker_;
     std::shared_ptr<MctsStateHypothesis<>> last_mcts_hypothesis_state_;
     const mcts::MctsParameters mcts_parameters_;
+    const commons::ParamsPtr params_;
 };
 
 
