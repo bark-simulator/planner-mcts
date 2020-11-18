@@ -29,6 +29,18 @@ inline mcts::MctsParameters::HypothesisBeliefTrackerParameters BeliefTrackerPara
 
 inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsPtr& params,
                     std::unordered_map<unsigned int, unsigned int> fixed_hypothesis_set = {}) {
+    auto float_to_bool_vec = [](const std::vector<float>& float_vec) {
+        std::vector<bool> bool_vec(float_vec.size());
+        std::transform(float_vec.begin(), float_vec.end(), bool_vec.begin(), [](const float& v){return v == 1.0 ? true : false;});
+        return bool_vec;
+    };
+    auto float_to_double_vec = [](const std::vector<float>& float_vec) {
+        std::vector<double> double_vec(float_vec.size());
+        std::transform(double_vec.begin(), double_vec.end(), double_vec.begin(), [](const float& v){return static_cast<double>(v);});
+        return double_vec;
+    };
+
+
     mcts::MctsParameters parameters;
     parameters.DISCOUNT_FACTOR = params->GetReal("Mcts::DiscountFactor", "Discount factor used in MDP problem", 0.9);
     parameters.RANDOM_SEED = params->GetInt("Mcts::RandomSeed", "Random seed applied used during search process", 1000);
@@ -58,23 +70,19 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
 
     parameters.hypothesis_belief_tracker = BeliefTrackerParametersFromParamServer(params->AddChild("Mcts"));
 
-    parameters.cost_constrained_statistic.LAMBDA = params->GetReal("Mcts::CostConstrainedStatistic::LambdaInit", "Initial lambda value", 2.0f);
+    parameters.cost_constrained_statistic.LAMBDAS = float_to_double_vec(
+                params->GetListFloat("Mcts::CostConstrainedStatistic::LambdaInit", "Initial lambda value", {1.0f}));
     parameters.cost_constrained_statistic.COST_UPPER_BOUND = parameters.hypothesis_statistic.UPPER_COST_BOUND;
     parameters.cost_constrained_statistic.COST_LOWER_BOUND = parameters.hypothesis_statistic.LOWER_COST_BOUND;
     parameters.cost_constrained_statistic.REWARD_UPPER_BOUND = parameters.uct_statistic.UPPER_BOUND;
     parameters.cost_constrained_statistic.REWARD_LOWER_BOUND = parameters.uct_statistic.LOWER_BOUND;
-    parameters.cost_constrained_statistic.COST_CONSTRAINT = 0.0f; // Set dynamically
+    parameters.cost_constrained_statistic.COST_CONSTRAINTS = {0.0f}; // Set dynamically
     parameters.cost_constrained_statistic.KAPPA = params->GetReal("Mcts::CostConstrainedStatistic::Kappa", "Exploration constant", 10.0f);
     parameters.cost_constrained_statistic.GRADIENT_UPDATE_STEP = params->GetReal("Mcts::CostConstrainedStatistic::GradientUpdateScaling", "Update step scaling factor", 1.0f);
     parameters.cost_constrained_statistic.TAU_GRADIENT_CLIP = params->GetReal("Mcts::CostConstrainedStatistic::TauGradientClip", "Values smaller than one increase allowed gradient", 1.0f);
     parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR = params->GetReal("Mcts::CostConstrainedStatistic::ActionFilterFactor",
                "Scales node counts in relation to value differences, favoring less visited nodes", 0.5f);
 
-    auto float_to_bool_vec = [](const std::vector<float>& float_vec) {
-        std::vector<bool> bool_vec(float_vec.size());
-        std::transform(float_vec.begin(), float_vec.end(), bool_vec.begin(), [](const float& v){return v == 1.0 ? true : false;});
-        return bool_vec;
-    };
     parameters.cost_constrained_statistic.USE_COST_THRESHOLDING = float_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseCostTresholding",
                "Specify 1.0 if cost thresholding enabled for cost index", {0.0f, 0.0f}));
     parameters.cost_constrained_statistic.USE_CHANCE_CONSTRAINED_UPDATES = float_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseChanceConstrainedUpdate",

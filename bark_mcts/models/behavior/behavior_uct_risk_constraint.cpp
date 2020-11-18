@@ -16,20 +16,29 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                                 const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function) :
                                 BehaviorUCTHypothesisBase(params, behavior_hypothesis),
-                                default_available_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
-                                      ->GetReal("DefaultAvailableRisk", "Risk used when belief not initialized", 0.0f)),
+                                default_available_risk_([&]() {
+                                const auto float_vec = GetParams()->AddChild("BehaviorUctRiskConstraint")
+                                    ->GetListFloat("DefaultAvailableRisk", "Risk used when belief not initialized", {0.0f});
+                                std::vector<double> double_vec(float_vec.size());
+                                std::transform(float_vec.begin(), float_vec.end(), double_vec.begin(),
+                                       [](const float& v){return static_cast<double>(v);});
+                                return double_vec;
+                                }()),
                                 current_scenario_risk_(default_available_risk_),
                                 estimate_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
                                       ->GetBool("EstimateScenarioRisk", "Should scenario risk be estimated from scenario risk function", false)),
                                 update_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
                                       ->GetBool("UpdateScenarioRisk", "Should scenario risk be estimated from scenario risk function", true)),
                                 initialized_available_risk_(!estimate_scenario_risk_),
-                                scenario_risk_function_(scenario_risk_function) {}
+                                scenario_risk_function_(scenario_risk_function),
+                                last_policy_sampled_(),
+                                last_expected_risk_(),
+                                last_cost_values_(),
+                                last_scenario_risk_(current_scenario_risk_) {}
 
 dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
-  ObservedWorldPtr mcts_observed_world =
-      std::dynamic_pointer_cast<ObservedWorld>(observed_world.Clone());
+  ObservedWorldPtr mcts_observed_world = BehaviorUCTBase::FilterAgents(observed_world);
 
   // Check if we can shall use existing behavior models as hypothesis
   if(use_true_behaviors_as_hypothesis_) {
@@ -49,7 +58,7 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
                                 mcts_observed_world, 
                                 false, // terminal
                                 num, // num action 
-                                prediction_time_span_, 
+                                1, 
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypotheses_,
                                 ego_id,
@@ -57,43 +66,45 @@ dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
                                 belief_tracker_.get_beliefs(),
                                 1.0);
 
-  // Belief update only required, if we do not use true behaviors as hypothesis
-  if(!use_true_behaviors_as_hypothesis_) {
-    // if this is first call to Plan init belief tracker
-    if(!last_mcts_hypothesis_state_) {
-      belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *mcts_hypothesis_state_ptr);
-    } else {
-      belief_tracker_.belief_update(*last_mcts_hypothesis_state_, *mcts_hypothesis_state_ptr);
-    }
-  }
+  // Belief update for all agents not only filtered
+  UpdateBeliefs(observed_world);
 
   // Update the constraint if it was not already calculated previously during plan
   if(estimate_scenario_risk_ && 
     !initialized_available_risk_ && 
     belief_tracker_.beliefs_initialized()) {
-    current_scenario_risk_ = CalculateAvailableScenarioRisk();
+    // Assuming first risk is to be estimated second collision risk
+    current_scenario_risk_[0] = CalculateAvailableScenarioRisk();
     initialized_available_risk_ = true;
   }
 
   // Do the search
   auto current_mcts_parameters = mcts_parameters_;
-  current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT = current_scenario_risk_;
+  current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINTS = current_scenario_risk_;
   mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic, mcts::HypothesisStatistic,
              mcts::RandomHeuristic>  mcts_risk_constrained(current_mcts_parameters);
   mcts_risk_constrained.search(*mcts_hypothesis_state_ptr, belief_tracker_);
-  last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
   auto sampled_policy = mcts_risk_constrained.get_root().get_ego_int_node().greedy_policy(
               0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR);
-      VLOG(3) << "Constraint: " << current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINT << ", Action: " << sampled_policy.first << "\n" <<
+  auto expected_risk = mcts_risk_constrained.get_root().get_ego_int_node().expected_policy_cost(sampled_policy.second);
+      VLOG(3) << "Constraint: " << current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINTS << ", Action: " << sampled_policy.first << "\n" <<
                 mcts_risk_constrained.get_root().get_ego_int_node().print_edge_information(sampled_policy.first) << mcts::CostConstrainedStatistic::print_policy(sampled_policy.second) << "\n"
-                << "Expected risk: " << mcts_risk_constrained.get_root().get_ego_int_node().expected_policy_cost(sampled_policy.second);
-
-
+                << "Expected risk: " << expected_risk;
+  SetLastPolicySampled(sampled_policy);
+  SetLastExpectedRisk(expected_risk);
+  SetLastReturnValues(mcts_risk_constrained.get_root().get_ego_int_node().get_reward_statistic().get_policy());
+  SetLastCostValues(mcts_risk_constrained.get_root().get_ego_int_node().get_cost_statistic(CONSTRAINT_COST_IDX).get_policy());
+  SetLastScenarioRisk(current_scenario_risk_);
   // Update the constraint based on policy
   if(initialized_available_risk_ && update_scenario_risk_) {
     current_scenario_risk_ = mcts_risk_constrained.get_root().get_ego_int_node().
-                      calc_updated_constraint_based_on_policy(sampled_policy, current_scenario_risk_);
-    current_scenario_risk_ = std::min(std::max(0.0, current_scenario_risk_), 1.0);
+                      calc_updated_constraints_based_on_policy(sampled_policy, current_scenario_risk_);
+    if(current_scenario_risk_.size() > 1) {
+          current_scenario_risk_[1] = default_available_risk_.at(1);
+    }
+    for (auto& risk : current_scenario_risk_) {
+      risk = std::min(std::max(0.0, risk), 1.0);
+    }
   }
 
   // Postprocessing

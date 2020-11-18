@@ -18,8 +18,7 @@ BehaviorUCTHypothesis::BehaviorUCTHypothesis(const commons::ParamsPtr& params,
 
 dynamic::Trajectory BehaviorUCTHypothesis::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
-  ObservedWorldPtr mcts_observed_world =
-      std::dynamic_pointer_cast<ObservedWorld>(observed_world.Clone());
+  ObservedWorldPtr mcts_observed_world = BehaviorUCTBase::FilterAgents(observed_world);
 
   mcts_observed_world->GetEgoAgent()->SetBehaviorModel(ego_behavior_model_);
 
@@ -39,29 +38,23 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
                                 mcts_observed_world, 
                                 false, // terminal
                                 num, // num action 
-                                prediction_time_span_, 
+                                1, 
                                 belief_tracker_.sample_current_hypothesis(), // pass hypothesis reference to states
                                 behavior_hypotheses_,
                                 ego_id,
                                 mcts_state_parameters_);
 
-  // Belief update only required, if we do not use true behaviors as hypothesis
-  if(!use_true_behaviors_as_hypothesis_) {
-    // if this is first call to Plan init belief tracker
-    if(!last_mcts_hypothesis_state_) {
-      belief_tracker_.belief_update(*mcts_hypothesis_state_ptr, *mcts_hypothesis_state_ptr);
-    } else {
-      belief_tracker_.belief_update(*last_mcts_hypothesis_state_, *mcts_hypothesis_state_ptr);
-    }
-  }
+  // Belief update for all agents not only filtered
+  UpdateBeliefs(observed_world);
 
   // Now do the search
   mcts::Mcts<MctsStateHypothesis<>, mcts::UctStatistic, mcts::HypothesisStatistic,
              mcts::RandomHeuristic>mcts_hypothesis(mcts_parameters_);
   mcts_hypothesis.search(*mcts_hypothesis_state_ptr, belief_tracker_);
-  last_mcts_hypothesis_state_ = mcts_hypothesis_state_ptr;
   mcts::ActionIdx best_action = mcts_hypothesis.returnBestAction();
   last_motion_idx_ = best_action;
+
+  SetLastReturnValues(mcts_hypothesis.get_root().get_ego_int_node().get_policy());
 
   if (dump_tree_) {
     std::stringstream filename;

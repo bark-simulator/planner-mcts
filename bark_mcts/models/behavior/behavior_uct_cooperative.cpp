@@ -17,8 +17,7 @@ BehaviorUCTCooperative::BehaviorUCTCooperative(const commons::ParamsPtr& params)
 
 dynamic::Trajectory BehaviorUCTCooperative::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
-  ObservedWorldPtr mcts_observed_world =
-      std::dynamic_pointer_cast<ObservedWorld>(observed_world.Clone());
+  ObservedWorldPtr mcts_observed_world = BehaviorUCTBase::FilterAgents(observed_world);
   for ( auto& agent : mcts_observed_world->GetAgents()) {
     agent.second->SetBehaviorModel(ego_behavior_model_);
   }
@@ -34,7 +33,7 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
                                 mcts_observed_world, 
                                 false, // terminal
                                 num, // num action 
-                                prediction_time_span_, 
+                                1, 
                                 ego_id,
                                 mcts_state_parameters_);
 
@@ -44,6 +43,7 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
   mcts_cooperative.search(*mcts_cooperative_state_ptr);
   mcts::ActionIdx best_action = mcts_cooperative.returnBestAction();
   last_motion_idx_ = best_action;
+  SetLastReturnValues(mcts_cooperative.get_root().get_ego_int_node().get_policy());
 
   if (dump_tree_) {
     std::stringstream filename;

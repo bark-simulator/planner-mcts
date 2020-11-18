@@ -38,6 +38,11 @@ class BehaviorUCTBase : public BehaviorModel {
 
   BehaviorMotionPrimitives::MotionIdx GetLastMotionIdx() const { return last_motion_idx_; }
     
+  ObservedWorldPtr FilterAgents(const ObservedWorld& observed_world) const;
+
+  // For debug drawing (de)serialization purposes
+  void SetLastReturnValues(const mcts::Policy& return_values) { last_return_values_ = return_values;}
+  mcts::Policy GetLastReturnValues() const { return last_return_values_; }
 
  protected:
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
@@ -48,9 +53,12 @@ class BehaviorUCTBase : public BehaviorModel {
   bool dump_tree_;
   bool extract_edge_info_;
   unsigned int max_extraction_depth_;
-  double prediction_time_span_;
+  unsigned int max_nearest_agents_;
   StateParameters mcts_state_parameters_;
+
+  // Drawing/Debugging Infos
   std::vector<BarkMctsEdgeInfo> mcts_edge_infos_;
+  mcts::Policy last_return_values_;
 };
 
 template< class Mcts, class State>
@@ -60,7 +68,12 @@ std::vector<BehaviorUCTBase::BarkMctsEdgeInfo> BehaviorUCTBase::ExtractMctsEdgeI
                         const mcts::AgentIdx&)> edge_info_extractor = [](const State& start_state, 
                                         const State& end_state,
                                         const mcts::AgentIdx& agent_idx) {
-        return end_state.get_observed_world().GetAgents().at(agent_idx)->GetExecutionTrajectory();                                  
+        const auto agents = end_state.get_observed_world().GetAgents();
+        if(const auto agent_it = agents.find(agent_idx); agent_it != agents.end()) {
+          return agent_it->second->GetExecutionTrajectory();                 
+        } else {
+          return Trajectory();
+        }  
     };
   return mcts.visit_mcts_tree_edges(edge_info_extractor, max_depth);
 }

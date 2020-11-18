@@ -27,7 +27,7 @@ MctsStateRiskConstraint::MctsStateRiskConstraint(
                        const bark::world::ObservedWorldPtr& observed_world,
                        bool is_terminal_state,
                        const mcts::ActionIdx& num_ego_actions,
-                       const float& prediction_time_span,
+                       const unsigned int& depth,
                        const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis,
                        const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                        const mcts::AgentIdx& ego_agent_id,
@@ -37,7 +37,7 @@ MctsStateRiskConstraint::MctsStateRiskConstraint(
                         MctsStateHypothesis(observed_world,
                                       is_terminal_state,
                                       num_ego_actions,
-                                      prediction_time_span,
+                                      depth,
                                       current_agents_hypothesis,
                                       behavior_hypothesis,
                                       ego_agent_id,
@@ -49,7 +49,7 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::clone() const 
   auto worldptr =
       std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
   return std::make_shared<MctsStateRiskConstraint>(
-      worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
+      worldptr, is_terminal_state_, num_ego_actions_, depth_,
       current_agents_hypothesis_, behavior_hypotheses_,
       ego_agent_id_, state_parameters_, current_hypothesis_beliefs_, state_sequence_probability_);
 }
@@ -63,7 +63,7 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::generate_next_
   VLOG_IF_EVERY_N(5, ego_cost[0] != 0.0f || rewards[this->ego_agent_idx] != 0.0, 5) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost[0];
   VLOG_IF_EVERY_N(5, rewards[this->ego_agent_idx] != 0.0f, 5) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
   return std::make_shared<MctsStateRiskConstraint>(
-      predicted_world, evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
+      predicted_world, evaluation_results.is_terminal, num_ego_actions_, depth_+1,
       current_agents_hypothesis_, behavior_hypotheses_,
       ego_agent_id_, state_parameters_, current_hypothesis_beliefs_, state_sequence_probability_);
 }

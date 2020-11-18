@@ -39,7 +39,7 @@ std::shared_ptr<MctsStateCooperative> MctsStateCooperative::clone() const {
     auto worldptr =
         std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
     return std::make_shared<MctsStateCooperative>(
-                    worldptr, is_terminal_state_, num_ego_actions_, prediction_time_span_,
+                    worldptr, is_terminal_state_, num_ego_actions_, depth_,
                     ego_agent_id_, state_parameters_); 
 }
 
@@ -63,7 +63,7 @@ ObservedWorldPtr MctsStateCooperative::predict(const mcts::JointAction& joint_ac
   agent_action_map.insert({get_ego_agent_idx(), DiscreteAction(joint_action[this->ego_agent_idx])});
   auto predicted_world =
       std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Predict(
-          prediction_time_span_, agent_action_map));
+          this->calculate_prediction_time_span(), agent_action_map));
   return predicted_world;
 }
 
@@ -109,7 +109,7 @@ std::shared_ptr<MctsStateCooperative> MctsStateCooperative::generate_next_state(
     ego_cost[0] = - rewards[this->ego_agent_idx];
 
     return std::make_shared<MctsStateCooperative>(
-                    predicted_world, ego_evaluation_results.is_terminal, num_ego_actions_, prediction_time_span_,
+                    predicted_world, ego_evaluation_results.is_terminal, num_ego_actions_, depth_+1,
                     ego_agent_id_, state_parameters_);
 }
 
