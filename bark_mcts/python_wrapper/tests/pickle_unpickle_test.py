@@ -100,5 +100,14 @@ class PickleTests(unittest.TestCase):
                          1.75656563123232323, 5)
         self.assertEqual(hyp1.params.getInt("BehaviorHypothesisIDM::NumSamples", "", 1), 13423434)
 
+
+    def test_belief_calculator_pickle(self):
+        params = ParameterServer()
+        hypothesis = BehaviorHypothesisIDM(params)
+        belief_calculator = BeliefCalculator(params, [hypothesis])
+        unpickled = pickle_unpickle(belief_calculator)
+        self.assertTrue(isinstance(unpickled, BeliefCalculator))
+        self.assertEqual(len(unpickled.GetBehaviorHypotheses()), len(belief_calculator.GetBehaviorHypotheses()))
+
 if __name__ == '__main__':
     unittest.main()

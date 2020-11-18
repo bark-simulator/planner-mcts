@@ -179,6 +179,7 @@ void python_planner_uct(py::module m) {
               const std::vector<BehaviorModelPtr>&>())
     .def("BeliefUpdate", &BeliefCalculator::BeliefUpdate)
     .def("GetBeliefs", &BeliefCalculator::GetBeliefs)
+    .def("GetBehaviorHypotheses", &BeliefCalculator::GetBehaviorHypotheses)
     .def(py::pickle(
       [](const BeliefCalculator& bc) {
         py::list list;
