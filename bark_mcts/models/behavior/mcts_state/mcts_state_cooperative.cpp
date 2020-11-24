@@ -70,13 +70,15 @@ ObservedWorldPtr MctsStateCooperative::predict(const mcts::JointAction& joint_ac
 std::shared_ptr<MctsStateCooperative> MctsStateCooperative::generate_next_state(const ObservedWorldPtr& predicted_world,
                                                         std::vector<mcts::Reward>& rewards,  mcts::EgoCosts& ego_cost) const {
     const auto ego_evaluation_results = mcts_observed_world_evaluation(*predicted_world, state_parameters_.evaluation_parameters);
-    const auto ego_agent_reward = reward_from_evaluation_results(ego_evaluation_results, state_parameters_);
+    const auto ego_agent_reward = reward_from_evaluation_results(ego_evaluation_results, state_parameters_,
+                                  this->calculate_prediction_time_span());
     std::unordered_map<mcts::AgentIdx, mcts::Reward> other_agents_rewards;
     for(const auto& agent : predicted_world->GetOtherAgents()) {
       const auto others_observed_world = ObservedWorld(predicted_world, agent.first);
       const auto evaluation_results = mcts_observed_world_evaluation(others_observed_world, state_parameters_.evaluation_parameters);
       if (!evaluation_results.out_of_map) { // only count this agents reward  if still in map
-        const auto reward = reward_from_evaluation_results(evaluation_results, state_parameters_);
+        const auto reward = reward_from_evaluation_results(evaluation_results, state_parameters_,
+                                  this->calculate_prediction_time_span());
         other_agents_rewards[agent.first] = reward;
       }
     }

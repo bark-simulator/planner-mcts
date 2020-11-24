@@ -57,9 +57,11 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::clone() const 
 std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
                                                         std::vector<mcts::Reward>& rewards,  mcts::EgoCosts& ego_cost) const {
   rewards.resize(this->get_num_agents(), 0.0f);
-  rewards[this->ego_agent_idx] = reward_from_evaluation_results(evaluation_results, state_parameters_);
+  rewards[this->ego_agent_idx] = reward_from_evaluation_results(evaluation_results, state_parameters_,
+                                  this->calculate_prediction_time_span());
   
-  ego_cost = ego_costs_from_evaluation_results(evaluation_results, state_parameters_);
+  ego_cost = ego_costs_from_evaluation_results(evaluation_results, state_parameters_,
+                                  this->calculate_prediction_time_span());
   VLOG_IF_EVERY_N(5, ego_cost[0] != 0.0f || rewards[this->ego_agent_idx] != 0.0, 5) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost[0];
   VLOG_IF_EVERY_N(5, rewards[this->ego_agent_idx] != 0.0f, 5) << "Ego reward: " << rewards[this->ego_agent_idx] << ", Ego cost: " << ego_cost;
   return std::make_shared<MctsStateRiskConstraint>(

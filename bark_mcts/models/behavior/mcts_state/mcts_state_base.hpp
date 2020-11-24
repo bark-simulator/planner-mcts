@@ -74,6 +74,7 @@ typedef struct StateParameters {
   float STEP_REWARD;
   float PREDICTION_K;
   float PREDICTION_ALPHA;
+  float NORMALIZATION_TAU;
   bool split_safe_dist_collision;
   bool chance_costs;
   EvaluationParameters evaluation_parameters;
@@ -99,9 +100,10 @@ typedef struct EvaluationResults {
   bool is_terminal;
 } EvaluationResults;
 
-inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
+inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters,
+                                                  const double& prediction_time_span) {
   const mcts::Reward safe_dist_reward = float(evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) 
-                                    * parameters.SAFE_DIST_VIOLATED_REWARD;
+                                    * parameters.SAFE_DIST_VIOLATED_REWARD * prediction_time_span / parameters.NORMALIZATION_TAU;
   const bool use_collision = !(parameters.evaluation_parameters.static_safe_dist_is_terminal &&
                      parameters.evaluation_parameters.dynamic_safe_dist_is_terminal);
   const mcts::Reward collision_reward = float(use_collision ? evaluation_results.collision_other_agent : false) * parameters.COLLISION_REWARD + float(evaluation_results.collision_drivable_area || 
@@ -110,10 +112,12 @@ inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& eval
           float(evaluation_results.goal_reached) * parameters.GOAL_REWARD + parameters.STEP_REWARD;
 };
 
-inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters) {
+inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters,
+                                                  const double& prediction_time_span) {
   const mcts::Cost safe_dist_cost = float(parameters.evaluation_parameters.static_safe_dist_is_terminal ? 
                               evaluation_results.dynamic_safe_distance_violated :
-                               evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) *  parameters.SAFE_DIST_VIOLATED_COST;
+                               evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) * 
+                                 parameters.SAFE_DIST_VIOLATED_COST * prediction_time_span / parameters.NORMALIZATION_TAU;;
   const mcts::Cost total_costs = (evaluation_results.collision_other_agent || 
          (parameters.evaluation_parameters.static_safe_dist_is_terminal ?  evaluation_results.static_safe_distance_violated : false)||
         (parameters.evaluation_parameters.dynamic_safe_dist_is_terminal ?  evaluation_results.dynamic_safe_distance_violated : false)) * parameters.COLLISION_COST +
