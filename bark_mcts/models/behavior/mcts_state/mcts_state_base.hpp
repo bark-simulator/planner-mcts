@@ -117,7 +117,7 @@ inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults&
   const mcts::Cost safe_dist_cost = float(parameters.evaluation_parameters.static_safe_dist_is_terminal ? 
                               evaluation_results.dynamic_safe_distance_violated :
                                evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) * 
-                                 parameters.SAFE_DIST_VIOLATED_COST * prediction_time_span / parameters.NORMALIZATION_TAU;;
+                                 parameters.SAFE_DIST_VIOLATED_COST * prediction_time_span / parameters.NORMALIZATION_TAU;
   const mcts::Cost total_costs = (evaluation_results.collision_other_agent || 
          (parameters.evaluation_parameters.static_safe_dist_is_terminal ?  evaluation_results.static_safe_distance_violated : false)||
         (parameters.evaluation_parameters.dynamic_safe_dist_is_terminal ?  evaluation_results.dynamic_safe_distance_violated : false)) * parameters.COLLISION_COST +
@@ -188,7 +188,9 @@ MctsStateBase<T>::MctsStateBase(const bark::world::ObservedWorldPtr& observed_wo
       depth_(depth),
       other_agent_ids_(update_other_agent_ids()),
       ego_agent_id_(ego_agent_id),
-      state_parameters_(state_parameters) {}
+      state_parameters_(state_parameters) {
+        VLOG(5) << "Depth=" << depth_;
+      }
 
 template<class T>
 const std::vector<mcts::AgentIdx> MctsStateBase<T>::get_other_agent_idx() const {
