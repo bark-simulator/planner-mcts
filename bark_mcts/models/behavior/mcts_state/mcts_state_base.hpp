@@ -161,6 +161,9 @@ class MctsStateBase : public mcts::HypothesisStateInterface<T> {
 
     float calculate_prediction_time_span() const;
 
+    double get_execution_step_length() const;
+
+
  protected:
   std::vector<mcts::AgentIdx> update_other_agent_ids() const;
 
@@ -230,6 +233,11 @@ std::string MctsStateBase<T>::sprintf() const {
 template<class T>
 float MctsStateBase<T>::calculate_prediction_time_span() const {
   return state_parameters_.PREDICTION_K * std::pow(depth_, state_parameters_.PREDICTION_ALPHA);
+}
+
+template<class T>
+double MctsStateBase<T>::get_execution_step_length() const {
+  return this->calculate_prediction_time_span();
 }
 
 inline EvaluationResults mcts_observed_world_evaluation(const ObservedWorld& observed_world, const EvaluationParameters& evaluation_parameters) {
