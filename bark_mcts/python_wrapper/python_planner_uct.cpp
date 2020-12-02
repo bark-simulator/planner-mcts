@@ -57,8 +57,50 @@ void python_planner_uct(py::module m) {
         return new BehaviorUCTSingleAgentMacroActions(PythonToParams(t[0].cast<py::tuple>()));
       })); */
 
- py::class_<BehaviorUCTHypothesis, BehaviorModel,
-             std::shared_ptr<BehaviorUCTHypothesis>>(
+ py::class_<UctBaseDebugInfos,
+             std::shared_ptr<UctBaseDebugInfos>>(
+      m, "UctBaseDebugInfos")
+      .def(py::init<>())
+      .def("__repr__", [](const UctBaseDebugInfos &m) {
+        return "bark.behavior.UctBaseDebugInfos";
+      })
+      .def_property_readonly("edge_infos", &UctBaseDebugInfos::GetLastMctsEdgeInfo)
+      .def_property_readonly("last_return_values", &UctBaseDebugInfos::GetLastReturnValues)
+      .def(py::pickle(
+      [](const UctBaseDebugInfos& i) {
+        return py::make_tuple(i.GetLastMctsEdgeInfo(), i.GetLastReturnValues());
+      },
+      [](py::tuple t) {
+        if (t.size() != 2)
+          throw std::runtime_error("Invalid UctBaseDebugInfos state!");
+        return new UctBaseDebugInfos{t[0].cast<std::vector<BarkMctsEdgeInfo>>(),
+                t[1].cast<mcts::Policy>()};
+      }));
+
+ py::class_<UctHypothesisDebugInfos,
+             std::shared_ptr<UctHypothesisDebugInfos>>(m, "UctHypothesisDebugInfos")
+      .def(py::init<>())
+      .def("__repr__", [](const UctHypothesisDebugInfos &m) {
+        return "bark.behavior.UctHypothesisDebugInfos";
+      })
+      .def_property_readonly("current_beliefs", &UctHypothesisDebugInfos::GetCurrentBeliefs)
+      .def(py::pickle(
+      [](const UctHypothesisDebugInfos& i) {
+        return py::make_tuple(i.GetCurrentBeliefs());
+      },
+      [](py::tuple t) {
+        if (t.size() != 1)
+          throw std::runtime_error("Invalid UctHypothesisDebugInfos state!");
+        return new UctHypothesisDebugInfos{t[0].cast<
+            std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>>>()};
+      }));
+
+
+ py::class_<BehaviorUCTHypothesis,
+            BehaviorModel,
+            UctBaseDebugInfos,
+            UctHypothesisDebugInfos,
+            std::shared_ptr<BehaviorUCTHypothesis>>(
       m, "BehaviorUCTHypothesis")
       .def(py::init<const bark::commons::ParamsPtr &,
        const std::vector<BehaviorModelPtr>&>())
@@ -66,7 +108,6 @@ void python_planner_uct(py::module m) {
         return "bark.behavior.BehaviorUCTHypothesis";
       })
       .def_property_readonly("hypotheses", &BehaviorUCTHypothesis::GetBehaviorHypotheses)
-      .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTHypothesis::GetLastMctsEdgeInfo)
       .def(py::pickle(
       [](const BehaviorUCTHypothesis& b) {
         py::list list;
@@ -74,10 +115,12 @@ void python_planner_uct(py::module m) {
         for (const auto& hypothesis : hypotheses) {
           list.append(BehaviorModelToPython(hypothesis));
         }
-        return py::make_tuple(ParamsToPython(b.GetParams()), list);
+        return py::make_tuple(ParamsToPython(b.GetParams()), list,
+                 static_cast<const UctHypothesisDebugInfos&>(b),
+                static_cast<const UctBaseDebugInfos&>(b));
       },
       [](py::tuple t) {
-        if (t.size() != 2)
+        if (t.size() != 4)
           throw std::runtime_error("Invalid behavior model state!");
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
@@ -85,7 +128,7 @@ void python_planner_uct(py::module m) {
           hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
         }
         return new BehaviorUCTHypothesis(PythonToParams(t[0].cast<py::tuple>()),
-                hypotheses);
+                hypotheses, t[2].cast<UctHypothesisDebugInfos>(), t[3].cast<UctBaseDebugInfos>());
       }));
 
    py::class_<BehaviorUCTCooperative, BehaviorModel,

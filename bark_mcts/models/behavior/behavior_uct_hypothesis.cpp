@@ -13,8 +13,16 @@ namespace models {
 namespace behavior {
 
 BehaviorUCTHypothesis::BehaviorUCTHypothesis(const commons::ParamsPtr& params,
-                                const std::vector<BehaviorModelPtr>& behavior_hypothesis) :
-                                BehaviorUCTHypothesisBase(params, behavior_hypothesis) {}
+                                const std::vector<BehaviorModelPtr>& behavior_hypothesis,
+                                const UctHypothesisDebugInfos& hypothesis_debug_infos,
+                                const UctBaseDebugInfos& base_debug_infos) :
+                                BehaviorUCTHypothesisBase(
+                                    params, behavior_hypothesis, hypothesis_debug_infos, base_debug_infos) {}
+
+BehaviorUCTHypothesis::BehaviorUCTHypothesis(const commons::ParamsPtr& params,
+                               const std::vector<BehaviorModelPtr>& behavior_hypothesis) :
+                               BehaviorUCTHypothesis(params, behavior_hypothesis, UctHypothesisDebugInfos(),
+                                      UctBaseDebugInfos()) {}
 
 dynamic::Trajectory BehaviorUCTHypothesis::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {

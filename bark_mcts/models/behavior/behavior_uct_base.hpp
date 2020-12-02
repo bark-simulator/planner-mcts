@@ -21,15 +21,23 @@ class ObservedWorld;
 namespace models {
 namespace behavior {
 
-class BehaviorUCTBase : public BehaviorModel {
- public:
-  explicit BehaviorUCTBase(const commons::ParamsPtr& params);
-  virtual ~BehaviorUCTBase() {}
+using BarkMctsEdgeInfo = mcts::MctsEdgeInfo<Trajectory>;
 
-  using BarkMctsEdgeInfo = mcts::MctsEdgeInfo<Trajectory>;
+struct UctBaseDebugInfos {
+  void SetLastReturnValues(const mcts::Policy& return_values) { last_return_values_ = return_values;}
+  mcts::Policy GetLastReturnValues() const { return last_return_values_; }
   std::vector<BarkMctsEdgeInfo> GetLastMctsEdgeInfo() const {return mcts_edge_infos_; };
   void SetLastMctsEdgeInfo(const std::vector<BarkMctsEdgeInfo>& mcts_edge_infos)  {
         mcts_edge_infos_ = mcts_edge_infos; }
+  std::vector<BarkMctsEdgeInfo> mcts_edge_infos_;
+  mcts::Policy last_return_values_;
+};
+
+class BehaviorUCTBase : public BehaviorModel, public UctBaseDebugInfos {
+ public:
+  explicit BehaviorUCTBase(const commons::ParamsPtr& params);
+  explicit BehaviorUCTBase(const commons::ParamsPtr& params, const UctBaseDebugInfos& base_debug_infos);
+  virtual ~BehaviorUCTBase() {}
 
   template< class Mcts, class State>
   static std::vector<BarkMctsEdgeInfo> ExtractMctsEdgeInfo(Mcts& mcts, unsigned int max_depth);
@@ -39,10 +47,6 @@ class BehaviorUCTBase : public BehaviorModel {
   BehaviorMotionPrimitives::MotionIdx GetLastMotionIdx() const { return last_motion_idx_; }
     
   ObservedWorldPtr FilterAgents(const ObservedWorld& observed_world) const;
-
-  // For debug drawing (de)serialization purposes
-  void SetLastReturnValues(const mcts::Policy& return_values) { last_return_values_ = return_values;}
-  mcts::Policy GetLastReturnValues() const { return last_return_values_; }
 
  protected:
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
@@ -55,14 +59,10 @@ class BehaviorUCTBase : public BehaviorModel {
   unsigned int max_extraction_depth_;
   unsigned int max_nearest_agents_;
   StateParameters mcts_state_parameters_;
-
-  // Drawing/Debugging Infos
-  std::vector<BarkMctsEdgeInfo> mcts_edge_infos_;
-  mcts::Policy last_return_values_;
 };
 
 template< class Mcts, class State>
-std::vector<BehaviorUCTBase::BarkMctsEdgeInfo> BehaviorUCTBase::ExtractMctsEdgeInfo(Mcts& mcts, unsigned int max_depth) {
+std::vector<BarkMctsEdgeInfo> BehaviorUCTBase::ExtractMctsEdgeInfo(Mcts& mcts, unsigned int max_depth) {
   const std::function<Trajectory(const State&, 
                         const State&,
                         const mcts::AgentIdx&)> edge_info_extractor = [](const State& start_state, 

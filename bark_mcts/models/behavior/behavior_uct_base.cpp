@@ -7,32 +7,33 @@ namespace bark {
 namespace models {
 namespace behavior {
 
+BehaviorUCTBase::BehaviorUCTBase(const commons::ParamsPtr& params, const UctBaseDebugInfos& base_debug_infos) :
+                            BehaviorModel(params),
+                            UctBaseDebugInfos(base_debug_infos), 
+                            ego_behavior_model_(models::behavior::
+                                BehaviorMacroActionsFromParamServer(GetParams()
+                                    ->AddChild("BehaviorUctBase")->AddChild("EgoBehavior"))),
+                            last_motion_idx_(),
+                            mcts_parameters_(models::behavior::MctsParametersFromParamServer(
+                                GetParams()->AddChild("BehaviorUctBase"))),
+                            dump_tree_(GetParams()->AddChild("BehaviorUctBase")->GetBool(
+                                "DumpTree",
+                                "If true, tree is dumped to dot file after planning", false)),
+                            extract_edge_info_(GetParams()->AddChild("BehaviorUctBase")->GetBool(
+                            "ExtractEdgeInfo",
+                            "If true, policy tree is maintained in each step", true)),
+                            max_extraction_depth_(GetParams()->AddChild("BehaviorUctBase")
+                                                                ->GetInt("MaxExtractionDepth",
+                                "Max depth tree is extracted", 10)),
+                            max_nearest_agents_(GetParams()->AddChild("BehaviorUctBase")
+                                                                ->GetInt("MaxNearestAgents",
+                                "Max sourrounding agents considered for tree search", 5)),
+                            mcts_state_parameters_(MctsStateParametersFromParamServer(
+                                GetParams()->AddChild("BehaviorUctBase"))) {}
+
 BehaviorUCTBase::BehaviorUCTBase(
     const commons::ParamsPtr& params)
-    : BehaviorModel(params),
-        ego_behavior_model_(models::behavior::
-            BehaviorMacroActionsFromParamServer(GetParams()
-                ->AddChild("BehaviorUctBase")->AddChild("EgoBehavior"))),
-        last_motion_idx_(),
-        mcts_parameters_(models::behavior::MctsParametersFromParamServer(
-            GetParams()->AddChild("BehaviorUctBase"))),
-        dump_tree_(GetParams()->AddChild("BehaviorUctBase")->GetBool(
-            "DumpTree",
-            "If true, tree is dumped to dot file after planning", false)),
-        extract_edge_info_(GetParams()->AddChild("BehaviorUctBase")->GetBool(
-          "ExtractEdgeInfo",
-          "If true, policy tree is maintained in each step", true)),
-        max_extraction_depth_(GetParams()->AddChild("BehaviorUctBase")
-                                            ->GetInt("MaxExtractionDepth",
-            "Max depth tree is extracted", 10)),
-        max_nearest_agents_(GetParams()->AddChild("BehaviorUctBase")
-                                            ->GetInt("MaxNearestAgents",
-            "Max sourrounding agents considered for tree search", 5)),
-        mcts_state_parameters_(MctsStateParametersFromParamServer(
-            GetParams()->AddChild("BehaviorUctBase"))),
-        mcts_edge_infos_(),
-        last_return_values_() {}
-
+    : BehaviorUCTBase(params, UctBaseDebugInfos()) {}
 
 std::string BehaviorUCTBase::GetPrimitiveName(mcts::ActionIdx action) const {
     auto macro_actions_model = std::dynamic_pointer_cast<BehaviorMPMacroActions>(ego_behavior_model_);

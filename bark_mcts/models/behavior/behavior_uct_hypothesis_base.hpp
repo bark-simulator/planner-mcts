@@ -18,9 +18,20 @@ class ObservedWorld;
 namespace models {
 namespace behavior {
 
+struct UctHypothesisDebugInfos  {
+  std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>> GetCurrentBeliefs() const { return current_beliefs_; } 
+  void SetCurrentBeliefs(const std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>>& beliefs) { current_beliefs_ = beliefs; }
+  std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>> current_beliefs_;
+};
+
 template <class T>
-class BehaviorUCTHypothesisBase : public BehaviorUCTBase {
+class BehaviorUCTHypothesisBase : public BehaviorUCTBase, public UctHypothesisDebugInfos {
  public:
+  explicit BehaviorUCTHypothesisBase(const commons::ParamsPtr& params,
+                                const std::vector<BehaviorModelPtr>& behavior_hypothesis, 
+                                const UctHypothesisDebugInfos& hypothesis_debug_info,
+                                const UctBaseDebugInfos& base_debug_info);
+  
   explicit BehaviorUCTHypothesisBase(const commons::ParamsPtr& params,
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis);
 
@@ -32,10 +43,6 @@ class BehaviorUCTHypothesisBase : public BehaviorUCTBase {
 
   void UpdateBeliefs(const ObservedWorld& observed_world);
 
-  // Only for (de)serialization purposes
-  std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>> GetCurrentBeliefs() const { return current_beliefs_; } 
-  void SetCurrentBeliefs(const std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>>& beliefs) { current_beliefs_ = beliefs; }
-
  protected:
   void DefineTrueBehaviorsAsHypothesis(const world::ObservedWorld& observed_world);
 
@@ -46,23 +53,29 @@ class BehaviorUCTHypothesisBase : public BehaviorUCTBase {
   // Belief tracking, we must also maintain previous mcts hypothesis state
   mcts::HypothesisBeliefTracker belief_tracker_;
   std::shared_ptr<MctsStateHypothesis<>> last_mcts_hypothesis_state_;
-
-  // Drawing debugging
-  std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>> current_beliefs_;
 };
 
 template<class T>
 BehaviorUCTHypothesisBase<T>::BehaviorUCTHypothesisBase(
     const commons::ParamsPtr& params,
-    const std::vector<BehaviorModelPtr>& behavior_hypothesis)
-    : BehaviorUCTBase(params),
+    const std::vector<BehaviorModelPtr>& behavior_hypothesis,
+    const UctHypothesisDebugInfos& hypothesis_debug_info,
+    const UctBaseDebugInfos& base_debug_info)
+    : BehaviorUCTBase(params, base_debug_info), 
+      UctHypothesisDebugInfos(),
       behavior_hypotheses_(behavior_hypothesis),
       use_true_behaviors_as_hypothesis_(GetParams()->AddChild("BehaviorUctHypothesis")
                                         ->AddChild("PredictionSettings")
                                         ->GetBool("UseTrueBehaviorsAsHypothesis", "When true behaviors out of observed world are used as hypothesis", false)),
       belief_tracker_(mcts_parameters_),
-      last_mcts_hypothesis_state_(),
-      current_beliefs_() {}
+      last_mcts_hypothesis_state_() {}
+
+template<class T>
+BehaviorUCTHypothesisBase<T>::BehaviorUCTHypothesisBase(
+    const commons::ParamsPtr& params,
+    const std::vector<BehaviorModelPtr>& behavior_hypothesis)
+    : BehaviorUCTHypothesisBase(params, behavior_hypothesis, UctHypothesisDebugInfos(),
+      UctBaseDebugInfos()) {}
 
 template<class T>
 void BehaviorUCTHypothesisBase<T>::DefineTrueBehaviorsAsHypothesis(const world::ObservedWorld& observed_world) {
