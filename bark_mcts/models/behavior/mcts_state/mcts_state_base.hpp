@@ -117,7 +117,7 @@ inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults&
   const mcts::Cost safe_dist_cost = float(parameters.evaluation_parameters.static_safe_dist_is_terminal ? 
                               evaluation_results.dynamic_safe_distance_violated :
                                evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) * 
-                                 parameters.SAFE_DIST_VIOLATED_COST * prediction_time_span / parameters.NORMALIZATION_TAU;
+                                 parameters.SAFE_DIST_VIOLATED_COST * prediction_time_span;
   const mcts::Cost total_costs = (evaluation_results.collision_other_agent || 
          (parameters.evaluation_parameters.static_safe_dist_is_terminal ?  evaluation_results.static_safe_distance_violated : false)||
         (parameters.evaluation_parameters.dynamic_safe_dist_is_terminal ?  evaluation_results.dynamic_safe_distance_violated : false)) * parameters.COLLISION_COST +
@@ -127,8 +127,8 @@ inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults&
   if(parameters.split_safe_dist_collision) {
     mcts::EgoCosts ego_costs(2);
     ego_costs[0] = parameters.chance_costs ? std::min(safe_dist_cost, 1.0) : safe_dist_cost; // The constrained policy is always calculated over the first index
-    ego_costs[1] = parameters.chance_costs ? std::min(total_costs, 1.0) : total_costs;
-    return ego_costs;
+    ego_costs[1] = std::min(total_costs, mcts::Cost(parameters.COLLISION_COST)); // hazard always max 1.0
+    return ego_costs; 
   } else {
     mcts::EgoCosts ego_costs(1);
     ego_costs[0] = parameters.chance_costs ? std::min(total_costs, 1.0) : total_costs; // The constrained policy is always calculated over the first index
