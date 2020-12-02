@@ -127,7 +127,7 @@ inline mcts::EgoCosts ego_costs_from_evaluation_results(const EvaluationResults&
   if(parameters.split_safe_dist_collision) {
     mcts::EgoCosts ego_costs(2);
     ego_costs[0] = parameters.chance_costs ? std::min(safe_dist_cost, 1.0) : safe_dist_cost; // The constrained policy is always calculated over the first index
-    ego_costs[1] = std::min(total_costs, mcts::Cost(parameters.COLLISION_COST)); // hazard always max 1.0
+    ego_costs[1] = std::min(total_costs, mcts::Cost(parameters.COLLISION_COST)) * prediction_time_span; // hazard always max 1.0
     return ego_costs; 
   } else {
     mcts::EgoCosts ego_costs(1);
