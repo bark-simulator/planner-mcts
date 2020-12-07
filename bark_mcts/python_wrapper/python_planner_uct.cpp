@@ -95,6 +95,32 @@ void python_planner_uct(py::module m) {
             std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>>>()};
       }));
 
+ py::class_<UctRiskConstraintDebugInfos,
+             std::shared_ptr<UctRiskConstraintDebugInfos>>(m, "UctRiskConstraintDebugInfos")
+      .def(py::init<>())
+      .def("__repr__", [](const UctRiskConstraintDebugInfos &m) {
+        return "bark.behavior.UctRiskConstraintDebugInfos";
+      })
+      .def_property_readonly("last_policy_sampled", &UctRiskConstraintDebugInfos::GetLastPolicySampled)
+      .def_property_readonly("last_expected_risk", &UctRiskConstraintDebugInfos::GetLastExpectedRisk)
+      .def_property_readonly("last_cost_values", &UctRiskConstraintDebugInfos::GetLastCostValues)
+      .def_property_readonly("last_scenario_risk", &UctRiskConstraintDebugInfos::GetLastScenarioRisk)
+      .def(py::pickle(
+      [](const UctRiskConstraintDebugInfos& i) {
+        return py::make_tuple(i.GetLastPolicySampled(),
+                              i.GetLastExpectedRisk(),
+                              i.GetLastCostValues(),
+                              i.GetLastScenarioRisk());
+      },
+      [](py::tuple t) {
+        if (t.size() != 4)
+          throw std::runtime_error("Invalid UctHypothesisDebugInfos state!");
+        return new UctRiskConstraintDebugInfos{t[0].cast<PolicySampled>(),
+                                              t[1].cast<std::vector<mcts::Cost>>(),
+                                              t[2].cast<mcts::Policy>(),
+                                              t[3].cast<std::vector<mcts::Cost>>()};
+      }));
+
 
  py::class_<BehaviorUCTHypothesis,
             BehaviorModel,
@@ -169,26 +195,39 @@ void python_planner_uct(py::module m) {
           list.append(BehaviorModelToPython(hypothesis));
         }
         if ( b.GetScenarioRiskFunction()) {
-          return py::make_tuple(ParamsToPython(b.GetParams()), list, b.GetScenarioRiskFunction());
+          return py::make_tuple(ParamsToPython(b.GetParams()), list,
+                              b.GetScenarioRiskFunction(),
+                              static_cast<const UctHypothesisDebugInfos&>(b),
+                              static_cast<const UctRiskConstraintDebugInfos&>(b),
+                              static_cast<const UctBaseDebugInfos&>(b));
         } else {
-          return py::make_tuple(ParamsToPython(b.GetParams()), list);
+          return py::make_tuple(ParamsToPython(b.GetParams()), list,
+                              static_cast<const UctHypothesisDebugInfos&>(b),
+                              static_cast<const UctRiskConstraintDebugInfos&>(b),
+                              static_cast<const UctBaseDebugInfos&>(b));
         }
       },
       [](py::tuple t) {
-        if (t.size() != 2 && t.size() != 3)
+        if (t.size() != 5 && t.size() != 6)
           throw std::runtime_error("Invalid behavior model state!");
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
           hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
         }
-        if (t.size() == 3) {
+        if (t.size() == 6) {
           return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
                 hypotheses, std::make_shared<risk_calculation::ScenarioRiskFunction>(
-                                    t[2].cast<risk_calculation::ScenarioRiskFunction>()));
+                                    t[2].cast<risk_calculation::ScenarioRiskFunction>()),
+                                    t[3].cast<UctHypothesisDebugInfos>(),
+                                    t[4].cast<UctRiskConstraintDebugInfos>(),
+                                    t[5].cast<UctBaseDebugInfos>());
         } else {
           return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
-                hypotheses, nullptr);
+                                    hypotheses, nullptr,
+                                    t[2].cast<UctHypothesisDebugInfos>(),
+                                    t[3].cast<UctRiskConstraintDebugInfos>(),
+                                    t[4].cast<UctBaseDebugInfos>());
         }
       }));
 
