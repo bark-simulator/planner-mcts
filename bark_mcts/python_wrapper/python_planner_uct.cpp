@@ -175,7 +175,11 @@ void python_planner_uct(py::module m) {
         return new BehaviorUCTCooperative(PythonToParams(t[0].cast<py::tuple>()));
       }));
 
-   py::class_<BehaviorUCTRiskConstraint, BehaviorModel,
+   py::class_<BehaviorUCTRiskConstraint,
+             BehaviorModel,
+             UctBaseDebugInfos,
+             UctHypothesisDebugInfos,
+             UctRiskConstraintDebugInfos,
              std::shared_ptr<BehaviorUCTRiskConstraint>>(
       m, "BehaviorUCTRiskConstraint")
       .def(py::init<const bark::commons::ParamsPtr &,

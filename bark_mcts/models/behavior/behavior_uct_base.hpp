@@ -29,8 +29,12 @@ struct UctBaseDebugInfos {
   std::vector<BarkMctsEdgeInfo> GetLastMctsEdgeInfo() const {return mcts_edge_infos_; };
   void SetLastMctsEdgeInfo(const std::vector<BarkMctsEdgeInfo>& mcts_edge_infos)  {
         mcts_edge_infos_ = mcts_edge_infos; }
+  std::vector<AgentId> GetLastNearestAgents() const {return last_nearest_agents_; };
+  void SetLastNearestAgents(const std::vector<AgentId>& nearest_agents)  {
+        last_nearest_agents_ = nearest_agents; }
   std::vector<BarkMctsEdgeInfo> mcts_edge_infos_;
   mcts::Policy last_return_values_;
+  std::vector<AgentId> last_nearest_agents_;
 };
 
 class BehaviorUCTBase : public BehaviorModel, public UctBaseDebugInfos {
