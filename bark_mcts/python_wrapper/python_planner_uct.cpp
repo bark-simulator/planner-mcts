@@ -114,7 +114,7 @@ void python_planner_uct(py::module m) {
       },
       [](py::tuple t) {
         if (t.size() != 4)
-          throw std::runtime_error("Invalid UctHypothesisDebugInfos state!");
+          throw std::runtime_error("Invalid UctRiskConstraintDebugInfos state!");
         return new UctRiskConstraintDebugInfos{t[0].cast<PolicySampled>(),
                                               t[1].cast<std::vector<mcts::Cost>>(),
                                               t[2].cast<mcts::Policy>(),
@@ -244,6 +244,7 @@ void python_planner_uct(py::module m) {
              BehaviorHypothesis,
              std::shared_ptr<BehaviorHypothesisIDM>>(m, "BehaviorHypothesisIDM", py::multiple_inheritance())
     .def(py::init<const bark::commons::ParamsPtr&>())
+    .def_property_readonly("parameter_regions", &BehaviorHypothesisIDM::GetParameterRegions)
     .def("__repr__", [](const BehaviorHypothesisIDM &m) {
       return "bark.behavior.BehaviorHypothesisIDM";
     })

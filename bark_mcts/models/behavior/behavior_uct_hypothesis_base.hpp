@@ -62,7 +62,7 @@ BehaviorUCTHypothesisBase<T>::BehaviorUCTHypothesisBase(
     const UctHypothesisDebugInfos& hypothesis_debug_info,
     const UctBaseDebugInfos& base_debug_info)
     : BehaviorUCTBase(params, base_debug_info), 
-      UctHypothesisDebugInfos(),
+      UctHypothesisDebugInfos(hypothesis_debug_info),
       behavior_hypotheses_(behavior_hypothesis),
       use_true_behaviors_as_hypothesis_(GetParams()->AddChild("BehaviorUctHypothesis")
                                         ->AddChild("PredictionSettings")
