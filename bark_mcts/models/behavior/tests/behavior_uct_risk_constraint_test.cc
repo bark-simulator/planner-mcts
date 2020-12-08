@@ -305,7 +305,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  auto motion_idx = behavior_uct.GetLastMotionIdx();
+  auto motion_idx = behavior_uct.GetLastMacroAction();
   EXPECT_TRUE(motion_idx == 3 || motion_idx == 4); // some decceleration should occur or a lane change to the right
 
   // Check correct exploration depth/progressive widening
@@ -387,7 +387,7 @@ TEST(behavior_uct_single_agent, agent_in_front_brake_multiple_constraints) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  auto motion_idx = behavior_uct.GetLastMotionIdx();
+  auto motion_idx = behavior_uct.GetLastMacroAction();
   EXPECT_TRUE(motion_idx == 3 || motion_idx == 4); // some decceleration should occur or a lane change to the right
 }
 

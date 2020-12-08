@@ -48,7 +48,7 @@ class BehaviorUCTBase : public BehaviorModel, public UctBaseDebugInfos {
 
   std::string GetPrimitiveName(mcts::ActionIdx action) const; 
 
-  BehaviorMotionPrimitives::MotionIdx GetLastMotionIdx() const { return last_motion_idx_; }
+  BehaviorMotionPrimitives::MotionIdx GetLastMacroAction() const { return last_motion_idx_; }
     
   ObservedWorldPtr FilterAgents(const ObservedWorld& observed_world) const;
 
