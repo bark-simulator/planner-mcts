@@ -103,7 +103,7 @@ typedef struct EvaluationResults {
 inline mcts::Reward reward_from_evaluation_results(const EvaluationResults& evaluation_results, const StateParameters& parameters,
                                                   const double& prediction_time_span) {
   const mcts::Reward safe_dist_reward = float(evaluation_results.dynamic_safe_distance_violated || evaluation_results.static_safe_distance_violated) 
-                                    * parameters.SAFE_DIST_VIOLATED_REWARD * prediction_time_span / parameters.NORMALIZATION_TAU;
+                                    * parameters.SAFE_DIST_VIOLATED_REWARD * prediction_time_span;
   const bool use_collision = !(parameters.evaluation_parameters.static_safe_dist_is_terminal &&
                      parameters.evaluation_parameters.dynamic_safe_dist_is_terminal);
   const mcts::Reward collision_reward = float(use_collision ? evaluation_results.collision_other_agent : false) * parameters.COLLISION_REWARD + float(evaluation_results.collision_drivable_area || 
