@@ -134,7 +134,7 @@ void python_planner_uct(py::module m) {
         return "bark.behavior.BehaviorUCTHypothesis";
       })
       .def_property_readonly("hypotheses", &BehaviorUCTHypothesis::GetBehaviorHypotheses)
-      .def("GetLastMacroAction", &UctBaseDebugInfos::GetLastMacroAction)
+      .def("GetLastMacroAction", &BehaviorUCTHypothesis::GetLastMacroAction)
       .def(py::pickle(
       [](const BehaviorUCTHypothesis& b) {
         py::list list;
