@@ -40,6 +40,7 @@ inline StateParameters MctsStateParametersFromParamServer(const commons::ParamsP
         params->GetReal("Mcts::State::StepReward", "Reward given for each step in environment", 0.0f),
         params->GetReal("Mcts::State::PredictionK", "Reward given for each step in environment", 0.5f),
         params->GetReal("Mcts::State::PredictionAlpha", "Reward given for each step in environment", 0.0f),
+        params->GetReal("Mcts::State::NormalizationTau", "time-based metrics are normalized to match prediction time", 0.2f),
         params->GetBool("Mcts::State::SplitSafeDistCollision", "Separate costs for safe dist violations", false),
         params->GetBool("Mcts::State::ChanceCosts", "Separate costs for safe dist violations", false),
         MctsEvaluationParametersFromParamServer(params->AddChild("Mcts::State"))

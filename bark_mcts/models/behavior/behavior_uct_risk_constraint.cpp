@@ -14,8 +14,13 @@ namespace behavior {
 
 BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& params,
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis,
-                                const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function) :
-                                BehaviorUCTHypothesisBase(params, behavior_hypothesis),
+                                const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function,
+                                const UctHypothesisDebugInfos& hypothesis_debug_infos,
+                                const UctRiskConstraintDebugInfos& risk_constraint_debug_infos,
+                                const UctBaseDebugInfos& base_debug_infos) :
+                                BehaviorUCTHypothesisBase(
+                                        params, behavior_hypothesis, hypothesis_debug_infos, base_debug_infos),
+                                UctRiskConstraintDebugInfos(risk_constraint_debug_infos),
                                 default_available_risk_([&]() {
                                 const auto float_vec = GetParams()->AddChild("BehaviorUctRiskConstraint")
                                     ->GetListFloat("DefaultAvailableRisk", "Risk used when belief not initialized", {0.0f});
@@ -30,11 +35,13 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                 update_scenario_risk_(GetParams()->AddChild("BehaviorUctRiskConstraint")
                                       ->GetBool("UpdateScenarioRisk", "Should scenario risk be estimated from scenario risk function", true)),
                                 initialized_available_risk_(!estimate_scenario_risk_),
-                                scenario_risk_function_(scenario_risk_function),
-                                last_policy_sampled_(),
-                                last_expected_risk_(),
-                                last_cost_values_(),
-                                last_scenario_risk_(current_scenario_risk_) {}
+                                scenario_risk_function_(scenario_risk_function) {}
+
+BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& params,
+                                const std::vector<BehaviorModelPtr>& behavior_hypothesis,
+                                const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function) :
+                                BehaviorUCTRiskConstraint(params, behavior_hypothesis, scenario_risk_function,
+                                    UctHypothesisDebugInfos(), UctRiskConstraintDebugInfos(), UctBaseDebugInfos()) {}
 
 dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {

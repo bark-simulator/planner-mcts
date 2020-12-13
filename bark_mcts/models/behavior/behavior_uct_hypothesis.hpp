@@ -19,8 +19,13 @@ namespace behavior {
 
 class BehaviorUCTHypothesis : public BehaviorUCTHypothesisBase<MctsStateHypothesis<>> {
  public:
-  explicit BehaviorUCTHypothesis(const commons::ParamsPtr& params,
-                                const std::vector<BehaviorModelPtr>& behavior_hypothesis);
+    explicit BehaviorUCTHypothesis(const commons::ParamsPtr& params,
+                                const std::vector<BehaviorModelPtr>& behavior_hypothesis,
+                                const UctHypothesisDebugInfos& hypothesis_debug_infos,
+                                const UctBaseDebugInfos& base_debug_infos);
+
+    explicit BehaviorUCTHypothesis(const commons::ParamsPtr& params,
+                               const std::vector<BehaviorModelPtr>& behavior_hypothesis);
 
   virtual ~BehaviorUCTHypothesis() {}
 

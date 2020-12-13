@@ -267,7 +267,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 1.0);
   params->SetReal("BehaviorUctBase::Mcts::LowerCostBound", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 1.0);
-  params->SetListFloat("BehaviorUctRiskConstraint::DefaultAvailableRisk", {0.1f});
+  params->SetListFloat("BehaviorUctRiskConstraint::DefaultAvailableRisk", {0.05f});
   params->SetBool("BehaviorUctRiskConstraint::EstimateScenarioRisk", false);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
@@ -277,17 +277,17 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::HypothesisBased", false);
   params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::Alpha", 0.25);
   params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::K", 2.0);
-  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 4000);
+  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 10000);
   params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 400000);
-  params->SetListFloat("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", {2.0f});
-  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 0.5f);
+  params->SetListFloat("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", {1.0f});
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 5.0f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::GradientUpdateScaling",  0.001f);
   params->SetReal("BehaviorUctBase::Mcts::State::PredictionK", 0.2f),
   params->SetReal("BehaviorUctBase::Mcts::State::PredictionAlpha", 0.0f),
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::TauGradientClip", 1.0f);
-  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::ActionFilterFactor", 2.0f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::ActionFilterFactor", 1.0f);
 
-  float ego_velocity = 5.0, rel_distance = 1.0, velocity_difference=2.0, prediction_time_span=0.5f;
+  float ego_velocity = 5.0, rel_distance = 5.0, velocity_difference=2.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 2), Point2d(-3, 2), Point2d(3, 2), Point2d(3, -2), Point2d(-3, -2)});
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(10, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
@@ -305,7 +305,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  auto motion_idx = behavior_uct.GetLastMotionIdx();
+  auto motion_idx = behavior_uct.GetLastMacroAction();
   EXPECT_TRUE(motion_idx == 3 || motion_idx == 4); // some decceleration should occur or a lane change to the right
 
   // Check correct exploration depth/progressive widening
@@ -387,7 +387,7 @@ TEST(behavior_uct_single_agent, agent_in_front_brake_multiple_constraints) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  auto motion_idx = behavior_uct.GetLastMotionIdx();
+  auto motion_idx = behavior_uct.GetLastMacroAction();
   EXPECT_TRUE(motion_idx == 3 || motion_idx == 4); // some decceleration should occur or a lane change to the right
 }
 

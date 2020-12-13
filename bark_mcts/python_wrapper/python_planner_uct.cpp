@@ -57,8 +57,76 @@ void python_planner_uct(py::module m) {
         return new BehaviorUCTSingleAgentMacroActions(PythonToParams(t[0].cast<py::tuple>()));
       })); */
 
- py::class_<BehaviorUCTHypothesis, BehaviorModel,
-             std::shared_ptr<BehaviorUCTHypothesis>>(
+ py::class_<UctBaseDebugInfos,
+             std::shared_ptr<UctBaseDebugInfos>>(
+      m, "UctBaseDebugInfos")
+      .def(py::init<>())
+      .def("__repr__", [](const UctBaseDebugInfos &m) {
+        return "bark.behavior.UctBaseDebugInfos";
+      })
+      .def_property_readonly("edge_infos", &UctBaseDebugInfos::GetLastMctsEdgeInfo)
+      .def_property_readonly("last_return_values", &UctBaseDebugInfos::GetLastReturnValues)
+      .def(py::pickle(
+      [](const UctBaseDebugInfos& i) {
+        return py::make_tuple(i.GetLastMctsEdgeInfo(), i.GetLastReturnValues());
+      },
+      [](py::tuple t) {
+        if (t.size() != 2)
+          throw std::runtime_error("Invalid UctBaseDebugInfos state!");
+        return new UctBaseDebugInfos{t[0].cast<std::vector<BarkMctsEdgeInfo>>(),
+                t[1].cast<mcts::Policy>()};
+      }));
+
+ py::class_<UctHypothesisDebugInfos,
+             std::shared_ptr<UctHypothesisDebugInfos>>(m, "UctHypothesisDebugInfos")
+      .def(py::init<>())
+      .def("__repr__", [](const UctHypothesisDebugInfos &m) {
+        return "bark.behavior.UctHypothesisDebugInfos";
+      })
+      .def_property_readonly("current_beliefs", &UctHypothesisDebugInfos::GetCurrentBeliefs)
+      .def(py::pickle(
+      [](const UctHypothesisDebugInfos& i) {
+        return py::make_tuple(i.GetCurrentBeliefs());
+      },
+      [](py::tuple t) {
+        if (t.size() != 1)
+          throw std::runtime_error("Invalid UctHypothesisDebugInfos state!");
+        return new UctHypothesisDebugInfos{t[0].cast<
+            std::unordered_map<mcts::AgentIdx, std::vector<mcts::Belief>>>()};
+      }));
+
+ py::class_<UctRiskConstraintDebugInfos,
+             std::shared_ptr<UctRiskConstraintDebugInfos>>(m, "UctRiskConstraintDebugInfos")
+      .def(py::init<>())
+      .def("__repr__", [](const UctRiskConstraintDebugInfos &m) {
+        return "bark.behavior.UctRiskConstraintDebugInfos";
+      })
+      .def_property_readonly("last_policy_sampled", &UctRiskConstraintDebugInfos::GetLastPolicySampled)
+      .def_property_readonly("last_expected_risk", &UctRiskConstraintDebugInfos::GetLastExpectedRisk)
+      .def_property_readonly("last_cost_values", &UctRiskConstraintDebugInfos::GetLastCostValues)
+      .def_property_readonly("last_scenario_risk", &UctRiskConstraintDebugInfos::GetLastScenarioRisk)
+      .def(py::pickle(
+      [](const UctRiskConstraintDebugInfos& i) {
+        return py::make_tuple(i.GetLastPolicySampled(),
+                              i.GetLastExpectedRisk(),
+                              i.GetLastCostValues(),
+                              i.GetLastScenarioRisk());
+      },
+      [](py::tuple t) {
+        if (t.size() != 4)
+          throw std::runtime_error("Invalid UctRiskConstraintDebugInfos state!");
+        return new UctRiskConstraintDebugInfos{t[0].cast<PolicySampled>(),
+                                              t[1].cast<std::vector<mcts::Cost>>(),
+                                              t[2].cast<mcts::Policy>(),
+                                              t[3].cast<std::vector<mcts::Cost>>()};
+      }));
+
+
+ py::class_<BehaviorUCTHypothesis,
+            BehaviorModel,
+            UctBaseDebugInfos,
+            UctHypothesisDebugInfos,
+            std::shared_ptr<BehaviorUCTHypothesis>>(
       m, "BehaviorUCTHypothesis")
       .def(py::init<const bark::commons::ParamsPtr &,
        const std::vector<BehaviorModelPtr>&>())
@@ -66,7 +134,7 @@ void python_planner_uct(py::module m) {
         return "bark.behavior.BehaviorUCTHypothesis";
       })
       .def_property_readonly("hypotheses", &BehaviorUCTHypothesis::GetBehaviorHypotheses)
-      .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTHypothesis::GetLastMctsEdgeInfo)
+      .def("GetLastMacroAction", &BehaviorUCTHypothesis::GetLastMacroAction)
       .def(py::pickle(
       [](const BehaviorUCTHypothesis& b) {
         py::list list;
@@ -74,10 +142,12 @@ void python_planner_uct(py::module m) {
         for (const auto& hypothesis : hypotheses) {
           list.append(BehaviorModelToPython(hypothesis));
         }
-        return py::make_tuple(ParamsToPython(b.GetParams()), list);
+        return py::make_tuple(ParamsToPython(b.GetParams()), list,
+                 static_cast<const UctHypothesisDebugInfos&>(b),
+                static_cast<const UctBaseDebugInfos&>(b));
       },
       [](py::tuple t) {
-        if (t.size() != 2)
+        if (t.size() != 4)
           throw std::runtime_error("Invalid behavior model state!");
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
@@ -85,7 +155,7 @@ void python_planner_uct(py::module m) {
           hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
         }
         return new BehaviorUCTHypothesis(PythonToParams(t[0].cast<py::tuple>()),
-                hypotheses);
+                hypotheses, t[2].cast<UctHypothesisDebugInfos>(), t[3].cast<UctBaseDebugInfos>());
       }));
 
    py::class_<BehaviorUCTCooperative, BehaviorModel,
@@ -106,7 +176,11 @@ void python_planner_uct(py::module m) {
         return new BehaviorUCTCooperative(PythonToParams(t[0].cast<py::tuple>()));
       }));
 
-   py::class_<BehaviorUCTRiskConstraint, BehaviorModel,
+   py::class_<BehaviorUCTRiskConstraint,
+             BehaviorModel,
+             UctBaseDebugInfos,
+             UctHypothesisDebugInfos,
+             UctRiskConstraintDebugInfos,
              std::shared_ptr<BehaviorUCTRiskConstraint>>(
       m, "BehaviorUCTRiskConstraint")
       .def(py::init<const bark::commons::ParamsPtr &,
@@ -126,26 +200,39 @@ void python_planner_uct(py::module m) {
           list.append(BehaviorModelToPython(hypothesis));
         }
         if ( b.GetScenarioRiskFunction()) {
-          return py::make_tuple(ParamsToPython(b.GetParams()), list, b.GetScenarioRiskFunction());
+          return py::make_tuple(ParamsToPython(b.GetParams()), list,
+                              b.GetScenarioRiskFunction(),
+                              static_cast<const UctHypothesisDebugInfos&>(b),
+                              static_cast<const UctRiskConstraintDebugInfos&>(b),
+                              static_cast<const UctBaseDebugInfos&>(b));
         } else {
-          return py::make_tuple(ParamsToPython(b.GetParams()), list);
+          return py::make_tuple(ParamsToPython(b.GetParams()), list,
+                              static_cast<const UctHypothesisDebugInfos&>(b),
+                              static_cast<const UctRiskConstraintDebugInfos&>(b),
+                              static_cast<const UctBaseDebugInfos&>(b));
         }
       },
       [](py::tuple t) {
-        if (t.size() != 2 && t.size() != 3)
+        if (t.size() != 5 && t.size() != 6)
           throw std::runtime_error("Invalid behavior model state!");
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
           hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
         }
-        if (t.size() == 3) {
+        if (t.size() == 6) {
           return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
                 hypotheses, std::make_shared<risk_calculation::ScenarioRiskFunction>(
-                                    t[2].cast<risk_calculation::ScenarioRiskFunction>()));
+                                    t[2].cast<risk_calculation::ScenarioRiskFunction>()),
+                                    t[3].cast<UctHypothesisDebugInfos>(),
+                                    t[4].cast<UctRiskConstraintDebugInfos>(),
+                                    t[5].cast<UctBaseDebugInfos>());
         } else {
           return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
-                hypotheses, nullptr);
+                                    hypotheses, nullptr,
+                                    t[2].cast<UctHypothesisDebugInfos>(),
+                                    t[3].cast<UctRiskConstraintDebugInfos>(),
+                                    t[4].cast<UctBaseDebugInfos>());
         }
       }));
 
@@ -158,6 +245,7 @@ void python_planner_uct(py::module m) {
              BehaviorHypothesis,
              std::shared_ptr<BehaviorHypothesisIDM>>(m, "BehaviorHypothesisIDM", py::multiple_inheritance())
     .def(py::init<const bark::commons::ParamsPtr&>())
+    .def_property_readonly("parameter_regions", &BehaviorHypothesisIDM::GetParameterRegions)
     .def("__repr__", [](const BehaviorHypothesisIDM &m) {
       return "bark.behavior.BehaviorHypothesisIDM";
     })

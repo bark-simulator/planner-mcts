@@ -32,6 +32,7 @@ class PickleTests(unittest.TestCase):
         hypothesis_list = []
         hypothesis_list.append(hypothesis)
         behavior = BehaviorUCTHypothesis(params, [hypothesis])
+        edges = behavior.edge_infos
         unpickled = pickle_unpickle(behavior)
         unpickled_hypothesis = unpickled.hypotheses
         self.assertEqual(len(unpickled_hypothesis), 1)
