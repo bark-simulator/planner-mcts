@@ -117,7 +117,7 @@ void python_planner_uct(py::module m) {
           throw std::runtime_error("Invalid UctRiskConstraintDebugInfos state!");
         return new UctRiskConstraintDebugInfos{t[0].cast<PolicySampled>(),
                                               t[1].cast<std::vector<mcts::Cost>>(),
-                                              t[2].cast<mcts::Policy>(),
+                                              t[2].cast<std::unordered_map<std::string, mcts::Policy>>(),
                                               t[3].cast<std::vector<mcts::Cost>>()};
       }));
 

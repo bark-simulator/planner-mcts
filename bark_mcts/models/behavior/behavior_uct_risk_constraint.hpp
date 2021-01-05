@@ -31,12 +31,12 @@ struct UctRiskConstraintDebugInfos {
   PolicySampled GetLastPolicySampled() const { return last_policy_sampled_; }
   void SetLastPolicySampled(const PolicySampled& policy_sampled) { last_policy_sampled_ = policy_sampled; }
   
-  void SetLastCostValues(const mcts::Policy& cost_values) { last_cost_values_ = cost_values;}
-  mcts::Policy GetLastCostValues() const { return last_cost_values_; }
+  void SetLastCostValues(const std::string cost_name, const mcts::Policy& cost_values) { last_cost_values_[cost_name] = cost_values;}
+  std::unordered_map<std::string, mcts::Policy> GetLastCostValues() const { return last_cost_values_; }
 
   PolicySampled last_policy_sampled_;
   std::vector<mcts::Cost> last_expected_risk_;
-  mcts::Policy last_cost_values_;
+  std::unordered_map<std::string, mcts::Policy> last_cost_values_;
   std::vector<mcts::Cost> last_scenario_risk_;
 };
 
