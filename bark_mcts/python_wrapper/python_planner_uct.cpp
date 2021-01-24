@@ -135,6 +135,7 @@ void python_planner_uct(py::module m) {
       })
       .def_property_readonly("hypotheses", &BehaviorUCTHypothesis::GetBehaviorHypotheses)
       .def("GetLastMacroAction", &BehaviorUCTHypothesis::GetLastMacroAction)
+      .def_property_readonly("ego_behavior", &BehaviorUCTRiskConstraint::GetEgoBehaviorModel)
       .def(py::pickle(
       [](const BehaviorUCTHypothesis& b) {
         py::list list;
@@ -166,6 +167,7 @@ void python_planner_uct(py::module m) {
         return "bark.behavior.BehaviorUCTCooperative";
       })
       .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTCooperative::GetLastMctsEdgeInfo)
+      .def_property_readonly("ego_behavior", &BehaviorUCTRiskConstraint::GetEgoBehaviorModel)
       .def(py::pickle(
       [](const BehaviorUCTCooperative& b) {
         return py::make_tuple(ParamsToPython(b.GetParams()));
@@ -191,6 +193,7 @@ void python_planner_uct(py::module m) {
       })
       .def_property_readonly("hypotheses", &BehaviorUCTRiskConstraint::GetBehaviorHypotheses)
       .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTRiskConstraint::GetLastMctsEdgeInfo)
+      .def_property_readonly("ego_behavior", &BehaviorUCTRiskConstraint::GetEgoBehaviorModel)
       .def_property_readonly("scenario_risk_function", &BehaviorUCTRiskConstraint::GetScenarioRiskFunction)
       .def(py::pickle(
       [](const BehaviorUCTRiskConstraint& b) -> py::tuple {

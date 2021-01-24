@@ -52,6 +52,8 @@ class BehaviorUCTBase : public BehaviorModel, public UctBaseDebugInfos {
     
   ObservedWorldPtr FilterAgents(const ObservedWorld& observed_world) const;
 
+  BehaviorMotionPrimitivesPtr GetEgoBehaviorModel() const { return ego_behavior_model_;}
+
  protected:
   BehaviorMotionPrimitivesPtr ego_behavior_model_;
   BehaviorMotionPrimitives::MotionIdx last_motion_idx_;
