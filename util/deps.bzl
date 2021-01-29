@@ -42,6 +42,7 @@ cc_library(
     srcs = ["torch/lib/libtorch.so",
                  "torch/lib/libc10.so", "torch/lib/libtorch_cpu.so"],
     hdrs = glob(["torch/include/**/*.h", "torch/include/*.h"]),
+    strip_include_prefix="torch/include/",
     visibility = ["//visibility:public"],
     linkopts = [
         "-ltorch",

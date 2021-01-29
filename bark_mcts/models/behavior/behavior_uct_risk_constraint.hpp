@@ -76,6 +76,9 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRisk
     Trajectory PlanWithMcts(float delta_time,
                           const world::ObservedWorld& observed_world);
 
+    template<class Mcts>
+    void InitializeHeuristic(Mcts& mcts) const {};
+
     mcts::Cost CalculateAvailableScenarioRisk() const;
 
     std::vector<mcts::Cost> default_available_risk_;
@@ -141,6 +144,7 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(float delta_time,
   current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINTS = current_scenario_risk_;
   mcts::Mcts<S, SE, SO,
              H>  mcts_risk_constrained(current_mcts_parameters);
+  InitializeHeuristic(mcts_risk_constrained);
   mcts_risk_constrained.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   auto sampled_policy = mcts_risk_constrained.get_root().get_ego_int_node().greedy_policy(
               0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR);
