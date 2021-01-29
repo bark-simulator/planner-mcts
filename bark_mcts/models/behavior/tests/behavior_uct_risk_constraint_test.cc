@@ -4,8 +4,9 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 #include <chrono>
 #include "gtest/gtest.h"
-#include "mcts/hypothesis/hypothesis_belief_tracker.h"
 #include "bark_mcts/models/behavior/behavior_uct_risk_constraint.hpp"
+#include "mcts/hypothesis/hypothesis_belief_tracker.h"
+
 #include "bark_mcts/models/behavior/mcts_state/mcts_state_risk_constraint.hpp"
 #include "bark/models/behavior/motion_primitives/param_config/behav_macro_actions_from_param_server.hpp"
 #include "bark_mcts/models/behavior/param_config/mcts_parameters_from_param_server.hpp"

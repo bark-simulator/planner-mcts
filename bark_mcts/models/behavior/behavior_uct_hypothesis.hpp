@@ -5,7 +5,7 @@
 
 #ifndef MODULES_MODELS_BEHAVIOR_BEHAVIOR_UCT_HYPOTHESIS_HPP_
 #define MODULES_MODELS_BEHAVIOR_BEHAVIOR_UCT_HYPOTHESIS_HPP_
-
+#define MCTS_EXPECT_TRUE(cond) BARK_EXPECT_TRUE(cond)
 #include <memory>
 #include "bark_mcts/models/behavior/behavior_uct_hypothesis_base.hpp"
 #include "bark_mcts/models/behavior/mcts_state/mcts_state_hypothesis.hpp"

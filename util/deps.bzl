@@ -17,18 +17,46 @@ cc_library(
     )
 
     _maybe(
-    git_repository,
+    native.local_repository,
     name = "bark_project",
-     commit="f126d8f7c6d31ffb3d3a722700b9cc7c224da0d5",
-     remote = "https://github.com/juloberno/bark",
-    #path="/home/julo/development/bark"
+   # commit="f126d8f7c6d31ffb3d3a722700b9cc7c224da0d5",
+   # remote = "https://github.com/juloberno/bark",
+    path="/home/julo/development/bark"
     )
 
     _maybe(
-    git_repository,
+    native.local_repository,
+    name = "bark_ml_project",
+    #commit = "7e931df134e0525b2c466c721c849de4f2099ce2",
+    #remote="https://github.com/juloberno/bark-ml"
+    path = "/home/julo/development/bark-ml"
+    )
+
+    _maybe(
+    native.new_local_repository,
+    name = "torchcpp",
+    path = "./bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/",
+    build_file_content = """
+cc_library(
+    name = "lib",
+    srcs = ["torch/lib/libtorch.so",
+                 "torch/lib/libc10.so", "torch/lib/libtorch_cpu.so"],
+    hdrs = glob(["torch/include/**/*.h", "torch/include/*.h"]),
+    visibility = ["//visibility:public"],
+    linkopts = [
+        "-ltorch",
+        "-ltorch_cpu",
+        "-lc10",
+    ],
+)
+    """)
+
+    _maybe(
+    native.local_repository,
     name = "mamcts_project",
-    commit="4f6f22455f0706abfa48ca11254bd77b678909ee",
-    remote = "https://github.com/juloberno/mamcts",
+   # commit="9089e77b55f08a46816018cc8577a11322b3a32c",
+   # remote = "https://github.com/juloberno/mamcts",
+    path = "/home/julo/development/mamcts" 
     )
 
 def _maybe(repo_rule, name, **kwargs):

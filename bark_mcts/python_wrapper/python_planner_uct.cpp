@@ -3,6 +3,7 @@
 // This work is licensed under the terms of the MIT license.
 // For a copy, see <https://opensource.org/licenses/MIT>.
 
+#include "bark_mcts/models/behavior/behavior_uct_risk_constraint.hpp"
 #include "bark_mcts/python_wrapper/python_planner_uct.hpp"
 #include "bark_mcts/python_wrapper/python_risk_calculation.hpp"
 #include "bark_mcts/python_wrapper/polymorphic_conversion.hpp"
@@ -12,7 +13,7 @@
 #include "bark_mcts/models/behavior/belief_calculator/belief_calculator.hpp"
 #include "bark_mcts/models/behavior/behavior_uct_hypothesis.hpp"
 #include "bark_mcts/models/behavior/behavior_uct_cooperative.hpp"
-#include "bark_mcts/models/behavior/behavior_uct_risk_constraint.hpp"
+
 #include "bark_mcts/models/behavior/hypothesis/idm/hypothesis_idm.hpp"
 
 #include "mcts/random_generator.h"
