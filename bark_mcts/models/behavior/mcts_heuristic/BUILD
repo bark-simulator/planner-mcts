@@ -5,7 +5,7 @@ cc_library(
             ],
     deps= [
         "@bark_ml_project//bark_ml/library_wrappers/lib_fqf_iqn_qrdqn/model_loader:model_loader",
-        "@bark_ml_project//bark_ml/observers:cpp_observers",
+        "@bark_ml_project//bark_ml/observers:include",
         "@bark_project//bark:include",
         "@mamcts_project//mcts:mamcts",
         "@torchcpp//:lib",
