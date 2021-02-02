@@ -26,15 +26,19 @@ class BehaviorUCTNHeuristicRiskConstraint : public BehaviorUCTRiskConstraint {
                                 const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function,
                                 const UctHypothesisDebugInfos& hypothesis_debug_infos,
                                 const UctRiskConstraintDebugInfos& risk_constraint_debug_infos,
-                                const UctBaseDebugInfos& base_debug_infos);
+                                const UctBaseDebugInfos& base_debug_infos,
+                                const std::string& model_file_name,
+                                const bark_ml::observers::ObserverPtr& observer);
 
   explicit BehaviorUCTNHeuristicRiskConstraint(const commons::ParamsPtr& params,
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis,
-                                const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function);
+                                const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function,
+                                const std::string& model_file_name,
+                                const bark_ml::observers::ObserverPtr& observer);
 
   virtual ~BehaviorUCTNHeuristicRiskConstraint() {}
 
-  ObserverPtr GetObserver() const { return observer_; }
+  bark_ml::observers::ObserverPtr GetObserver() const { return observer_; }
   std::string GetModelFileName() const { return model_filename_; }
 
   virtual Trajectory Plan(float delta_time,
@@ -46,7 +50,7 @@ class BehaviorUCTNHeuristicRiskConstraint : public BehaviorUCTRiskConstraint {
   void InitializeHeuristic(Mcts& mcts) const;
 
   std::string model_filename_;
-  ObserverPtr observer_;
+  bark_ml::observers::ObserverPtr observer_;
 };
 
 inline std::shared_ptr<BehaviorModel> BehaviorUCTNHeuristicRiskConstraint::Clone() const {

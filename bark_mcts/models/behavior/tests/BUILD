@@ -104,6 +104,18 @@ py_test(
 )
 
 py_test(
+  name = "py_behavior_uct_nheuristic_risk_constraint_test",
+  srcs = ["py_behavior_uct_nheuristic_risk_constraint_test.py"],
+  data = ['@bark_project//bark:generate_core'],
+  imports = ['../../../python/'],
+  deps = ["@bark_project//bark/runtime/commons:parameters",
+          "@bark_project//bark/runtime:runtime",
+          "@bark_project//bark/world/tests:python_behavior_model",
+          "@bark_project//bark/runtime/viewer:video_renderer"],
+  visibility = ["//visibility:public"],
+)
+
+py_test(
   name = "py_scenario_risk_function_test",
   srcs = ["py_scenario_risk_function_test.py"],
   data = ['@bark_project//bark:generate_core',
@@ -199,7 +211,6 @@ cc_test(
     srcs = [
         "behavior_uct_risk_constraint_test.cc"
     ],
-    copts = ["-Iexternal/gtest/include"],
     deps = [
         "//bark_mcts/models/behavior:planner_uct_risk_constraint",
         "//bark_mcts/models/behavior/action_store:behavior_action_store",
@@ -217,5 +228,5 @@ cc_test(
         "@bark_project//bark/world/evaluation:evaluator_drivable_area",
         "@bark_project//bark/world/goal_definition:goal_definition",
         "@gtest//:gtest_main",
-    ],
+    ]
 )

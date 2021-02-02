@@ -7,12 +7,14 @@
 #include "bark_mcts/python_wrapper/python_planner_uct.hpp"
 #include "bark_mcts/python_wrapper/python_risk_calculation.hpp"
 #include "bark_mcts/python_wrapper/polymorphic_conversion.hpp"
+#include "bark_ml/python_wrapper/polymorphic_conversion.hpp"
 #include "bark/python_wrapper/polymorphic_conversion.hpp"
 #include <memory>
 #include "bark_mcts/models/behavior/behavior_uct_single_agent.hpp"
 #include "bark_mcts/models/behavior/belief_calculator/belief_calculator.hpp"
 #include "bark_mcts/models/behavior/behavior_uct_hypothesis.hpp"
 #include "bark_mcts/models/behavior/behavior_uct_cooperative.hpp"
+#include "bark_mcts/models/behavior/behavior_uct_nheuristic_risk_constraint.hpp"
 
 #include "bark_mcts/models/behavior/hypothesis/idm/hypothesis_idm.hpp"
 
@@ -243,24 +245,29 @@ void python_planner_uct(py::module m) {
 
        py::class_<BehaviorUCTNHeuristicRiskConstraint,
              BehaviorModel,
+             BehaviorUCTRiskConstraint,
              UctBaseDebugInfos,
              UctHypothesisDebugInfos,
              UctRiskConstraintDebugInfos,
-             std::shared_ptr<BehaviorUCTRiskConstraint>>(
-      m, "BehaviorUCTRiskConstraint")
+             std::shared_ptr<BehaviorUCTNHeuristicRiskConstraint>>(
+      m, "BehaviorUCTNHeuristicRiskConstraint")
       .def(py::init<const bark::commons::ParamsPtr &,
        const std::vector<BehaviorModelPtr>&,
-       const risk_calculation::ScenarioRiskFunctionPtr&>())
-      .def("__repr__", [](const BehaviorUCTRiskConstraint &m) {
-        return "bark.behavior.BehaviorUCTRiskConstraint";
+       const risk_calculation::ScenarioRiskFunctionPtr&,
+       const std::string&,
+       const bark_ml::observers::ObserverPtr&>())
+      .def_property_readonly("hypotheses", &BehaviorUCTNHeuristicRiskConstraint::GetBehaviorHypotheses)
+      .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTNHeuristicRiskConstraint::GetLastMctsEdgeInfo)
+      .def_property_readonly("ego_behavior", &BehaviorUCTNHeuristicRiskConstraint::GetEgoBehaviorModel)
+      .def_property_readonly("scenario_risk_function", &BehaviorUCTNHeuristicRiskConstraint::GetScenarioRiskFunction)
+      .def_property_readonly("observer", &BehaviorUCTNHeuristicRiskConstraint::GetObserver)
+      .def_property_readonly("model_filename", &BehaviorUCTNHeuristicRiskConstraint::GetModelFileName)
+      .def("__repr__", [](const BehaviorUCTNHeuristicRiskConstraint &m) {
+        return "bark.behavior.BehaviorUCTNHeuristicRiskConstraint";
       })
-      .def_property_readonly("hypotheses", &BehaviorUCTRiskConstraint::GetBehaviorHypotheses)
-      .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTRiskConstraint::GetLastMctsEdgeInfo)
-      .def_property_readonly("ego_behavior", &BehaviorUCTRiskConstraint::GetEgoBehaviorModel)
-      .def_property_readonly("scenario_risk_function", &BehaviorUCTRiskConstraint::GetScenarioRiskFunction)
       .def(py::pickle(
-      [](const BehaviorUCTRiskConstraint& b) -> py::tuple {
-        py::list list;
+      [](const BehaviorUCTNHeuristicRiskConstraint& b) -> py::tuple {
+          py::list list;
         auto hypotheses = b.GetBehaviorHypotheses();
         for (const auto& hypothesis : hypotheses) {
           list.append(BehaviorModelToPython(hypothesis));
@@ -270,35 +277,43 @@ void python_planner_uct(py::module m) {
                               b.GetScenarioRiskFunction(),
                               static_cast<const UctHypothesisDebugInfos&>(b),
                               static_cast<const UctRiskConstraintDebugInfos&>(b),
-                              static_cast<const UctBaseDebugInfos&>(b));
+                              static_cast<const UctBaseDebugInfos&>(b),
+                              b.GetModelFileName(),
+                              ObserverToPython(b.GetObserver()));
         } else {
           return py::make_tuple(ParamsToPython(b.GetParams()), list,
                               static_cast<const UctHypothesisDebugInfos&>(b),
                               static_cast<const UctRiskConstraintDebugInfos&>(b),
-                              static_cast<const UctBaseDebugInfos&>(b));
+                              static_cast<const UctBaseDebugInfos&>(b),
+                              b.GetModelFileName(),
+                              ObserverToPython(b.GetObserver()));
         }
       },
       [](py::tuple t) {
-        if (t.size() != 5 && t.size() != 6)
+        if (t.size() != 6 && t.size() != 7)
           throw std::runtime_error("Invalid behavior model state!");
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
           hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
         }
-        if (t.size() == 6) {
-          return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
+        if (t.size() == 7) {
+          return new BehaviorUCTNHeuristicRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
                 hypotheses, std::make_shared<risk_calculation::ScenarioRiskFunction>(
                                     t[2].cast<risk_calculation::ScenarioRiskFunction>()),
                                     t[3].cast<UctHypothesisDebugInfos>(),
                                     t[4].cast<UctRiskConstraintDebugInfos>(),
-                                    t[5].cast<UctBaseDebugInfos>());
+                                    t[5].cast<UctBaseDebugInfos>(),
+                                    t[6].cast<std::string>(),
+                                    PythonToObserver(t[7].cast<py::tuple>()));
         } else {
-          return new BehaviorUCTRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
+          return new BehaviorUCTNHeuristicRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
                                     hypotheses, nullptr,
                                     t[2].cast<UctHypothesisDebugInfos>(),
                                     t[3].cast<UctRiskConstraintDebugInfos>(),
-                                    t[4].cast<UctBaseDebugInfos>());
+                                    t[4].cast<UctBaseDebugInfos>(),
+                                    t[5].cast<std::string>(),
+                                    PythonToObserver(t[6].cast<py::tuple>()));
         }
       }));
 

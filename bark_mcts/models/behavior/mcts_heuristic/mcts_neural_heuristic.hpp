@@ -16,8 +16,6 @@
 #include <chrono>
 
 using bark_ml::lib_fqf_iqn_qrdqn::ModelLoader;
-typedef std::shared_ptr<bark_ml::observers::BaseObserver> ObserverPtr;
-
 
 namespace mcts {
 class CostConstrainedStatistic;
@@ -35,7 +33,7 @@ public:
             model_loader_(),
             observer_() {}
 
-    MctsNeuralHeuristic(const mcts::MctsParameters& mcts_parameters, const ObserverPtr& observer,
+    MctsNeuralHeuristic(const mcts::MctsParameters& mcts_parameters, const bark_ml::observers::ObserverPtr& observer,
                  const std::string& model_file_name) :
             mcts::Heuristic<MctsNeuralHeuristic>(mcts_parameters), 
             model_loader_(std::make_unique<ModelLoader>()),

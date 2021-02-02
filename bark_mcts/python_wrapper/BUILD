@@ -19,11 +19,13 @@ cc_library(
     "//bark_mcts/models/behavior:planner_uct_hypothesis",
     "//bark_mcts/models/behavior:planner_uct_cooperative",
     "//bark_mcts/models/behavior:planner_uct_risk_constraint",
+    "//bark_mcts/models/behavior:planner_uct_nheuristic_risk_constraint",
     "//bark_mcts/models/behavior/belief_calculator:belief_calculator",
+    "@bark_ml_project//bark_ml/python_wrapper:polymorphic_conversion",
     "@python_linux//:python-lib",
     "@pybind11//:pybind11",
-    "@com_github_eigen_eigen//:eigen", 
-  ],
+    "@com_github_eigen_eigen//:eigen"
+    ],
   visibility = ["//visibility:public"],
 )
 

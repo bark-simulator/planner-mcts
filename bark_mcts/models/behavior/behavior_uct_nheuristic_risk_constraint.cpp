@@ -15,21 +15,26 @@ BehaviorUCTNHeuristicRiskConstraint::BehaviorUCTNHeuristicRiskConstraint(const c
                                 const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function,
                                 const UctHypothesisDebugInfos& hypothesis_debug_infos,
                                 const UctRiskConstraintDebugInfos& risk_constraint_debug_infos,
-                                const UctBaseDebugInfos& base_debug_infos) :
+                                const UctBaseDebugInfos& base_debug_infos,
+                                const std::string& model_file_name,
+                                const bark_ml::observers::ObserverPtr& observer) :
                                 BehaviorUCTRiskConstraint(params,
                                                           behavior_hypothesis,
                                                           scenario_risk_function,
                                                           hypothesis_debug_infos,
                                                           risk_constraint_debug_infos,
                                                           base_debug_infos),
-                                model_filename_(GetParams()->AddChild("BehaviorUctNHeuristicRiskConstraint")
-                                    ->GetString("ModelFileName", "Name of neural network pytorch scriptfile", ""))  {}
+                                model_filename_(model_file_name),
+                                observer_(observer)  {}
 
 BehaviorUCTNHeuristicRiskConstraint::BehaviorUCTNHeuristicRiskConstraint(const commons::ParamsPtr& params,
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis,
-                                const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function) :
-                                BehaviorUCTRiskConstraint(params, behavior_hypothesis, scenario_risk_function,
-                                    UctHypothesisDebugInfos(), UctRiskConstraintDebugInfos(), UctBaseDebugInfos()) {}
+                                const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function,
+                                const std::string& model_file_name,
+                                const bark_ml::observers::ObserverPtr& observer) :
+                                BehaviorUCTNHeuristicRiskConstraint(params, behavior_hypothesis, scenario_risk_function,
+                                    UctHypothesisDebugInfos(), UctRiskConstraintDebugInfos(), UctBaseDebugInfos(),
+                                     model_file_name, observer) {}
 
 dynamic::Trajectory BehaviorUCTNHeuristicRiskConstraint::Plan(
     float delta_time, const world::ObservedWorld& observed_world) {
