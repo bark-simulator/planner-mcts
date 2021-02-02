@@ -24,7 +24,7 @@ from bark.core.world.evaluation import EvaluatorDrivableArea
 from bark.core.world.opendrive import OpenDriveMap, XodrRoad, PlanView, \
     MakeXodrMapOneRoadTwoLanes, XodrLaneSection, XodrLane
 from bark.runtime.viewer.video_renderer import VideoRenderer
-from bark.core.models.behavior import * 
+from bark.core.models.behavior import BehaviorUCTNHeuristicRiskConstraint
 import os
 
 from bark.world.tests.python_behavior_model import PythonDistanceBehavior

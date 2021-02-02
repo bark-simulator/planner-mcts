@@ -245,7 +245,6 @@ void python_planner_uct(py::module m) {
 
        py::class_<BehaviorUCTNHeuristicRiskConstraint,
              BehaviorModel,
-             BehaviorUCTRiskConstraint,
              UctBaseDebugInfos,
              UctHypothesisDebugInfos,
              UctRiskConstraintDebugInfos,
