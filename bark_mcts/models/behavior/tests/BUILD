@@ -106,12 +106,18 @@ py_test(
 py_test(
   name = "py_behavior_uct_nheuristic_risk_constraint_test",
   srcs = ["py_behavior_uct_nheuristic_risk_constraint_test.py"],
-  data = ['@bark_project//bark:generate_core'],
+  data = ["@bark_project//bark:generate_core",
+         "@bark_ml_project//bark_ml:generate_core"],
   imports = ['../../../python/'],
   deps = ["@bark_project//bark/runtime/commons:parameters",
           "@bark_project//bark/runtime:runtime",
           "@bark_project//bark/world/tests:python_behavior_model",
-          "@bark_project//bark/runtime/viewer:video_renderer"],
+          "@bark_project//bark/runtime/viewer:video_renderer",
+          "@bark_ml_project//bark_ml/library_wrappers/lib_fqf_iqn_qrdqn/agent:agents",
+          "@bark_ml_project//bark_ml/behaviors:behaviors",
+          "@bark_ml_project//bark_ml/environments:gym",
+          "//bark_mcts/models/behavior/hypothesis/behavior_space:behavior_space",
+          "@bark_ml_project//bark_ml/library_wrappers/lib_fqf_iqn_qrdqn/agent/demonstrations:demonstrations"],
   visibility = ["//visibility:public"],
 )
 
