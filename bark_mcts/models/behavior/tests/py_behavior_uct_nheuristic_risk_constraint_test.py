@@ -6,9 +6,16 @@
 # This work is licensed under the terms of the MIT license.
 # For a copy, see <https://opensource.org/licenses/MIT>.
 
+try:
+  import debug_settings
+except:
+  pass
+
+
 import unittest
 import numpy as np
 import time
+import logging
 import gym
 from bark.runtime.commons import ParameterServer
 from bark.runtime.viewer import MPViewer
@@ -28,6 +35,9 @@ from bark.runtime.viewer.video_renderer import VideoRenderer
 from bark.core.models.behavior import *
 import os
 import bark_ml.environments.gym
+logging.basicConfig()
+logging.getLogger().setLevel(logging.INFO)
+logging.info("Running on process with ID: {}".format(os.getpid()))
 
 from bark.world.tests.python_behavior_model import PythonDistanceBehavior
 

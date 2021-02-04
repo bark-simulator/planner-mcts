@@ -117,7 +117,9 @@ py_test(
           "@bark_ml_project//bark_ml/behaviors:behaviors",
           "@bark_ml_project//bark_ml/environments:gym",
           "//bark_mcts/models/behavior/hypothesis/behavior_space:behavior_space",
-          "@bark_ml_project//bark_ml/library_wrappers/lib_fqf_iqn_qrdqn/agent/demonstrations:demonstrations"],
+          "@bark_ml_project//bark_ml/library_wrappers/lib_fqf_iqn_qrdqn/agent/demonstrations:demonstrations",
+          "//util/debug:debug_settings",
+        ],
   visibility = ["//visibility:public"],
 )
 
