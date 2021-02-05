@@ -107,7 +107,8 @@ py_test(
   name = "py_behavior_uct_nheuristic_risk_constraint_test",
   srcs = ["py_behavior_uct_nheuristic_risk_constraint_test.py"],
   data = ["@bark_project//bark:generate_core",
-         "@bark_ml_project//bark_ml:generate_core"],
+         "@bark_ml_project//bark_ml:generate_core",
+         "//bark_mcts/models/behavior/tests/data:data"],
   imports = ['../../../python/'],
   deps = ["@bark_project//bark/runtime/commons:parameters",
           "@bark_project//bark/runtime:runtime",
@@ -221,6 +222,34 @@ cc_test(
     ],
     deps = [
         "//bark_mcts/models/behavior:planner_uct_risk_constraint",
+        "//bark_mcts/models/behavior/action_store:behavior_action_store",
+        "//bark_mcts/models/behavior/hypothesis/idm:hypothesis_idm",
+        ":test_helpers",
+        "@bark_project//bark/world:world",
+        "@bark_project//bark/world/tests:make_test_world",
+        "@bark_project//bark/models/behavior:behavior",
+        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
+        "@bark_project//bark/models/behavior/idm/stochastic:stochastic",
+        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
+        "@bark_project//bark/models/execution/interpolation:interpolation",
+        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
+        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
+        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
+        "@bark_project//bark/world/goal_definition:goal_definition",
+        "@gtest//:gtest_main",
+    ]
+)
+
+cc_test(
+    name = "behavior_uct_risk_nheuristic_test",
+    srcs = [
+        "behavior_uct_risk_nheuristic_test.cc"
+    ],
+    data = [
+        "//bark_mcts/models/behavior/tests/data:data"
+    ],
+    deps = [
+        "//bark_mcts/models/behavior:planner_uct_nheuristic_risk_constraint",
         "//bark_mcts/models/behavior/action_store:behavior_action_store",
         "//bark_mcts/models/behavior/hypothesis/idm:hypothesis_idm",
         ":test_helpers",

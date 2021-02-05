@@ -47,8 +47,8 @@ using NHeuristicMcts = mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, 
 template <>
 void BehaviorUCTNHeuristicRiskConstraint::InitializeHeuristic<NHeuristicMcts>
               (NHeuristicMcts& mcts) const {
-                
-
+      LOG(INFO) << "Initializing model....";
+      mcts.get_heuristic_function().Initialize(observer_, model_filename_);          
 }
 
 

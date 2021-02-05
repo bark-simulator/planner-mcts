@@ -33,15 +33,14 @@ public:
             model_loader_(),
             observer_() {}
 
-    MctsNeuralHeuristic(const mcts::MctsParameters& mcts_parameters, const bark_ml::observers::ObserverPtr& observer,
-                 const std::string& model_file_name) :
-            mcts::Heuristic<MctsNeuralHeuristic>(mcts_parameters), 
-            model_loader_(std::make_unique<ModelLoader>()),
-            observer_(observer) {
-              if(!model_loader_->LoadModel(model_file_name)) {
-                LOG(FATAL) << "Error during loading of model filename: " << model_file_name;
-              }
-            }
+    void Initialize(const bark_ml::observers::ObserverPtr& observer,
+                 const std::string& model_file_name) {
+        model_loader_ = std::make_unique<ModelLoader>();
+        observer_ = observer;
+          if(!model_loader_->LoadModel(model_file_name)) {
+            LOG(FATAL) << "Error during loading of model filename: " << model_file_name;
+          }
+    }
 
     template<class S, class SE, class SO, class H>
     std::pair<SE, std::unordered_map<mcts::AgentIdx, SO>>
@@ -50,15 +49,13 @@ public:
         namespace chr = std::chrono;
         auto start = std::chrono::high_resolution_clock::now();
         std::shared_ptr<S> state = node->get_state()->clone();
-
-        // For each ego action do a separate rollout
         auto action_returns = mcts::ActionMapping(state->get_num_actions(state->get_ego_agent_idx()), 0.0); 
         auto action_costs = mcts::ActionMapping(state->get_num_actions(state->get_ego_agent_idx()),
                                                  mcts::EgoCosts(state->get_num_costs(), 0.0)); 
         auto action_executed_step_lengths = mcts::ActionMapping(state->get_num_actions(state->get_ego_agent_idx()), 0.0);  
         auto other_accum_rewards = mcts::AgentMapping(state->get_other_agent_idx(), 0.0); 
 
-
+        
         // generate an extra node statistic for each agent
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
         if constexpr(std::is_same<SE, mcts::CostConstrainedStatistic>::value) {

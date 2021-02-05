@@ -46,7 +46,7 @@ from bark_ml.library_wrappers.lib_fqf_iqn_qrdqn.agent import ImitationAgent
 from bark_mcts.models.behavior.hypothesis.behavior_space.behavior_space import BehaviorSpace
 
 def create_nheuristic_behavior(model_file_name):
-    params = ParameterServer()
+    params = ParameterServer(filename="bark_mcts/models/behavior/tests/data/nheuristic_test.json")
     # Model Definitions
     space = BehaviorSpace(params)
     hypothesis_set, hypothesis_parameters = space.create_hypothesis_set()
