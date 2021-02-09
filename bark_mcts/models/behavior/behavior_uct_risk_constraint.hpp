@@ -14,6 +14,9 @@
 #include "bark_mcts/models/behavior/mcts_state/mcts_state_risk_constraint.hpp"
 #include "bark_mcts/models/behavior/risk_calculation/scenario_risk_function.hpp"
 
+#include "mcts/heuristics/random_heuristic.h"
+#include "mcts/statistics/uct_statistic.h"
+#include "mcts/hypothesis/hypothesis_statistic.h"
 
 #include "mcts/hypothesis/hypothesis_belief_tracker.h"
 
@@ -76,8 +79,7 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRisk
     Trajectory PlanWithMcts(float delta_time,
                           const world::ObservedWorld& observed_world);
 
-    template<class Mcts>
-    void InitializeHeuristic(Mcts& mcts) const {};
+    virtual void InitializeHeuristic(void* mcts) const {}
 
     mcts::Cost CalculateAvailableScenarioRisk() const;
 
@@ -144,7 +146,7 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(float delta_time,
   current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINTS = current_scenario_risk_;
   mcts::Mcts<S, SE, SO,
              H>  mcts_risk_constrained(current_mcts_parameters);
-  InitializeHeuristic(mcts_risk_constrained);
+  InitializeHeuristic(&mcts_risk_constrained);
   mcts_risk_constrained.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   auto sampled_policy = mcts_risk_constrained.get_root().get_ego_int_node().greedy_policy(
               0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR);
@@ -156,8 +158,15 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(float delta_time,
   SetLastPolicySampled(sampled_policy);
   SetLastExpectedRisk(expected_risk);
   SetLastReturnValues(mcts_risk_constrained.get_root().get_ego_int_node().get_reward_statistic().get_policy());
-  SetLastCostValues("envelope", mcts_risk_constrained.get_root().get_ego_int_node().get_cost_statistic(0).get_policy());
-  SetLastCostValues("collision", mcts_risk_constrained.get_root().get_ego_int_node().get_cost_statistic(1).get_policy());
+  
+  if (mcts_hypothesis_state_ptr->get_num_costs() == 2) {
+    SetLastCostValues("collision", mcts_risk_constrained.get_root().get_ego_int_node().get_cost_statistic(1).get_policy());
+    SetLastCostValues("envelope", mcts_risk_constrained.get_root().get_ego_int_node().get_cost_statistic(0).get_policy());
+  } else {
+    SetLastCostValues("cost", mcts_risk_constrained.get_root().get_ego_int_node().get_cost_statistic(0).get_policy());
+  }
+
+  
   SetLastScenarioRisk(current_scenario_risk_);
   // Update the constraint based on policy
   if(initialized_available_risk_ && update_scenario_risk_) {

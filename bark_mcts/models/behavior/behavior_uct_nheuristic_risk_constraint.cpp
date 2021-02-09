@@ -42,15 +42,6 @@ dynamic::Trajectory BehaviorUCTNHeuristicRiskConstraint::Plan(
               mcts::HypothesisStatistic, MctsNeuralHeuristic>(delta_time, observed_world);
 }
 
-using NHeuristicMcts = mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic,
-              mcts::HypothesisStatistic, MctsNeuralHeuristic>;
-template <>
-void BehaviorUCTNHeuristicRiskConstraint::InitializeHeuristic<NHeuristicMcts>
-              (NHeuristicMcts& mcts) const {
-      LOG(INFO) << "Initializing model....";
-      mcts.get_heuristic_function().Initialize(observer_, model_filename_);          
-}
-
 
 }  // namespace behavior
 }  // namespace models

@@ -46,8 +46,7 @@ class BehaviorUCTNHeuristicRiskConstraint : public BehaviorUCTRiskConstraint {
   virtual std::shared_ptr<BehaviorModel> Clone() const;
 
  private:
-  template<class Mcts>
-  void InitializeHeuristic(Mcts& mcts) const;
+  virtual void InitializeHeuristic(void* mcts) const override;
 
   std::string model_filename_;
   bark_ml::observers::ObserverPtr observer_;
@@ -59,6 +58,13 @@ inline std::shared_ptr<BehaviorModel> BehaviorUCTNHeuristicRiskConstraint::Clone
   return model_ptr;
 }
 
+using NHeuristicMcts = mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic,
+              mcts::HypothesisStatistic, MctsNeuralHeuristic>;
+
+void BehaviorUCTNHeuristicRiskConstraint::InitializeHeuristic(void* mcts) const {
+      LOG(INFO) << "Initializing model....";
+      static_cast<NHeuristicMcts*>(mcts)->get_heuristic_function().Initialize(observer_, model_filename_);          
+}
 
 
 }  // namespace behavior

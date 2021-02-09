@@ -52,7 +52,8 @@ public:
         auto action_returns = mcts::ActionMapping(state->get_num_actions(state->get_ego_agent_idx()), 0.0); 
         auto action_costs = mcts::ActionMapping(state->get_num_actions(state->get_ego_agent_idx()),
                                                  mcts::EgoCosts(state->get_num_costs(), 0.0)); 
-        auto action_executed_step_lengths = mcts::ActionMapping(state->get_num_actions(state->get_ego_agent_idx()), 0.0);  
+        auto action_executed_step_lengths = mcts::ActionMapping(state->get_num_actions(state->get_ego_agent_idx()),
+                                             state->get_execution_step_length());  
         auto other_accum_rewards = mcts::AgentMapping(state->get_other_agent_idx(), 0.0); 
 
         
