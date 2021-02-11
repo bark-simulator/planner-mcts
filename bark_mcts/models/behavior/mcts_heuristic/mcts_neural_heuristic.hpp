@@ -47,7 +47,6 @@ public:
              calculate_heuristic_values(const std::shared_ptr<mcts::StageNode<S,SE,SO,H>> &node) {
         using mcts::operator+=;
         namespace chr = std::chrono;
-        auto start = std::chrono::high_resolution_clock::now();
         std::shared_ptr<S> state = node->get_state()->clone();
         auto action_returns = mcts::ActionMapping(state->get_num_actions(state->get_ego_agent_idx()), 0.0); 
         auto action_costs = mcts::ActionMapping(state->get_num_actions(state->get_ego_agent_idx()),
@@ -56,6 +55,11 @@ public:
                                              state->get_execution_step_length());  
         auto other_accum_rewards = mcts::AgentMapping(state->get_other_agent_idx(), 0.0); 
 
+
+        const auto observed_nn_state = observer_->Observe(state->get_observed_world());
+        std::vector<float> observed_vector(observed_nn_state.data(), observed_nn_state.data()
+                                             + observed_nn_state.rows() * observed_nn_state.cols());
+        const auto nn_output = model_loader_->Inference(observed_vector);
         
         // generate an extra node statistic for each agent
         SE ego_heuristic(0, node->get_state()->get_ego_agent_idx(), mcts_parameters_);
