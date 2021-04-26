@@ -16,7 +16,7 @@ BehaviorUCTCooperative::BehaviorUCTCooperative(const commons::ParamsPtr& params)
                                 BehaviorUCTBase(params) {}
 
 dynamic::Trajectory BehaviorUCTCooperative::Plan(
-    float delta_time, const world::ObservedWorld& observed_world) {
+    double min_planning_time, const world::ObservedWorld& observed_world) {
   ObservedWorldPtr mcts_observed_world = BehaviorUCTBase::FilterAgents(observed_world);
   for ( auto& agent : mcts_observed_world->GetAgents()) {
     agent.second->SetBehaviorModel(ego_behavior_model_);
@@ -62,7 +62,7 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
 
   // Convert action to a trajectory
   ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
-  auto traj = ego_behavior_model_->Plan(delta_time, observed_world);
+  auto traj = ego_behavior_model_->Plan(min_planning_time, observed_world);
   SetLastTrajectory(traj);
   SetLastAction(ego_behavior_model_->GetLastAction());
   SetBehaviorStatus(BehaviorStatus::VALID);

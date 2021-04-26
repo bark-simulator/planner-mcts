@@ -89,7 +89,7 @@ public:
     }
 
     private:
-        std::unique_ptr<bark_ml::lib_fqf_iqn_qrdqn::ModelLoader> model_loader_;
+        std::shared_ptr<bark_ml::lib_fqf_iqn_qrdqn::ModelLoader> model_loader_;
         std::shared_ptr<bark_ml::observers::BaseObserver> observer_;
 };
 

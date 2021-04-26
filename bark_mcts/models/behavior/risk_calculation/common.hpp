@@ -14,8 +14,8 @@ namespace models {
 namespace behavior {
 namespace risk_calculation {
 
-typedef float KnowledgeValue;
-typedef float RegionValueType;
+typedef double KnowledgeValue;
+typedef double RegionValueType;
 typedef std::string DimensionName;
 typedef std::unordered_map<DimensionName, RegionValueType> RegionValue;
 typedef std::unordered_map<DimensionName, std::pair<RegionValueType, RegionValueType>> RegionBoundaries;

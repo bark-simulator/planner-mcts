@@ -35,7 +35,7 @@ BehaviorUCTSingleAgentBase::BehaviorUCTSingleAgentBase(
           "If true, tree is dumped to dot file after planning", false)) {}
 
 dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
-    float delta_time, const world::ObservedWorld& observed_world) {
+    double min_planning_time, const world::ObservedWorld& observed_world) {
   ObservedWorldPtr mcts_observed_world =
       std::dynamic_pointer_cast<ObservedWorld>(observed_world.Clone());
   mcts_observed_world->SetupPrediction(prediction_settings_);
@@ -52,14 +52,14 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
       std::const_pointer_cast<ObservedWorld>(mcts_observed_world);
   BehaviorMotionPrimitives::MotionIdx num =
       ego_model->GetNumMotionPrimitives(const_mcts_observed_world);
-  MctsStateSingleAgent mcts_state(mcts_observed_world, false, num, delta_time);
+  MctsStateSingleAgent mcts_state(mcts_observed_world, false, num, min_planning_time);
   mcts.search(mcts_state);
   mcts::ActionIdx best_action = mcts.returnBestAction();
   SetLastAction(DiscreteAction(best_action));
 
   if (dump_tree_) {
     std::stringstream filename;
-    filename << "tree_dot_file_" << delta_time;
+    filename << "tree_dot_file_" << min_planning_time;
     mcts.printTreeToDotFile(filename.str());
   }
 
@@ -68,7 +68,7 @@ dynamic::Trajectory BehaviorUCTSingleAgentBase::Plan(
             << ", best action: " << best_action;
 
   ego_model->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
-  auto traj = ego_model->Plan(delta_time, observed_world);
+  auto traj = ego_model->Plan(min_planning_time, observed_world);
   SetLastTrajectory(traj);
   return traj;
 }

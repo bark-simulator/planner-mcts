@@ -41,7 +41,7 @@ class BehaviorUCTNHeuristicRiskConstraint : public BehaviorUCTRiskConstraint {
   bark_ml::observers::ObserverPtr GetObserver() const { return observer_; }
   std::string GetModelFileName() const { return model_filename_; }
 
-  virtual Trajectory Plan(float delta_time,
+  virtual Trajectory Plan(double min_planning_time,
                           const world::ObservedWorld& observed_world);
   virtual std::shared_ptr<BehaviorModel> Clone() const;
 
@@ -61,7 +61,7 @@ inline std::shared_ptr<BehaviorModel> BehaviorUCTNHeuristicRiskConstraint::Clone
 using NHeuristicMcts = mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic,
               mcts::HypothesisStatistic, MctsNeuralHeuristic>;
 
-void BehaviorUCTNHeuristicRiskConstraint::InitializeHeuristic(void* mcts) const {
+inline void BehaviorUCTNHeuristicRiskConstraint::InitializeHeuristic(void* mcts) const {
       LOG(INFO) << "Initializing model....";
       static_cast<NHeuristicMcts*>(mcts)->get_heuristic_function().Initialize(observer_, model_filename_);          
 }

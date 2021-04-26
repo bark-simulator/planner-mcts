@@ -42,7 +42,7 @@ std::string BehaviorActionStore::print_stored_hashes() const {
   return ss.str();
 }
 
-Trajectory BehaviorActionStore::Plan(float delta_time, const bark::world::ObservedWorld& observed_world) {
+Trajectory BehaviorActionStore::Plan(double min_planning_time, const bark::world::ObservedWorld& observed_world) {
   const auto& tuple = Retrieve(active_behavior_);
   SetLastTrajectory(std::get<0>(tuple));
   SetLastAction(std::get<1>(tuple));

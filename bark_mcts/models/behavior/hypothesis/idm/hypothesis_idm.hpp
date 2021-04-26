@@ -34,11 +34,13 @@ class BehaviorHypothesisIDM : public BehaviorIDMStochastic, public BehaviorHypot
 
   virtual std::shared_ptr<BehaviorModel> Clone() const;
 
-  virtual Trajectory Plan(float delta_time, const ObservedWorld& observed_world) {
-    return BehaviorIDMStochastic::Plan(delta_time, observed_world);
-  };
+  virtual Trajectory Plan(double min_planning_time, const ObservedWorld& observed_world) {
+    return BehaviorIDMStochastic::Plan(min_planning_time, observed_world);
+  }
 
   virtual risk_calculation::RegionBoundaries GetDefinition() const;
+
+  virtual void ChangeSeed(const bark::commons::RandomSeed& new_seed) { BehaviorIDMStochastic::ChangeSeed(new_seed); }
 
   private: 
     const unsigned int num_samples_;

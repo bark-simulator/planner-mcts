@@ -25,7 +25,7 @@ class BehaviorUCTSingleAgentBase : public BehaviorModel {
 
   virtual ~BehaviorUCTSingleAgentBase() {}
 
-  virtual Trajectory Plan(float delta_time,
+  virtual Trajectory Plan(double min_planning_time,
                           const world::ObservedWorld& observed_world);
 
   virtual bark::world::prediction::PredictionSettings

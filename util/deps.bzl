@@ -17,19 +17,19 @@ cc_library(
     )
 
     _maybe(
-    native.local_repository,
+    git_repository,
     name = "bark_project",
-   # commit="f126d8f7c6d31ffb3d3a722700b9cc7c224da0d5",
-   # remote = "https://github.com/juloberno/bark",
-    path="/home/julo/development/bark"
+    commit="f3ea338ce894204c7989f749749f714029f348e1",
+    remote = "https://github.com/bark-simulator/bark",
+    #path="/home/julo/development/bark"
     )
 
     _maybe(
-    native.local_repository,
+    git_repository,
     name = "bark_ml_project",
-    #commit = "7e931df134e0525b2c466c721c849de4f2099ce2",
-    #remote="https://github.com/juloberno/bark-ml"
-    path = "/home/julo/development/bark-ml"
+    commit = "2a5c8b0d6a13f340d93d8bb7eb66f6a2559d2d6f",
+    remote="https://github.com/juloberno/bark-ml"
+    #path = "/home/julo/development/bark-ml"
     )
 
     _maybe(
@@ -55,8 +55,8 @@ cc_library(
     _maybe(
     native.local_repository,
     name = "mamcts_project",
-   # commit="9089e77b55f08a46816018cc8577a11322b3a32c",
-   # remote = "https://github.com/juloberno/mamcts",
+    #commit="6a6ec1898589a1b3e3a55a11cf9ccda2a1d0a90f",
+    #remote = "https://github.com/juloberno/mamcts",
     path = "/home/julo/development/mamcts" 
     )
 

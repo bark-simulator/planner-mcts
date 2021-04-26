@@ -29,9 +29,9 @@ inline mcts::MctsParameters::HypothesisBeliefTrackerParameters BeliefTrackerPara
 
 inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsPtr& params,
                     std::unordered_map<unsigned int, unsigned int> fixed_hypothesis_set = {}) {
-    auto float_to_bool_vec = [](const std::vector<float>& float_vec) {
-        std::vector<bool> bool_vec(float_vec.size());
-        std::transform(float_vec.begin(), float_vec.end(), bool_vec.begin(), [](const float& v){return v == 1.0 ? true : false;});
+    auto double_to_bool_vec = [](const std::vector<double>& double_vec) {
+        std::vector<bool> bool_vec(double_vec.size());
+        std::transform(double_vec.begin(), double_vec.end(), bool_vec.begin(), [](const float& v){return v == 1.0 ? true : false;});
         return bool_vec;
     };
     auto float_to_double_vec = [](const std::vector<float>& float_vec) {
@@ -48,6 +48,7 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
     parameters.MAX_NUMBER_OF_ITERATIONS = params->GetInt("Mcts::MaxNumIterations", "Maximum search time in milliseconds", 2000);
     parameters.MAX_SEARCH_DEPTH = params->GetInt("Mcts::MaxSearchDepth", "Maximum search tree depth", 1000);
     parameters.USE_BOUND_ESTIMATION = params->GetBool("Mcts::UseBoundEstimation", "Normalize ucb based on current estimations instead of specified bounds", true);
+    parameters.USE_BOUND_ESTIMATION = params->GetInt("Mcts::NumParallelMcts", "If larger 1 than a root-parallel mcts is used with N parallel MCTS", 1);
     
     parameters.random_heuristic.MAX_SEARCH_TIME = params->GetInt("Mcts::RandomHeuristic::MaxSearchTime",
                                                          "Maximum time available for random rollout in milliseconds", 10);
@@ -71,25 +72,25 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
 
     parameters.hypothesis_belief_tracker = BeliefTrackerParametersFromParamServer(params->AddChild("Mcts"));
 
-    parameters.cost_constrained_statistic.LAMBDAS = float_to_double_vec(
-                params->GetListFloat("Mcts::CostConstrainedStatistic::LambdaInit", "Initial lambda value", {1.0f}));
+    parameters.cost_constrained_statistic.LAMBDAS = 
+                params->GetListFloat("Mcts::CostConstrainedStatistic::LambdaInit", "Initial lambda value", {1.0});
     parameters.cost_constrained_statistic.COST_UPPER_BOUND = parameters.hypothesis_statistic.UPPER_COST_BOUND;
     parameters.cost_constrained_statistic.COST_LOWER_BOUND = parameters.hypothesis_statistic.LOWER_COST_BOUND;
     parameters.cost_constrained_statistic.REWARD_UPPER_BOUND = parameters.uct_statistic.UPPER_BOUND;
     parameters.cost_constrained_statistic.REWARD_LOWER_BOUND = parameters.uct_statistic.LOWER_BOUND;
-    parameters.cost_constrained_statistic.COST_CONSTRAINTS = {0.0f}; // Set dynamically
+    parameters.cost_constrained_statistic.COST_CONSTRAINTS = {0.0}; // Set dynamically
     parameters.cost_constrained_statistic.KAPPA = params->GetReal("Mcts::CostConstrainedStatistic::Kappa", "Exploration constant", 10.0f);
     parameters.cost_constrained_statistic.GRADIENT_UPDATE_STEP = params->GetReal("Mcts::CostConstrainedStatistic::GradientUpdateScaling", "Update step scaling factor", 1.0f);
     parameters.cost_constrained_statistic.TAU_GRADIENT_CLIP = params->GetReal("Mcts::CostConstrainedStatistic::TauGradientClip", "Values smaller than one increase allowed gradient", 1.0f);
     parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR = params->GetReal("Mcts::CostConstrainedStatistic::ActionFilterFactor",
                "Scales node counts in relation to value differences, favoring less visited nodes", 0.5f);
 
-    parameters.cost_constrained_statistic.USE_COST_THRESHOLDING = float_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseCostTresholding",
-               "Specify 1.0 if cost thresholding enabled for cost index", {0.0f, 0.0f}));
-    parameters.cost_constrained_statistic.USE_CHANCE_CONSTRAINED_UPDATES = float_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseChanceConstrainedUpdate",
-               "Track violations instead of cumulative cost during backpropagation", {0.0f, 0.0f}));
+    parameters.cost_constrained_statistic.USE_COST_THRESHOLDING = double_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseCostTresholding",
+               "Specify 1.0 if cost thresholding enabled for cost index", {0.0, 0.0}));
+    parameters.cost_constrained_statistic.USE_CHANCE_CONSTRAINED_UPDATES = double_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseChanceConstrainedUpdate",
+               "Track violations instead of cumulative cost during backpropagation", {0.0, 0.0}));
     parameters.cost_constrained_statistic.COST_THRESHOLDS = params->GetListFloat("Mcts::CostConstrainedStatistic::CostThresholds",
-               "Cost thresholds for thresholded cost constraining", {0.1f, 0.0f});
+               "Cost thresholds for thresholded cost constraining", {0.1, 0.0});
     parameters.cost_constrained_statistic.USE_LAMBDA_POLICY = params->GetBool("Mcts::CostConstrainedStatistic::UseLambdaPolicy",
                "Lambda policy applied to first cost entry?", true);
 

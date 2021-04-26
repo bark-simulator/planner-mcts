@@ -53,6 +53,8 @@ public:
 
     std::shared_ptr<MctsStateHypothesis<T>> clone() const;
 
+    void choose_random_seed(const unsigned& seed_idx);
+
     // Hypothesis State Interfaces
     mcts::ActionIdx plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const;
 

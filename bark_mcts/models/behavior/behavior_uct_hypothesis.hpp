@@ -29,7 +29,7 @@ class BehaviorUCTHypothesis : public BehaviorUCTHypothesisBase<MctsStateHypothes
 
   virtual ~BehaviorUCTHypothesis() {}
 
-    virtual Trajectory Plan(float delta_time,
+    virtual Trajectory Plan(double min_planning_time,
                           const world::ObservedWorld& observed_world);
 
   virtual std::shared_ptr<BehaviorModel> Clone() const;

@@ -35,6 +35,8 @@ class BehaviorHypothesis : public virtual BehaviorModel, public risk_calculation
 
     bark::commons::Probability ParameterSamplingProbability() const { return 1.0 / risk_calculation::CalculateRegionBoundariesArea(this->GetDefinition()); }
 
+    virtual void ChangeSeed(const bark::commons::RandomSeed& new_seed) = 0;
+
 };
 
 typedef std::shared_ptr<BehaviorHypothesis> BehaviorHypothesisPtr;

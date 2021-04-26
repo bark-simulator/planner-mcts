@@ -66,7 +66,7 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRisk
 
   virtual ~BehaviorUCTRiskConstraint() {}
 
-  virtual Trajectory Plan(float delta_time,
+  virtual Trajectory Plan(double min_planning_time,
                           const world::ObservedWorld& observed_world);
 
 
@@ -76,7 +76,7 @@ class BehaviorUCTRiskConstraint : public BehaviorUCTHypothesisBase<MctsStateRisk
 
   protected:
     template<class S, class SE, class SO, class H>
-    Trajectory PlanWithMcts(float delta_time,
+    Trajectory PlanWithMcts(double min_planning_time,
                           const world::ObservedWorld& observed_world);
 
     virtual void InitializeHeuristic(void* mcts) const {}
@@ -99,7 +99,7 @@ inline std::shared_ptr<BehaviorModel> BehaviorUCTRiskConstraint::Clone() const {
 
 
 template<class S, class SE, class SO, class H>
-Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(float delta_time,
+Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(double min_planning_time,
                       const world::ObservedWorld& observed_world) {
   ObservedWorldPtr mcts_observed_world = BehaviorUCTBase::FilterAgents(observed_world);
   using mcts::operator<<;
@@ -201,7 +201,7 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(float delta_time,
 
   // Convert action to a trajectory
   ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
-  auto traj = ego_behavior_model_->Plan(delta_time, observed_world);
+  auto traj = ego_behavior_model_->Plan(min_planning_time, observed_world);
   this->SetLastTrajectory(traj);
   this->SetLastAction(ego_behavior_model_->GetLastAction());
   this->SetBehaviorStatus(BehaviorStatus::VALID);

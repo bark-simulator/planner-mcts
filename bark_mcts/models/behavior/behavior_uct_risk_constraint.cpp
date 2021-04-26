@@ -43,9 +43,9 @@ BehaviorUCTRiskConstraint::BehaviorUCTRiskConstraint(const commons::ParamsPtr& p
                                     UctHypothesisDebugInfos(), UctRiskConstraintDebugInfos(), UctBaseDebugInfos()) {}
 
 dynamic::Trajectory BehaviorUCTRiskConstraint::Plan(
-    float delta_time, const world::ObservedWorld& observed_world) {
+    double min_planning_time, const world::ObservedWorld& observed_world) {
       return PlanWithMcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic,
-              mcts::HypothesisStatistic, mcts::RandomHeuristic>(delta_time, observed_world);
+              mcts::HypothesisStatistic, mcts::RandomHeuristic>(min_planning_time, observed_world);
 }
 
  mcts::Cost BehaviorUCTRiskConstraint::CalculateAvailableScenarioRisk() const {

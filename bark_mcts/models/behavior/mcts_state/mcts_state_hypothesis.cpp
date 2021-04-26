@@ -88,6 +88,13 @@ auto MctsStateHypothesis<T>::generate_next_state(const EvaluationResults& evalua
 }
 
 template <typename T>
+void MctsStateHypothesis<T>::choose_random_seed(const unsigned& seed_idx) {
+    for (auto& hypothesis : this->behavior_hypotheses_) {
+        std::dynamic_pointer_cast<BehaviorHypothesis>(hypothesis)->ChangeSeed((seed_idx+1)*1000);
+    }
+}
+
+template <typename T>
 mcts::ActionIdx MctsStateHypothesis<T>::plan_action_current_hypothesis(const mcts::AgentIdx& agent_idx) const {
     auto bark_agent_id = agent_idx;
     auto observed_world_for_other = observed_world_->ObserveForOtherAgent(bark_agent_id);

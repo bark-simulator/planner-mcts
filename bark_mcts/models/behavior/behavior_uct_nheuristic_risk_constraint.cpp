@@ -37,9 +37,9 @@ BehaviorUCTNHeuristicRiskConstraint::BehaviorUCTNHeuristicRiskConstraint(const c
                                      model_file_name, observer) {}
 
 dynamic::Trajectory BehaviorUCTNHeuristicRiskConstraint::Plan(
-    float delta_time, const world::ObservedWorld& observed_world) {
+    double min_planning_time, const world::ObservedWorld& observed_world) {
       return PlanWithMcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic,
-              mcts::HypothesisStatistic, MctsNeuralHeuristic>(delta_time, observed_world);
+              mcts::HypothesisStatistic, MctsNeuralHeuristic>(min_planning_time, observed_world);
 }
 
 

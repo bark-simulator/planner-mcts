@@ -43,7 +43,7 @@ class BehaviorActionStore : public BehaviorModel {
 
   virtual std::shared_ptr<BehaviorModel> Clone() const; 
 
-  virtual Trajectory Plan(float delta_time, const bark::world::ObservedWorld& observed_world);
+  virtual Trajectory Plan(double min_planning_time, const bark::world::ObservedWorld& observed_world);
 
   private:
     std::unordered_map<ActionHash, std::tuple<Trajectory, Action, BehaviorStatus>> trajectory_store_;
