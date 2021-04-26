@@ -10,6 +10,7 @@ namespace behavior {
 
 BeliefCalculator::BeliefCalculator(const commons::ParamsPtr& params,
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis) :
+                                params_(params),
                                 behavior_hypotheses_(behavior_hypothesis),
                                 belief_tracker_(),
                                 last_mcts_hypothesis_state_(),
