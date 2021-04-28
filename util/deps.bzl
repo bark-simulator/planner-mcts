@@ -17,11 +17,11 @@ cc_library(
     )
 
     _maybe(
-    native.local_repository,
+    git_repository,
     name = "bark_project",
-    #commit="f3ea338ce894204c7989f749749f714029f348e1",
-    #remote = "https://github.com/bark-simulator/bark",
-    path="/home/julo/development/bark"
+    commit="392055a5311f99f0e3dc414b6e05a1cb256d11b1",
+    remote = "https://github.com/bark-simulator/bark",
+    #path="/home/julo/development/bark"
     )
 
     _maybe(
@@ -53,11 +53,11 @@ cc_library(
     """)
 
     _maybe(
-    git_repository,
+    native.local_repository,
     name = "mamcts_project",
-    commit="08fedaf629bc61fb58924a644ced5460bad6a077",
+    commit="205446fa0441a25d33f4515cd8a716dc68083df6",
     remote = "https://github.com/juloberno/mamcts",
-    #path = "/home/julo/development/mamcts" 
+    #path = "/home/bernhard/development/mamcts" 
     )
 
 def _maybe(repo_rule, name, **kwargs):
