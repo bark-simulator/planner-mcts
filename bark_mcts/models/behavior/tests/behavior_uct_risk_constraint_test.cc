@@ -278,7 +278,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::HypothesisBased", false);
   params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::Alpha", 0.25);
   params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::K", 2.0);
-  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 10000);
+  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 100);
   params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 400000);
   params->SetListFloat("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", {1.0f});
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 5.0f);
@@ -360,11 +360,11 @@ TEST(behavior_uct_single_agent, agent_in_front_brake_multiple_constraints) {
   params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::HypothesisBased", false);
   params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::Alpha", 0.25);
   params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::K", 2.0);
-  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 4000);
+  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 500);
   params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 2000000);
   params->SetListFloat("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", {2.0f, 2.0f});
-  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 0.5f);
-  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::GradientUpdateScaling",  0.001f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 10.0f);
+  params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::GradientUpdateScaling",  1.0f);
   params->SetReal("BehaviorUctBase::Mcts::State::PredictionK", 0.2f),
   params->SetReal("BehaviorUctBase::Mcts::State::PredictionAlpha", 0.0f),
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::TauGradientClip", 1.0f);
@@ -397,7 +397,7 @@ TEST(behavior_uct_single_agent, agent_in_front_brake_multiple_constraints) {
 
 int main(int argc, char **argv) {
   FLAGS_alsologtostderr = true;
-  FLAGS_v = 3;
+  FLAGS_v = 0;
   google::InitGoogleLogging("test");
   ::testing::InitGoogleTest(&argc, argv);
 
