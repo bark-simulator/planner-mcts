@@ -42,7 +42,8 @@ bark::commons::Probability BehaviorHypothesisIDM::GetProbability(
     const AgentId &agent_id) const {
   // First check if action fits to the hypothesis action type
   if (action.type() != typeid(Continuous1DAction) &&
-      action.type() != typeid(LonLatAction)) {
+      action.type() != typeid(LonLatAction) &&
+      action.type() != typeid(models::dynamic::Input)) {
     LOG(WARNING) << "Passed action's type not fitting to hypothesis.";
     return 0.0f;
   }
@@ -104,6 +105,8 @@ bark::commons::Probability BehaviorHypothesisIDM::GetProbability(
     idm_acc = boost::get<Continuous1DAction>(action);
   } else if (action.type() == typeid(LonLatAction)) {
     idm_acc = boost::get<LonLatAction>(action).acc_lon;
+  } else if (action.type() == typeid(dynamic::Input)) {
+    idm_acc = boost::get<models::dynamic::Input>(action)[0];
   }
 
   if (idm_acc > buckets_upper_bound_ || idm_acc < buckets_lower_bound_) {

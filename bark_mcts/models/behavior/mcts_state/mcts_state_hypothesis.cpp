@@ -53,6 +53,12 @@ std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::clone() const {
 }
 
 template <typename T>
+std::shared_ptr<MctsStateHypothesis<T>> MctsStateHypothesis<T>::change_belief_reference( 
+                const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis) const {
+    return impl_change_belief_reference(std::is_same<T, void>{}, current_agents_hypothesis);
+}
+
+template <typename T>
 auto MctsStateHypothesis<T>::execute(
     const mcts::JointAction& joint_action, std::vector<mcts::Reward>& rewards,
     mcts::EgoCosts& ego_cost) const {
