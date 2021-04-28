@@ -17,11 +17,11 @@ cc_library(
     )
 
     _maybe(
-    git_repository,
+    native.local_repository,
     name = "bark_project",
-    commit="f3ea338ce894204c7989f749749f714029f348e1",
-    remote = "https://github.com/bark-simulator/bark",
-    #path="/home/julo/development/bark"
+    #commit="f3ea338ce894204c7989f749749f714029f348e1",
+    #remote = "https://github.com/bark-simulator/bark",
+    path="/home/julo/development/bark"
     )
 
     _maybe(

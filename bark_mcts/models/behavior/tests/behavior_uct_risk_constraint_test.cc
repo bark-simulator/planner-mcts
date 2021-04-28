@@ -252,14 +252,14 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  EXPECT_TRUE(boost::get<Continuous1DAction>(action)>= 0.0); // << max, available acceleration is action 2
+  EXPECT_TRUE(boost::get<bark::models::dynamic::Input>(action)[0]>= 0.0); // << max, available acceleration is action 2
 }
 
 TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   // Test if uct planner brakes when slow agent is directly in front
   auto params = std::make_shared<SetterParams>();
   params->SetBool("BehaviorUctBase::EgoBehavior::BehaviorMPMacroActions::CheckValidityInPlan", false);
-  params->SetListFloat("BehaviorUctBase::EgoBehavior::AccelerationInputs", {0, 1, -1, -2});
+  params->SetListFloat("BehaviorUctBase::EgoBehavior::AccelerationInputs", {0, 5, -1, -5});
   params->SetReal("BehaviorUctBase::Mcts::State::GoalReward", 1.0);
   params->SetReal("BehaviorUctBase::Mcts::State::CollisionReward", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::State::GoalCost", 0.0);
@@ -288,7 +288,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::TauGradientClip", 1.0f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::ActionFilterFactor", 1.0f);
 
-  float ego_velocity = 5.0, rel_distance = 5.0, velocity_difference=2.0, prediction_time_span=0.5f;
+  float ego_velocity = 5.0, rel_distance = 10.0, velocity_difference=2.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 2), Point2d(-3, 2), Point2d(3, 2), Point2d(3, -2), Point2d(-3, -2)});
   std::shared_ptr<Polygon> goal_polygon(std::dynamic_pointer_cast<Polygon>(polygon.Translate(Point2d(10, -1.75)))); // < move the goal polygon into the driving corridor in front of the ego vehicle
   auto goal_definition_ptr = std::make_shared<GoalDefinitionPolygon>(*goal_polygon);
@@ -327,7 +327,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
     }
     
   }
-  EXPECT_TRUE(IsBetweenInclusive(largest_depth, 6, 10));
+  EXPECT_TRUE(IsBetweenInclusive(largest_depth, 5, 10));
 
   EXPECT_EQ(agent_action_depth_count[observed_world.GetEgoAgentId()].size(), 6);
   EXPECT_TRUE(IsBetweenInclusive(agent_action_depth_count[observed_world.GetOtherAgents().begin()->first].size(), 3, 10));
@@ -360,8 +360,8 @@ TEST(behavior_uct_single_agent, agent_in_front_brake_multiple_constraints) {
   params->SetBool("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::HypothesisBased", false);
   params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::Alpha", 0.25);
   params->SetReal("BehaviorUctBase::Mcts::HypothesisStatistic::ProgressiveWidening::K", 2.0);
-  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 4000);
-  params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 400000);
+  params->SetInt("BehaviorUctBase::Mcts::MaxNumIterations", 10);
+  params->SetInt("BehaviorUctBase::Mcts::MaxSearchTime", 2000000);
   params->SetListFloat("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", {2.0f, 2.0f});
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::Kappa", 0.5f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::GradientUpdateScaling",  0.001f);
@@ -369,6 +369,7 @@ TEST(behavior_uct_single_agent, agent_in_front_brake_multiple_constraints) {
   params->SetReal("BehaviorUctBase::Mcts::State::PredictionAlpha", 0.0f),
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::TauGradientClip", 1.0f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::ActionFilterFactor", 2.0f);
+  params->SetInt("BehaviorUctBase::Mcts::NumParallelMcts", 12);
 
   float ego_velocity = 5.0, rel_distance = 1.0, velocity_difference=2.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 2), Point2d(-3, 2), Point2d(3, 2), Point2d(3, -2), Point2d(-3, -2)});

@@ -54,6 +54,16 @@ std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::clone() const 
       ego_agent_id_, state_parameters_, current_hypothesis_beliefs_, state_sequence_probability_);
 }
 
+std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::change_belief_reference(
+                const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis) const {
+  auto worldptr =
+      std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
+  return std::make_shared<MctsStateRiskConstraint>(
+      worldptr, is_terminal_state_, num_ego_actions_, depth_,
+      current_agents_hypothesis, behavior_hypotheses_,
+      ego_agent_id_, state_parameters_, current_hypothesis_beliefs_, state_sequence_probability_);
+}
+
 std::shared_ptr<MctsStateRiskConstraint> MctsStateRiskConstraint::generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,
                                                         std::vector<mcts::Reward>& rewards,  mcts::EgoCosts& ego_cost) const {
   rewards.resize(this->get_num_agents(), 0.0f);

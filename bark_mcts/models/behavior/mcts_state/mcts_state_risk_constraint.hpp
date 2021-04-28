@@ -35,6 +35,9 @@ public:
 
   std::shared_ptr<MctsStateRiskConstraint> clone() const;
 
+  std::shared_ptr<MctsStateRiskConstraint> change_belief_reference(
+                const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis) const;
+
   typedef BarkAction ActionType; // required for template-mechanism to compile
 
   std::shared_ptr<MctsStateRiskConstraint> generate_next_state(const EvaluationResults& evaluation_results, const ObservedWorldPtr& predicted_world,

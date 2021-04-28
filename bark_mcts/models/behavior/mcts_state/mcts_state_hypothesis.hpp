@@ -53,6 +53,9 @@ public:
 
     std::shared_ptr<MctsStateHypothesis<T>> clone() const;
 
+    std::shared_ptr<MctsStateHypothesis<T>> change_belief_reference(
+                const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis) const;
+
     void choose_random_seed(const unsigned& seed_idx);
 
     // Hypothesis State Interfaces
@@ -101,6 +104,21 @@ public:
       return std::make_shared<MctsStateHypothesis<T>>(
           worldptr, is_terminal_state_, num_ego_actions_, depth_,
           MctsStateHypothesis<T>::current_agents_hypothesis_, behavior_hypotheses_,
+            ego_agent_id_, state_parameters_);
+    }
+
+    std::shared_ptr<MctsStateHypothesis<T>> impl_change_belief_reference(std::false_type, 
+                const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis) const {
+      return static_cast<const T*>(this)->change_belief_reference(current_agents_hypothesis);
+    }
+
+    std::shared_ptr<MctsStateHypothesis<T>> impl_change_belief_reference(std::true_type, 
+                const std::unordered_map<mcts::AgentIdx, mcts::HypothesisId>& current_agents_hypothesis) const {
+      auto worldptr =
+          std::dynamic_pointer_cast<ObservedWorld>(observed_world_->Clone());
+      return std::make_shared<MctsStateHypothesis<T>>(
+          worldptr, is_terminal_state_, num_ego_actions_, depth_,
+          current_agents_hypothesis, behavior_hypotheses_,
             ego_agent_id_, state_parameters_);
     }
 
