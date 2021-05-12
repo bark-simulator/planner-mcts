@@ -279,7 +279,7 @@ void python_planner_uct(py::module m) {
                               static_cast<const UctRiskConstraintDebugInfos&>(b),
                               static_cast<const UctBaseDebugInfos&>(b),
                               b.GetModelFileName(),
-                              ObserverToPython(b.GetObserver(),
+                              ObserverToPython(b.GetObserver()),
                               NNToValueConverterToPython(b.GetNNToValueConverter()));
         } else {
           return py::make_tuple(ParamsToPython(b.GetParams()), list,
@@ -287,7 +287,7 @@ void python_planner_uct(py::module m) {
                               static_cast<const UctRiskConstraintDebugInfos&>(b),
                               static_cast<const UctBaseDebugInfos&>(b),
                               b.GetModelFileName(),
-                              ObserverToPython(b.GetObserver(),
+                              ObserverToPython(b.GetObserver()),
                               NNToValueConverterToPython(b.GetNNToValueConverter()));
         }
       },
