@@ -29,6 +29,7 @@
 #include "bark/world/goal_definition/goal_definition_state_limits_frenet.hpp"
 
 #include "bark_ml/observers/nearest_observer.hpp"
+#include "bark_ml/library_wrappers/lib_fqf_iqn_qrdqn/model/nn_to_value_converter/nn_to_value_converter_sequential.hpp"
 
 using namespace bark::models::behavior;
 using namespace mcts;
@@ -60,6 +61,7 @@ using bark::world::ObservedWorldPtr;
 using bark::world::objects::AgentPtr;
 using bark::world::opendrive::OpenDriveMapPtr;
 using bark::world::tests::MakeXodrMapOneRoadTwoLanes;
+using bark_ml::lib_fqf_iqn_qrdqn::NNToValueConverterSequential;
 
 ParamsPtr make_params_hypothesis(float headway_lower, float headway_upper, float fixed_headway,
                                  float acc_lower_bound=-5.0f, float acc_upper_bound=8.0f,
@@ -114,10 +116,12 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   params->SetReal("BehaviorUctBase::Mcts::ReturnUpperBound", 2.0);
   params->SetReal("BehaviorUctBase::Mcts::LowerCostBound", 0.0);
   params->SetReal("BehaviorUctBase::Mcts::UpperCostBound", 2.0);
-  params->SetListFloat("BehaviorUctRiskConstraint::DefaultAvailableRisk", {0.1f});
+  params->SetListFloat("BehaviorUctRiskConstraint::DefaultAvailableRisk", {0.1f, 0.0f});
   params->SetBool("BehaviorUctRiskConstraint::EstimateScenarioRisk", false);
+  params->SetBool("BehaviorUctBase::Mcts::State::SplitSafeDistCollision", true);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
+  params->SetListFloat("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", {1.0f, 1.0f});
 
   float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
@@ -135,12 +139,14 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
           std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
 
   std::string model_file_name= "bark_mcts/models/behavior/tests/data/online_net_script.pt";
+  const unsigned num_demonstration_actions = 5;
   bark::models::behavior::BehaviorUCTNHeuristicRiskConstraint behavior_uct(params, behavior_hypothesis, nullptr,
-                                          model_file_name, std::make_shared<bark_ml::observers::NearestObserver>(params));
+                                          model_file_name, std::make_shared<bark_ml::observers::NearestObserver>(params),
+                                          std::make_shared<NNToValueConverterSequential>(num_demonstration_actions));
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  EXPECT_TRUE(boost::get<Continuous1DAction>(action)>= 0.0); // << max, available acceleration is action 2
+  EXPECT_TRUE(boost::get<bark::models::dynamic::Input>(action)[0]>= 0.0); 
 }
 
 

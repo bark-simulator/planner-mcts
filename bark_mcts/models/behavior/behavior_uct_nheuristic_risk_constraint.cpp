@@ -17,7 +17,8 @@ BehaviorUCTNHeuristicRiskConstraint::BehaviorUCTNHeuristicRiskConstraint(const c
                                 const UctRiskConstraintDebugInfos& risk_constraint_debug_infos,
                                 const UctBaseDebugInfos& base_debug_infos,
                                 const std::string& model_file_name,
-                                const bark_ml::observers::ObserverPtr& observer) :
+                                const bark_ml::observers::ObserverPtr& observer,
+                                const bark_ml::lib_fqf_iqn_qrdqn::NNToValueConverterPtr& nn_to_value_converter) :
                                 BehaviorUCTRiskConstraint(params,
                                                           behavior_hypothesis,
                                                           scenario_risk_function,
@@ -25,16 +26,18 @@ BehaviorUCTNHeuristicRiskConstraint::BehaviorUCTNHeuristicRiskConstraint(const c
                                                           risk_constraint_debug_infos,
                                                           base_debug_infos),
                                 model_filename_(model_file_name),
-                                observer_(observer)  {}
+                                observer_(observer),
+                                nn_to_value_converter_(nn_to_value_converter)  {}
 
 BehaviorUCTNHeuristicRiskConstraint::BehaviorUCTNHeuristicRiskConstraint(const commons::ParamsPtr& params,
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis,
                                 const risk_calculation::ScenarioRiskFunctionPtr& scenario_risk_function,
                                 const std::string& model_file_name,
-                                const bark_ml::observers::ObserverPtr& observer) :
+                                const bark_ml::observers::ObserverPtr& observer,
+                                const bark_ml::lib_fqf_iqn_qrdqn::NNToValueConverterPtr& nn_to_value_converter) :
                                 BehaviorUCTNHeuristicRiskConstraint(params, behavior_hypothesis, scenario_risk_function,
                                     UctHypothesisDebugInfos(), UctRiskConstraintDebugInfos(), UctBaseDebugInfos(),
-                                     model_file_name, observer) {}
+                                     model_file_name, observer, nn_to_value_converter) {}
 
 dynamic::Trajectory BehaviorUCTNHeuristicRiskConstraint::Plan(
     double min_planning_time, const world::ObservedWorld& observed_world) {
