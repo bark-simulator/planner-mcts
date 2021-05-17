@@ -292,14 +292,14 @@ void python_planner_uct(py::module m) {
         }
       },
       [](py::tuple t) {
-        if (t.size() != 6 && t.size() != 7)
+        if (t.size() != 8 && t.size() != 9)
           throw std::runtime_error("Invalid behavior model state!");
         std::vector<BehaviorModelPtr> hypotheses;
         const auto& list =  t[1].cast<py::list>();
         for (const auto& el : list) {
           hypotheses.push_back(PythonToBehaviorModel(el.cast<py::tuple>()));
         }
-        if (t.size() == 7) {
+        if (t.size() == 9) {
           return new BehaviorUCTNHeuristicRiskConstraint(PythonToParams(t[0].cast<py::tuple>()),
                 hypotheses, std::make_shared<risk_calculation::ScenarioRiskFunction>(
                                     t[2].cast<risk_calculation::ScenarioRiskFunction>()),

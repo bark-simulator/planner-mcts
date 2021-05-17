@@ -67,7 +67,7 @@ using NHeuristicMcts = mcts::Mcts<MctsStateHypothesis<MctsStateRiskConstraint>, 
               mcts::HypothesisStatistic, MctsNeuralHeuristic>;
 
 inline void BehaviorUCTNHeuristicRiskConstraint::InitializeHeuristic(void* mcts) const {
-      VLOG(5) << "Initializing model....";
+      VLOG(5) << "Initializing nheuristic model: " << model_filename_;
       static_cast<NHeuristicMcts*>(mcts)->get_heuristic_function().Initialize(observer_,
                                                                               model_filename_,
                                                                               nn_to_value_converter_);          
