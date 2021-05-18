@@ -143,7 +143,7 @@ class BehaviorSpace:
       model_params = self._behavior_space_range_params.clone()
       for param_idx in range(0, len(hypotheses_partition)):
         # overwrite range parameter by deleting child
-        distribution_params = model_params.AddChild(param_keys[param_idx], delete = param_idx == 0)
+        distribution_params = model_params.AddChild(param_keys[param_idx], delete = True)
         # uniform distribution for this dimension of behavior space
         if len(hypotheses_partition[param_idx]) == 2:
           distribution_params["DistributionType"] = "UniformDistribution1D"
