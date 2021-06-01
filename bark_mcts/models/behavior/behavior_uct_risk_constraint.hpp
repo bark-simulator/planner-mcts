@@ -192,6 +192,11 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(double min_planning_time,
              H>, S>(mcts_risk_constrained, max_extraction_depth_));
   }
 
+  if(extract_edge_info_) {
+    SetLastMctsStateInfo(BehaviorUCTBase::ExtractMctsStateInfo<mcts::Mcts<S, SE, SO,
+             H>, S>(mcts_risk_constrained, max_extraction_depth_));
+  }
+
   const auto& best_action = sampled_policy.first;
   last_motion_idx_ = best_action;
   VLOG(2) << "BehaviorUCTRiskContraint, iterations: " << mcts_risk_constrained.numIterations()

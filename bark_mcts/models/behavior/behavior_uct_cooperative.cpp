@@ -56,6 +56,11 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
              mcts::RandomHeuristic>, MctsStateCooperative>(mcts_cooperative, max_extraction_depth_));
   }
 
+  if(extract_state_info_) {
+    SetLastMctsStateInfo(BehaviorUCTBase::ExtractMctsStateInfo<mcts::Mcts<MctsStateCooperative, mcts::UctStatistic, mcts::UctStatistic,
+             mcts::RandomHeuristic>, MctsStateCooperative>(mcts_cooperative, max_extraction_depth_));
+  }
+
   VLOG(2) << "BehaviorUCTCooperative, iterations: " << mcts_cooperative.numIterations()
             << ", search time " << mcts_cooperative.searchTime()
             << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);

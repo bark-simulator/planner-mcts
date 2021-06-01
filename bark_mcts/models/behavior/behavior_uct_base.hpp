@@ -21,7 +21,10 @@ class ObservedWorld;
 namespace models {
 namespace behavior {
 
+using bark::world::objects::AgentPtr;
+
 using BarkMctsEdgeInfo = mcts::MctsEdgeInfo<Trajectory>;
+using BarkMctsStateInfo = mcts::MctsStateInfo<std::vector<AgentPtr>>;
 
 struct UctBaseDebugInfos {
   void SetLastReturnValues(const mcts::Policy& return_values) { last_return_values_ = return_values;}
@@ -29,10 +32,14 @@ struct UctBaseDebugInfos {
   std::vector<BarkMctsEdgeInfo> GetLastMctsEdgeInfo() const {return mcts_edge_infos_; };
   void SetLastMctsEdgeInfo(const std::vector<BarkMctsEdgeInfo>& mcts_edge_infos)  {
         mcts_edge_infos_ = mcts_edge_infos; }
+  std::vector<BarkMctsStateInfo> GetLastMctsStateInfo() const {return mcts_state_infos_; };
+  void SetLastMctsStateInfo(const std::vector<BarkMctsStateInfo>& mcts_state_infos)  {
+        mcts_state_infos_ = mcts_state_infos; }
   std::vector<AgentId> GetLastNearestAgents() const {return last_nearest_agents_; };
   void SetLastNearestAgents(const std::vector<AgentId>& nearest_agents)  {
         last_nearest_agents_ = nearest_agents; }
   std::vector<BarkMctsEdgeInfo> mcts_edge_infos_;
+  std::vector<BarkMctsStateInfo> mcts_state_infos_;
   mcts::Policy last_return_values_;
   std::vector<AgentId> last_nearest_agents_;
 };
@@ -45,6 +52,9 @@ class BehaviorUCTBase : public BehaviorModel, public UctBaseDebugInfos {
 
   template< class Mcts, class State>
   static std::vector<BarkMctsEdgeInfo> ExtractMctsEdgeInfo(Mcts& mcts, unsigned int max_depth);
+
+  template< class Mcts, class State>
+  static std::vector<BarkMctsStateInfo> ExtractMctsStateInfo(Mcts& mcts, unsigned int max_depth);
 
   std::string GetPrimitiveName(mcts::ActionIdx action) const; 
 
@@ -62,6 +72,7 @@ class BehaviorUCTBase : public BehaviorModel, public UctBaseDebugInfos {
   const mcts::MctsParameters mcts_parameters_;
   bool dump_tree_;
   bool extract_edge_info_;
+  bool extract_state_info_;
   unsigned int max_extraction_depth_;
   unsigned int max_nearest_agents_;
   StateParameters mcts_state_parameters_;
@@ -84,6 +95,17 @@ std::vector<BarkMctsEdgeInfo> BehaviorUCTBase::ExtractMctsEdgeInfo(Mcts& mcts, u
   return mcts.visit_mcts_tree_edges(edge_info_extractor, max_depth);
 }
 
+template< class Mcts, class State>
+std::vector<BarkMctsStateInfo> BehaviorUCTBase::ExtractMctsStateInfo(Mcts& mcts, unsigned int max_depth) {
+  const std::function<std::vector<AgentPtr>(const State&)> state_info_extractor = [](const State& state) {
+    std::vector<AgentPtr> agents;
+    for (const auto& agent: state.get_observed_world().GetAgents()) {
+      agents.push_back(agent.second);
+    }
+    return agents;
+  };
+  return mcts.visit_mcts_tree_nodes(state_info_extractor, max_depth);
+}
 
 }  // namespace behavior
 }  // namespace models

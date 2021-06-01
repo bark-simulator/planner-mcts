@@ -75,6 +75,11 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
              mcts::RandomHeuristic>, MctsStateHypothesis<>>(mcts_hypothesis, max_extraction_depth_));
   }
 
+  if(extract_state_info_) {
+    SetLastMctsStateInfo(BehaviorUCTBase::ExtractMctsStateInfo<mcts::Mcts<MctsStateHypothesis<>, mcts::UctStatistic, mcts::HypothesisStatistic,
+             mcts::RandomHeuristic>, MctsStateHypothesis<>>(mcts_hypothesis, max_extraction_depth_));
+  }
+
   VLOG(2) << "BehaviorUCTHypothesis, iterations: " << mcts_hypothesis.numIterations()
             << ", search time " << mcts_hypothesis.searchTime()
             << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);

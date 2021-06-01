@@ -22,6 +22,9 @@ BehaviorUCTBase::BehaviorUCTBase(const commons::ParamsPtr& params, const UctBase
                             extract_edge_info_(GetParams()->AddChild("BehaviorUctBase")->GetBool(
                             "ExtractEdgeInfo",
                             "If true, policy tree is maintained in each step", true)),
+                            extract_state_info_(GetParams()->AddChild("BehaviorUctBase")->GetBool(
+                            "ExtractStateInfo",
+                            "If true, tree node information is maintained in each step", false)),
                             max_extraction_depth_(GetParams()->AddChild("BehaviorUctBase")
                                                                 ->GetInt("MaxExtractionDepth",
                                 "Max depth tree is extracted", 10)),

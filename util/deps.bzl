@@ -19,7 +19,7 @@ cc_library(
     _maybe(
     git_repository,
     name = "bark_project",
-    commit="9218c581746b797da0b4de924bb237bb122e8557",
+    commit="af532f11a46699a0945be425a9a557326d758185",
     remote = "https://github.com/bark-simulator/bark",
     #path="/home/julo/development/bark"
     )
@@ -27,7 +27,7 @@ cc_library(
     _maybe(
     git_repository,
     name = "bark_ml_project",
-    commit = "19a6acc0bb67b89308c58d0711ab895f9022bc1a",
+    commit = "c521da9e9eb9818f7f909b658b203cb14c74ed30",
     remote="https://github.com/juloberno/bark-ml"
     #path = "/home/julo/development/bark-ml"
     )
@@ -55,7 +55,7 @@ cc_library(
     _maybe(
     git_repository,
     name = "mamcts_project",
-    commit="2c61f35ff6df32ada7be59d98ff9a149bace6e58",
+    commit="a3d0baf734881c8146ad338de24ad40ca81051ee",
     remote = "https://github.com/juloberno/mamcts",
     #path = "/home/bernhard/development/mamcts" 
     )

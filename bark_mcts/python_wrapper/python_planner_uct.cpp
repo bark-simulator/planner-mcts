@@ -68,16 +68,18 @@ void python_planner_uct(py::module m) {
         return "bark.behavior.UctBaseDebugInfos";
       })
       .def_property_readonly("edge_infos", &UctBaseDebugInfos::GetLastMctsEdgeInfo)
+      .def_property_readonly("state_infos", &UctBaseDebugInfos::GetLastMctsStateInfo)
       .def_property_readonly("last_return_values", &UctBaseDebugInfos::GetLastReturnValues)
       .def(py::pickle(
       [](const UctBaseDebugInfos& i) {
-        return py::make_tuple(i.GetLastMctsEdgeInfo(), i.GetLastReturnValues());
+        return py::make_tuple(i.GetLastMctsEdgeInfo(), i.GetLastReturnValues(),
+                              i.GetLastMctsStateInfo());
       },
       [](py::tuple t) {
-        if (t.size() != 2)
+        if (t.size() != 3)
           throw std::runtime_error("Invalid UctBaseDebugInfos state!");
         return new UctBaseDebugInfos{t[0].cast<std::vector<BarkMctsEdgeInfo>>(),
-                t[1].cast<mcts::Policy>()};
+                t[2].cast<std::vector<BarkMctsStateInfo>>(), t[1].cast<mcts::Policy>()};
       }));
 
  py::class_<UctHypothesisDebugInfos,
@@ -170,6 +172,7 @@ void python_planner_uct(py::module m) {
         return "bark.behavior.BehaviorUCTCooperative";
       })
       .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTCooperative::GetLastMctsEdgeInfo)
+      .def_property_readonly("last_extracted_mcts_states", &BehaviorUCTCooperative::GetLastMctsStateInfo)
       .def_property_readonly("ego_behavior", &BehaviorUCTRiskConstraint::GetEgoBehaviorModel)
       .def(py::pickle(
       [](const BehaviorUCTCooperative& b) {
@@ -196,6 +199,7 @@ void python_planner_uct(py::module m) {
       })
       .def_property_readonly("hypotheses", &BehaviorUCTRiskConstraint::GetBehaviorHypotheses)
       .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTRiskConstraint::GetLastMctsEdgeInfo)
+      .def_property_readonly("last_extracted_mcts_states", &BehaviorUCTRiskConstraint::GetLastMctsStateInfo)
       .def_property_readonly("ego_behavior", &BehaviorUCTRiskConstraint::GetEgoBehaviorModel)
       .def_property_readonly("scenario_risk_function", &BehaviorUCTRiskConstraint::GetScenarioRiskFunction)
       .def(py::pickle(
@@ -258,6 +262,7 @@ void python_planner_uct(py::module m) {
        const bark_ml::lib_fqf_iqn_qrdqn::NNToValueConverterPtr&>())
       .def_property_readonly("hypotheses", &BehaviorUCTNHeuristicRiskConstraint::GetBehaviorHypotheses)
       .def_property_readonly("last_extracted_mcts_edges", &BehaviorUCTNHeuristicRiskConstraint::GetLastMctsEdgeInfo)
+      .def_property_readonly("last_extracted_mcts_states", &BehaviorUCTNHeuristicRiskConstraint::GetLastMctsStateInfo)
       .def_property_readonly("ego_behavior", &BehaviorUCTNHeuristicRiskConstraint::GetEgoBehaviorModel)
       .def_property_readonly("scenario_risk_function", &BehaviorUCTNHeuristicRiskConstraint::GetScenarioRiskFunction)
       .def_property_readonly("observer", &BehaviorUCTNHeuristicRiskConstraint::GetObserver)
