@@ -161,7 +161,7 @@ TEST(behavior_uct_cooperative, no_agent_in_front_accelerate) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  EXPECT_TRUE(boost::get<Continuous1DAction>(action)>= 0.0); // << max, available acceleration is action 2
+  EXPECT_TRUE(boost::get<bark::models::dynamic::Input>(action)[0]>= 0.0); // << max, available acceleration is action 2
 }
 
 
@@ -184,7 +184,7 @@ TEST(behavior_uct_single_agent, agent_in_front_must_brake) {
 
   Trajectory trajectory = behavior_uct.Plan(prediction_time_span, observed_world);
   auto action = behavior_uct.GetLastAction();
-  EXPECT_TRUE(boost::get<Continuous1DAction>(action) < 0.0f); // some decceleration should occur
+  EXPECT_TRUE(boost::get<bark::models::dynamic::Input>(action)[0] < 0.0f); // some decceleration should occur
 }
 
 

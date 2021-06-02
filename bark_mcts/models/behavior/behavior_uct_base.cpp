@@ -49,7 +49,7 @@ std::string BehaviorUCTBase::GetPrimitiveName(mcts::ActionIdx action) const {
 
 ObservedWorldPtr BehaviorUCTBase::FilterAgents(const ObservedWorld& observed_world) const {
     const auto ego_position = observed_world.CurrentEgoPosition();
-    const auto nearest_agents = observed_world.GetNearestAgents(ego_position, max_nearest_agents_);
+    const auto nearest_agents = observed_world.GetNearestAgents(ego_position, max_nearest_agents_+1); // one for ego
     auto filtered_world = std::make_shared<ObservedWorld>(observed_world);
     filtered_world->ClearAgents();
     for(const auto& agent : nearest_agents) {

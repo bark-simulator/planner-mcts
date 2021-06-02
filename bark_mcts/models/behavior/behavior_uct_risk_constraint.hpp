@@ -192,7 +192,7 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(double min_planning_time,
              H>, S>(mcts_risk_constrained, max_extraction_depth_));
   }
 
-  if(extract_edge_info_) {
+  if(extract_state_info_) {
     SetLastMctsStateInfo(BehaviorUCTBase::ExtractMctsStateInfo<mcts::Mcts<S, SE, SO,
              H>, S>(mcts_risk_constrained, max_extraction_depth_));
   }
