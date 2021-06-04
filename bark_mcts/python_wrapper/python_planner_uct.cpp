@@ -72,14 +72,13 @@ void python_planner_uct(py::module m) {
       .def_property_readonly("last_return_values", &UctBaseDebugInfos::GetLastReturnValues)
       .def(py::pickle(
       [](const UctBaseDebugInfos& i) {
-        return py::make_tuple(i.GetLastMctsEdgeInfo(), i.GetLastReturnValues(),
-                              i.GetLastMctsStateInfo());
+        return py::make_tuple(i.GetLastMctsEdgeInfo(), i.GetLastReturnValues());
       },
       [](py::tuple t) {
-        if (t.size() != 3)
+        if (t.size() != 2)
           throw std::runtime_error("Invalid UctBaseDebugInfos state!");
         return new UctBaseDebugInfos{t[0].cast<std::vector<BarkMctsEdgeInfo>>(),
-                t[2].cast<std::vector<BarkMctsStateInfo>>(), t[1].cast<mcts::Policy>()};
+                std::vector<BarkMctsStateInfo>(), t[1].cast<mcts::Policy>()};
       }));
 
  py::class_<UctHypothesisDebugInfos,
