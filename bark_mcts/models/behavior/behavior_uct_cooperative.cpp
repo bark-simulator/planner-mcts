@@ -44,6 +44,7 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
   mcts::ActionIdx best_action = mcts_cooperative.returnBestAction();
   last_motion_idx_ = best_action;
   SetLastReturnValues(mcts_cooperative.get_root().get_ego_int_node().get_policy());
+  SetLastSolutionTime(mcts_cooperative.searchTime());
 
   if (dump_tree_) {
     std::stringstream filename;

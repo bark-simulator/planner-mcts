@@ -158,6 +158,7 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(double min_planning_time,
   SetLastPolicySampled(sampled_policy);
   SetLastExpectedRisk(expected_risk);
   SetLastReturnValues(mcts_risk_constrained.get_root().get_ego_int_node().get_reward_statistic().get_policy());
+  SetLastSolutionTime(mcts_risk_constrained.searchTime());
   
   if (mcts_hypothesis_state_ptr->get_num_costs() == 2) {
     SetLastCostValues("collision", mcts_risk_constrained.get_root().get_ego_int_node().get_cost_statistic(1).get_policy());
