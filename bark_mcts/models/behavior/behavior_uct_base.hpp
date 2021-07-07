@@ -104,7 +104,7 @@ std::vector<BarkMctsStateInfo> BehaviorUCTBase::ExtractMctsStateInfo(Mcts& mcts,
     }
     return agents;
   };
-  return mcts.visit_mcts_tree_nodes(state_info_extractor, max_depth);
+  return mcts.visit_mcts_tree_nodes(state_info_extractor, max_depth, false);
 }
 
 }  // namespace behavior
