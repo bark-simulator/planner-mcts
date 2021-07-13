@@ -52,7 +52,11 @@ public:
 
     template <class S>
     ActionIdx choose_next_action(const S& state) {
-        return cost_constrained_statistic_.choose_next_action(state);
+      if(!initialized_) {
+        initialize_from_neural_model(state);
+        initialized_ = true;
+      }
+      return cost_constrained_statistic_.choose_next_action(state);
     }
 
     Policy get_policy() const {
@@ -163,7 +167,7 @@ public:
 
     template <class S>
     void initialize_from_neural_model(const S& state) {
-        const auto observed_nn_state = observer_->Observe(state->get_observed_world());
+        const auto observed_nn_state = observer_->Observe(state.impl().get_observed_world());
         std::vector<float> observed_vector(observed_nn_state.data(), observed_nn_state.data()
                                              + observed_nn_state.rows() * observed_nn_state.cols());
         const auto nn_output = model_loader_->Inference(observed_vector);
