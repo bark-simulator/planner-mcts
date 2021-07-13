@@ -27,7 +27,7 @@ cc_library(
     _maybe(
     git_repository,
     name = "bark_ml_project",
-    commit = "c521da9e9eb9818f7f909b658b203cb14c74ed30",
+    commit = "1df1ec3adc2b4f0f3cd12d64129aceaefda9cb16",
     remote="https://github.com/juloberno/bark-ml"
     #path = "/home/julo/development/bark-ml"
     )
@@ -55,9 +55,9 @@ cc_library(
     _maybe(
     git_repository,
     name = "mamcts_project",
-    commit="4d3d85e523e0bef2b4389ced34ebc9db8105a10b",
+    commit="038abe0892e64a0b8ad3d114dc511e1af6aee174",
     remote = "https://github.com/juloberno/mamcts",
-    #path = "/home/bernhard/development/mamcts" 
+    #path = "/home/julo/development/mamcts" 
     )
 
 def _maybe(repo_rule, name, **kwargs):

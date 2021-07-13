@@ -372,7 +372,7 @@ TEST(behavior_uct_single_agent, agent_in_front_brake_multiple_constraints) {
   params->SetReal("BehaviorUctBase::Mcts::State::PredictionAlpha", 0.0f),
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::TauGradientClip", 1.0f);
   params->SetReal("BehaviorUctBase::Mcts::CostConstrainedStatistic::ActionFilterFactor", 2.0f);
-  params->SetInt("BehaviorUctBase::Mcts::NumParallelMcts", 12);
+  params->SetInt("BehaviorUctBase::Mcts::NumParallelMcts", 1);
 
   float ego_velocity = 5.0, rel_distance = 1.0, velocity_difference=2.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 2), Point2d(-3, 2), Point2d(3, 2), Point2d(3, -2), Point2d(-3, -2)});

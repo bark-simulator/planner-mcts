@@ -3,8 +3,15 @@
 #include "mcts/mcts.h"
 #include "mcts/statistics/uct_statistic.h"
 #include "mcts/hypothesis/hypothesis_statistic.h"
+#include "bark_mcts/models/behavior/mcts_statistics/mcts_neural_cost_constrained_statistic.hpp"
 
 #include "bark/world/observed_world.hpp"
+
+namespace mcts {
+  std::shared_ptr<bark_ml::lib_fqf_iqn_qrdqn::ModelLoader> NeuralCostConstrainedStatistic::model_loader_;
+  std::shared_ptr<bark_ml::observers::BaseObserver> NeuralCostConstrainedStatistic::observer_;
+  bark_ml::lib_fqf_iqn_qrdqn::NNToValueConverterPtr NeuralCostConstrainedStatistic::nn_to_value_converter_;
+}
 
 namespace bark {
 namespace models {
@@ -41,8 +48,8 @@ BehaviorUCTNHeuristicRiskConstraint::BehaviorUCTNHeuristicRiskConstraint(const c
 
 dynamic::Trajectory BehaviorUCTNHeuristicRiskConstraint::Plan(
     double min_planning_time, const world::ObservedWorld& observed_world) {
-      return PlanWithMcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::CostConstrainedStatistic,
-              mcts::HypothesisStatistic, MctsNeuralHeuristic>(min_planning_time, observed_world);
+      return PlanWithMcts<MctsStateHypothesis<MctsStateRiskConstraint>, mcts::NeuralCostConstrainedStatistic,
+              mcts::HypothesisStatistic, mcts::RandomHeuristic>(min_planning_time, observed_world);
 }
 
 

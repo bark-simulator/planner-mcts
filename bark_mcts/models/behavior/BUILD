@@ -115,7 +115,7 @@ cc_library(
     copts = ["-Iexternal/bark_project"],
     deps= [
         ":planner_uct_risk_constraint",
-        "//bark_mcts/models/behavior/mcts_heuristic:mcts_heuristic",
+        "//bark_mcts/models/behavior/mcts_statistics:mcts_statistics",
     ],
     visibility = ["//visibility:public"],
 )

@@ -4,8 +4,8 @@
 // For a copy, see <https://opensource.org/licenses/MIT>.
 // ========================================================
 
-#ifndef ACTION_VALUE_RANDOM_HEURISTIC_H
-#define ACTION_VALUE_RANDOM_HEURISTIC_H
+#ifndef ACTION_VALUE_NEURALHEURISTIC_H
+#define ACTION_VALUE_NEURALHEURISTIC_H
 
 #include "mcts/mcts.h"
 #include "mcts/heuristic.h"
