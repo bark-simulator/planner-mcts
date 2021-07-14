@@ -76,6 +76,7 @@ class BehaviorUCTBase : public BehaviorModel, public UctBaseDebugInfos {
   unsigned int max_extraction_depth_;
   unsigned int max_nearest_agents_;
   StateParameters mcts_state_parameters_;
+  unsigned int constant_action_idx_;
 };
 
 template< class Mcts, class State>

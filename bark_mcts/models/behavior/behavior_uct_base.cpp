@@ -32,7 +32,11 @@ BehaviorUCTBase::BehaviorUCTBase(const commons::ParamsPtr& params, const UctBase
                                                                 ->GetInt("MaxNearestAgents",
                                 "Max sourrounding agents considered for tree search", 5)),
                             mcts_state_parameters_(MctsStateParametersFromParamServer(
-                                GetParams()->AddChild("BehaviorUctBase"))) {}
+                                GetParams()->AddChild("BehaviorUctBase"))),
+                            constant_action_idx_(GetParams()->AddChild("BehaviorUctBase")
+                                                                ->GetInt("ConstantActionIndex",
+                                "Instead of applying the best motion index"
+                                    "a specific index is applied if idx>= 0, serves for evaluation e.g. of beliefs", -1)) {}
 
 BehaviorUCTBase::BehaviorUCTBase(
     const commons::ParamsPtr& params)

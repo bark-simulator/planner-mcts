@@ -87,7 +87,12 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
   VLOG_EVERY_N(3, 3) << belief_tracker_.sprintf();
 
   // Covert action to a trajectory
-  ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
+  if(constant_action_idx_ < 0) {
+    ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));
+  } else {
+    ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(constant_action_idx_));
+  }
+  
   auto traj = ego_behavior_model_->Plan(min_planning_time, observed_world);
   SetLastTrajectory(traj);
   SetLastAction(ego_behavior_model_->GetLastAction());
