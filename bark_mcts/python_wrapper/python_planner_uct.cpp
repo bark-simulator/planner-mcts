@@ -338,6 +338,7 @@ void python_planner_uct(py::module m) {
     .def("__repr__", [](const BehaviorHypothesisIDM &m) {
       return "bark.behavior.BehaviorHypothesisIDM";
     })
+    .def("GetProbability", &BehaviorHypothesisIDM::GetProbability )
     .def(py::pickle(
       [](const BehaviorHypothesisIDM& b) {
         // We throw away other information such as last trajectories
