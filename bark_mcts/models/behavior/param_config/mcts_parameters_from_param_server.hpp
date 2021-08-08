@@ -85,6 +85,14 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
     parameters.cost_constrained_statistic.TAU_GRADIENT_CLIP = params->GetReal("Mcts::CostConstrainedStatistic::TauGradientClip", "Values smaller than one increase allowed gradient", 1.0f);
     parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR = params->GetReal("Mcts::CostConstrainedStatistic::ActionFilterFactor",
                "Scales node counts in relation to value differences, favoring less visited nodes", 0.5f);
+    parameters.cost_constrained_statistic.EXPLORATION_REDUCTION_FACTOR = params->GetReal("Mcts::CostConstrainedStatistic::ExplorationReductionFactor",
+               "Factor of linear decrease of mixture probability", 0.5f);
+    parameters.cost_constrained_statistic.EXPLORATION_REDUCTION_CONSTANT_OFFSET = params->GetReal("Mcts::CostConstrainedStatistic::ExplorationReductionOffset",
+               "How many node visits until maximum mixture starts to linearly decrease", 20.0f);
+    parameters.cost_constrained_statistic.EXPLORATION_REDUCTION_INIT = params->GetReal("Mcts::CostConstrainedStatistic::ExplorationReductionInit",
+               "Maximum exploration mixture probability", 200.0f);
+    parameters.cost_constrained_statistic.MIN_VISITS_POLICY_READY = params->GetInt("Mcts::CostConstrainedStatistic::MinVisitsPolicyReady",
+                     "How many root node visits until first policy optimization, -1 is all action expanded once", -1);
 
     parameters.cost_constrained_statistic.USE_COST_THRESHOLDING = double_to_bool_vec(params->GetListFloat("Mcts::CostConstrainedStatistic::UseCostTresholding",
                "Specify 1.0 if cost thresholding enabled for cost index", {0.0, 0.0}));

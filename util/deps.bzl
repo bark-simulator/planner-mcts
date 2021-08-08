@@ -53,11 +53,11 @@ cc_library(
     """)
 
     _maybe(
-    git_repository,
+    native.local_repository,
     name = "mamcts_project",
-    commit="03082ee7a7be1f91d01d5008b7b9ed0d877190a8",
-    remote = "https://github.com/juloberno/mamcts",
-    #path = "/home/julo/development/mamcts" 
+    #commit="03082ee7a7be1f91d01d5008b7b9ed0d877190a8",
+    #remote = "https://github.com/juloberno/mamcts",
+    path = "/home/bernhard/development/mamcts" 
     )
 
 def _maybe(repo_rule, name, **kwargs):
