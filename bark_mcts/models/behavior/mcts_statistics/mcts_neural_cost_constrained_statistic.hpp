@@ -56,7 +56,16 @@ public:
         initialize_from_neural_model(state);
         initialized_ = true;
       }
-      return cost_constrained_statistic_.choose_next_action(state);
+      set_step_length(state.get_execution_step_length())
+      if( cost_constrained_statistic_.policy_is_ready())
+      {
+        // Expansion policy does consider node counts
+        return greedy_policy(cost_constrained_statistic_.get_kappa(), cost_constrained_statistic_.get_action_filter_factor()).first;
+      } else {
+          // Select randomly an unexpanded action
+          auto sampled_action = sample_policy(cost_constrained_statistic_.get_exploration_policy).first;
+          return sampled_action;
+      }
     }
 
     Policy get_policy() const {
