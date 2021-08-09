@@ -149,7 +149,7 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(double min_planning_time,
   InitializeHeuristic(&mcts_risk_constrained);
   mcts_risk_constrained.search(*mcts_hypothesis_state_ptr, belief_tracker_);
   auto sampled_policy = mcts_risk_constrained.get_root().get_ego_int_node().greedy_policy(
-              0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR);
+              0, current_mcts_parameters.cost_constrained_statistic.ACTION_FILTER_FACTOR, false);
   auto expected_risk = mcts_risk_constrained.get_root().get_ego_int_node().expected_policy_cost(sampled_policy.second);
   VLOG(3) << "Constraint: " << current_mcts_parameters.cost_constrained_statistic.COST_CONSTRAINTS << ", Action: " << sampled_policy.first << "\n" <<
             mcts_risk_constrained.get_root().get_ego_int_node().print_edge_information(sampled_policy.first) << SE::print_policy(sampled_policy.second) << "\n"

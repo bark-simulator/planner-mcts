@@ -36,13 +36,14 @@ inline std::unordered_map<mcts::ActionIdx, double> ValueListToValueMap(const std
 }
 
 // A upper confidence bound implementation
-class NeuralCostConstrainedStatistic : public mcts::NodeStatistic<NeuralCostConstrainedStatistic>
+class NeuralCostConstrainedStatistic : public mcts::NodeStatistic<NeuralCostConstrainedStatistic>, mcts::RandomGenerator
 {
 public:
     MCTS_TEST
 
     NeuralCostConstrainedStatistic(ActionIdx num_actions, AgentIdx agent_idx, const MctsParameters & mcts_parameters) :
              mcts::NodeStatistic<NeuralCostConstrainedStatistic>(num_actions, agent_idx, mcts_parameters),
+             RandomGenerator(mcts_parameters.RANDOM_SEED),
              cost_constrained_statistic_(num_actions, agent_idx, mcts_parameters),
              initialized_(false)
              {
@@ -56,28 +57,28 @@ public:
         initialize_from_neural_model(state);
         initialized_ = true;
       }
-      set_step_length(state.get_execution_step_length())
+      cost_constrained_statistic_.set_step_length(state.get_execution_step_length());
       if( cost_constrained_statistic_.policy_is_ready())
       {
         // Expansion policy does consider node counts
-        return greedy_policy(cost_constrained_statistic_.get_kappa(), cost_constrained_statistic_.get_action_filter_factor()).first;
+        return greedy_policy(cost_constrained_statistic_.get_kappa(), cost_constrained_statistic_.get_action_filter_factor(), false).first;
       } else {
           // Select randomly an unexpanded action
-          auto sampled_action = sample_policy(cost_constrained_statistic_.get_exploration_policy).first;
+          auto sampled_action = sample_policy(cost_constrained_statistic_.get_exploration_policy(), this->random_generator_).first;
           return sampled_action;
       }
     }
 
     Policy get_policy() const {
-      return cost_constrained_statistic_.greedy_policy(0.0f, cost_constrained_statistic_.get_action_filter_factor()).second;
+      return cost_constrained_statistic_.greedy_policy(0.0f, cost_constrained_statistic_.get_action_filter_factor(), false).second;
     }
 
     ActionIdx get_best_action() const {
-      return cost_constrained_statistic_.greedy_policy(0.0f, cost_constrained_statistic_.get_action_filter_factor()).first;
+      return cost_constrained_statistic_.greedy_policy(0.0f, cost_constrained_statistic_.get_action_filter_factor(), false).first;
     }
 
-    PolicySampled greedy_policy(const double kappa_local, const double action_filter_factor_local) const {
-      return cost_constrained_statistic_.greedy_policy(kappa_local, action_filter_factor_local);
+    PolicySampled greedy_policy(const double kappa_local, const double action_filter_factor_local, bool combined_must_be_in_search_policy) const {
+      return cost_constrained_statistic_.greedy_policy(kappa_local, action_filter_factor_local, combined_must_be_in_search_policy);
     }
 
     Cost calc_updated_constraint_based_on_policy(const PolicySampled& policy, const Cost& current_constraint, const Cost& mean_step_cost) const {
