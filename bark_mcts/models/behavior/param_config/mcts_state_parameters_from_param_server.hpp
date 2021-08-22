@@ -21,6 +21,7 @@ inline EvaluationParameters MctsEvaluationParametersFromParamServer(const common
                     params->GetBool("EvaluationParameters::AddSafeDist", "Calculate safe dist in evaluation", false),
                     params->GetBool("EvaluationParameters::StaticSafeDistIsTerminal", "Violating static safe dist gives terminal state", false),
                     params->GetBool("EvaluationParameters::DynamicSafeDistIsTerminal", "Violating dyn safe dist gives terminal state", false),
+                    params->GetBool("EvaluationParameters::OutOfDrivableIsTerminal", "Violating driving corridor or driving out of map gives terminal state", false),
                     params->AddChild("EvaluatorParams"));
     return parameters;
 }
