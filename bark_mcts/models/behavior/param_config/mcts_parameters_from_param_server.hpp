@@ -46,6 +46,7 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
     parameters.RANDOM_SEED = params->GetInt("Mcts::RandomSeed", "Random seed applied used during search process", 1000);
     parameters.MAX_SEARCH_TIME = params->GetInt("Mcts::MaxSearchTime", "Maximum search time in milliseconds", 2000);
     parameters.MAX_NUMBER_OF_ITERATIONS = params->GetInt("Mcts::MaxNumIterations", "Maximum search time in milliseconds", 2000);
+    parameters.MAX_NUMBER_OF_NODES = params->GetInt("Mcts::MaxNumNodes", "Maximum allowed nodes to limit memory usage", 2000);
     parameters.MAX_SEARCH_DEPTH = params->GetInt("Mcts::MaxSearchDepth", "Maximum search tree depth", 1000);
     parameters.USE_BOUND_ESTIMATION = params->GetBool("Mcts::UseBoundEstimation", "Normalize ucb based on current estimations instead of specified bounds", true);
     parameters.NUM_PARALLEL_MCTS = params->GetInt("Mcts::NumParallelMcts", "If larger 1 than a root-parallel mcts is used with N parallel MCTS", 1);

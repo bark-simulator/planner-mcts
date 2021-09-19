@@ -64,6 +64,7 @@ dynamic::Trajectory BehaviorUCTCooperative::Plan(
 
   VLOG(2) << "BehaviorUCTCooperative, iterations: " << mcts_cooperative.numIterations()
             << ", search time " << mcts_cooperative.searchTime()
+            << ", num nodes " << mcts_cooperative.numNodes()
             << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);
 
   // Convert action to a trajectory

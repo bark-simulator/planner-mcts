@@ -85,6 +85,7 @@ dynamic::Trajectory BehaviorUCTHypothesis::Plan(
 VLOG(3)   << "Infos: "  <<  mcts_hypothesis.get_root().get_ego_int_node().sprintf();
   VLOG(2) << "BehaviorUCTHypothesis, iterations: " << mcts_hypothesis.numIterations()
             << ", search time " << mcts_hypothesis.searchTime()
+            << ", num nodes " << mcts_hypothesis.numNodes()
             << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);
   VLOG_EVERY_N(3, 3) << belief_tracker_.sprintf();
 

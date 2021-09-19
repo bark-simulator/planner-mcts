@@ -202,6 +202,7 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(double min_planning_time,
   last_motion_idx_ = best_action;
   VLOG(2) << "BehaviorUCTRiskContraint, iterations: " << mcts_risk_constrained.numIterations()
             << ", search time " << mcts_risk_constrained.searchTime()
+            << ", num nodes " << mcts_risk_constrained.numNodes()
             << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);
   VLOG_EVERY_N(3, 3) << belief_tracker_.sprintf();
 
