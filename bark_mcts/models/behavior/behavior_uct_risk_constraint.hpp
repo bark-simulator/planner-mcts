@@ -166,7 +166,6 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(double min_planning_time,
   } else {
     SetLastCostValues("cost", mcts_risk_constrained.get_root().get_ego_int_node().get_cost_statistic(0).get_policy());
   }
-
   
   SetLastScenarioRisk(current_scenario_risk_);
   // Update the constraint based on policy
@@ -205,6 +204,8 @@ Trajectory BehaviorUCTRiskConstraint::PlanWithMcts(double min_planning_time,
             << ", num nodes " << mcts_risk_constrained.numNodes()
             << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);
   VLOG_EVERY_N(3, 3) << belief_tracker_.sprintf();
+  SetLastNumIterations(mcts_risk_constrained.numIterations());
+  SetLastNumNodes(mcts_risk_constrained.numNodes());
 
   // Convert action to a trajectory
   ego_behavior_model_->ActionToBehavior(BehaviorMotionPrimitives::MotionIdx(best_action));

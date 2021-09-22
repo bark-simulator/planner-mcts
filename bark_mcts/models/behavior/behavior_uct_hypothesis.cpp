@@ -88,6 +88,8 @@ VLOG(3)   << "Infos: "  <<  mcts_hypothesis.get_root().get_ego_int_node().sprint
             << ", num nodes " << mcts_hypothesis.numNodes()
             << ", best action: " << best_action  << " being " << GetPrimitiveName(best_action);
   VLOG_EVERY_N(3, 3) << belief_tracker_.sprintf();
+  SetLastNumIterations(mcts_hypothesis.numIterations());
+  SetLastNumNodes(mcts_hypothesis.numNodes());
 
   // Covert action to a trajectory
   if(constant_action_idx_ < 0) {

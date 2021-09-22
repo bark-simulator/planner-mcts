@@ -70,6 +70,8 @@ void python_planner_uct(py::module m) {
       .def_property_readonly("edge_infos", &UctBaseDebugInfos::GetLastMctsEdgeInfo)
       .def_property_readonly("state_infos", &UctBaseDebugInfos::GetLastMctsStateInfo)
       .def_property_readonly("last_return_values", &UctBaseDebugInfos::GetLastReturnValues)
+      .def_property_readonly("last_num_iterations", &UctBaseDebugInfos::GetLastNumIterations)
+      .def_property_readonly("last_num_nodes", &UctBaseDebugInfos::GetLastNumNodes)
       .def(py::pickle(
       [](const UctBaseDebugInfos& i) {
         return py::make_tuple(i.GetLastMctsEdgeInfo(), i.GetLastReturnValues());
@@ -78,7 +80,7 @@ void python_planner_uct(py::module m) {
         if (t.size() != 2)
           throw std::runtime_error("Invalid UctBaseDebugInfos state!");
         return new UctBaseDebugInfos{t[0].cast<std::vector<BarkMctsEdgeInfo>>(),
-                std::vector<BarkMctsStateInfo>(), t[1].cast<mcts::Policy>()};
+                std::vector<BarkMctsStateInfo>(), t[1].cast<mcts::Policy>(), std::vector<AgentId>(), 0, 0};
       }));
 
  py::class_<UctHypothesisDebugInfos,
