@@ -165,14 +165,11 @@ public:
     const CostConstrainedStatistic& get_cost_constraint_node_statistic() const { return cost_constrained_statistic_; }
 
     static void setup_neural_model(const bark_ml::observers::ObserverPtr& observer,
-                 const std::string& model_file_name,
+                 const std::shared_ptr<bark_ml::lib_fqf_iqn_qrdqn::ModelLoader>& model_loader,
                  const bark_ml::lib_fqf_iqn_qrdqn::NNToValueConverterPtr& nn_to_value_converter) {
-        model_loader_ = std::make_unique<ModelLoader>();
+        model_loader_ = model_loader;
         observer_ = observer;
         nn_to_value_converter_ = nn_to_value_converter;
-        if(!model_loader_->LoadModel(model_file_name)) {
-          LOG(FATAL) << "Error during loading of model filename: " << model_file_name;
-        }
     }
 
     template <class S>

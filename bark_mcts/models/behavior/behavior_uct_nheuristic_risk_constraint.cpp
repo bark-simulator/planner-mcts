@@ -34,7 +34,12 @@ BehaviorUCTNHeuristicRiskConstraint::BehaviorUCTNHeuristicRiskConstraint(const c
                                                           base_debug_infos),
                                 model_filename_(model_file_name),
                                 observer_(observer),
-                                nn_to_value_converter_(nn_to_value_converter)  {}
+                                nn_to_value_converter_(nn_to_value_converter)  {
+                                  model_loader_ = std::make_shared<ModelLoader>();
+                                  if(!model_loader_->LoadModel(model_file_name)) {
+                                    LOG(FATAL) << "Error during loading of model filename: " << model_file_name;
+                                  }
+                                }
 
 BehaviorUCTNHeuristicRiskConstraint::BehaviorUCTNHeuristicRiskConstraint(const commons::ParamsPtr& params,
                                 const std::vector<BehaviorModelPtr>& behavior_hypothesis,

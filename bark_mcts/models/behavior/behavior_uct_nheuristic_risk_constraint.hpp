@@ -9,6 +9,7 @@
 #include <memory>
 #include "bark/commons/util/util.hpp"
 #include "bark_mcts/models/behavior/behavior_uct_risk_constraint.hpp"
+#include "bark_ml/library_wrappers/lib_fqf_iqn_qrdqn/model_loader/model_loader.hpp"
 #include "bark_mcts/models/behavior/mcts_statistics/mcts_neural_cost_constrained_statistic.hpp"
 #include "bark_ml/library_wrappers/lib_fqf_iqn_qrdqn/model/nn_to_value_converter/nn_to_value_converter.hpp"
 
@@ -54,6 +55,7 @@ class BehaviorUCTNHeuristicRiskConstraint : public BehaviorUCTRiskConstraint {
 
   std::string model_filename_;
   bark_ml::observers::ObserverPtr observer_;
+  std::shared_ptr<bark_ml::lib_fqf_iqn_qrdqn::ModelLoader> model_loader_;
   bark_ml::lib_fqf_iqn_qrdqn::NNToValueConverterPtr nn_to_value_converter_;
 };
 
@@ -66,7 +68,7 @@ inline std::shared_ptr<BehaviorModel> BehaviorUCTNHeuristicRiskConstraint::Clone
 inline void BehaviorUCTNHeuristicRiskConstraint::InitializeHeuristic(void* mcts) const {
       VLOG(5) << "Initializing nheuristic model: " << model_filename_;
       mcts::NeuralCostConstrainedStatistic::setup_neural_model(observer_,
-                                                        model_filename_,
+                                                        model_loader_,
                                                         nn_to_value_converter_);          
 }
 

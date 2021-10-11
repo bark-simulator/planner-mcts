@@ -103,6 +103,8 @@ inline mcts::MctsParameters MctsParametersFromParamServer(const commons::ParamsP
                "Cost thresholds for thresholded cost constraining", {0.1, 0.0});
     parameters.cost_constrained_statistic.USE_LAMBDA_POLICY = params->GetBool("Mcts::CostConstrainedStatistic::UseLambdaPolicy",
                "Lambda policy applied to first cost entry?", true);
+    parameters.cost_constrained_statistic.MAX_SOLVER_TIME = params->GetInt("Mcts::CostConstrainedStatistic::MaxSolverTime",
+               "Limit in microseconds to solve linear program, default -1 is no limit", -1);
 
     return parameters;
 }
