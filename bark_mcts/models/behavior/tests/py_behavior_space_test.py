@@ -186,6 +186,8 @@ class PyBehaviorSpaceTests(unittest.TestCase):
     behavior_space_range4 = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["SpacingDistribution"] = [1.0, 2.0]
     behavior_space_range5 = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["DesiredVelDistribution"] = [3, 4.5]
     behavior_space_range6 = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["CoolnessFactorDistribution"] = [ 0.99 ]
+    behavior_space_range7 = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["YieldingDurationDistribution"] = [1.0]
+    behavior_space_range8 = param_server["BehaviorSpace"]["Definition"]["SpaceBoundaries"]["BehaviorIDMStochastic"]["NoYieldingDurationDistribution"] = [ 1.0 ]
     space = BehaviorSpace(param_server)
     desired_splits = [2, 8]
     hypothesis_set_collection = space.create_multiple_hypothesis_sets(splits=[2, 8])
@@ -212,6 +214,12 @@ class PyBehaviorSpaceTests(unittest.TestCase):
 
         self.assertAlmostEquals(params.getListFloat("BehaviorIDMStochastic::CoolnessFactorDistribution::FixedValue", "", [2334.0])[0], \
                   behavior_space_range6[0], 5)
+
+        self.assertAlmostEquals(params.getListFloat("BehaviorIDMStochastic::YieldingDurationDistribution::FixedValue", "", [2334.0])[0], \
+                behavior_space_range7[0], 5)
+        
+        self.assertAlmostEquals(params.getListFloat("BehaviorIDMStochastic::NoYieldingDurationDistribution::FixedValue", "", [2334.0])[0], \
+                  behavior_space_range8[0], 5)
 
         self.assertAlmostEquals(params.getReal("BehaviorHypothesisIDM::BucketsLowerBound", "", 2334.0),
                   hypothesis_lower_bound, 5)
@@ -247,6 +255,7 @@ class PyBehaviorSpaceTests(unittest.TestCase):
             self.assertAlmostEquals(split[1],\
                       desired_range[0] + (idx+1)*(desired_range[1]-desired_range[0])/num_hypothesis_desired, 2)
 
+  @unittest.skip
   def test_prior_knowledge_probability_estimation(self):
     params_server = ParameterServer()
     # fixed param ranges without sampling for all distributions ...
@@ -289,19 +298,6 @@ class PyBehaviorSpaceTests(unittest.TestCase):
       desired_prob_prior = dist_func.pdf(sampled_value)
       self.assertAlmostEqual(prob_prior, desired_prob_prior, 4)
       self.assertAlmostEqual(prob_sampling, 1.0, 4) # probability of uniform distribution density between 1.8 and 2.8
-
-    # plot prior knowledge
-    prior_knowledge_function_def = space.get_prior_knowledge_function().knowledge_function_definition
-    dist = prior_knowledge_function_def.GetDistFuncOfRegion("BehaviorIDMStochastic::DesiredVelDistribution")
-    fig, ax = plt.subplots(1, 1)
-    x = np.linspace(-5.0, 5.0, 1000)
-    ax.plot(x, dist.pdf(x), 'k-', lw=2)
-    fig.show()
-
-    # calculate scenario risk function
-  #  risk_function = space.get_scenario_risk_function()
-
-
 
 if __name__ == '__main__':
   unittest.main()
