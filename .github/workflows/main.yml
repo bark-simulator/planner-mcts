@@ -14,5 +14,9 @@ jobs:
         run: virtualenv -p python3 ./python/venv  --system-site-packages
       - name: Getting into venv
         run: . ./python/venv/bin/activate
+      - name: Installing pytorch
+        run: pip install torch==1.9.0+cpu torchvision -f https://download.pytorch.org/whl/torch_stable.html
+      - name: Setting up environment variables 
+        run: export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/ 
       - name: Runing bazel test
         run: bazel test //...

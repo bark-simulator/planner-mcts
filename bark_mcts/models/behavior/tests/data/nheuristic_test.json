@@ -18,7 +18,9 @@
                     "BrakeForLaneEndEnabledDistance": 60.0,
                     "BrakeForLaneEndDistanceOffset": 15.0,
                     "NumTrajectoryTimePoints": 11,
-                    "CoolnessFactor": 0.0
+                    "CoolnessFactor": 0.0,
+                    "MaxLatDifferenceToBeFront": 0.0,
+                    "MaxAngleDifferenceToBeFront": 2.356194490192345
                 },
                 "BehaviorIDMStochastic": {
                     "HeadwayDistribution": [
@@ -44,7 +46,22 @@
                     "CoolnessFactorDistribution": [
                         3.0,
                         4.0
+                    ],
+                    "UseIntentionMechanism": false,
+                    "YieldingDurationDistribution": [
+                        3.0,
+                        4.0
+                    ],
+                    "NoYieldingDurationDistribution": [
+                        3.0,
+                        4.0
                     ]
+                },
+                "DynamicModel": {
+                    "LatAccMax": 4.0,
+                    "LatAccMin": -4.0,
+                    "LonAccelerationMax": 4.0,
+                    "LonAccelerationMin": -8.0
                 }
             },
             "PriorKnowledgeFunction": {
@@ -73,6 +90,14 @@
                     "BehaviorIDMStochastic::SpacingDistribution": {
                         "Mean": 5,
                         "Std": 1
+                    },
+                    "BehaviorIDMStochastic::NoYieldingDurationDistribution": {
+                        "Mean": 5,
+                        "Std": 1
+                    },
+                    "BehaviorIDMStochastic::YieldingDurationDistribution": {
+                        "Mean": 5,
+                        "Std": 1
                     }
                 },
                 "PriorKnowledgeFunction": {
@@ -96,7 +121,9 @@
                     "MaxAccDistribution": 1,
                     "DesiredVelDistribution": 1,
                     "ComftBrakingDistribution": 1,
-                    "CoolnessFactorDistribution": 1
+                    "CoolnessFactorDistribution": 1,
+                    "YieldingDurationDistribution": 1,
+                    "NoYieldingDurationDistribution": 1
                 }
             }
         }
@@ -107,7 +134,18 @@
             "MinVel": 0.0,
             "MaxVel": 50.0,
             "MaxDist": 75.0,
-            "StateSize": 4
+            "StateSize": 4,
+            "MinVelLon": -30.0,
+            "MaxVelLon": 30.0,
+            "MinVelLat": -10.0,
+            "MaxVelLat": 10.0,
+            "MinS": -100.0,
+            "MinAbsS": 0.0,
+            "MaxS": 100.0,
+            "MinD": -20.0,
+            "MaxD": 20.0,
+            "MinTheta": -3.141592653589793,
+            "MaxTheta": 3.141592653589793
         }
     },
     "BehaviorUctBase": {
@@ -122,10 +160,9 @@
                 0.0,
                 1.0,
                 4.0,
-                -1.0,
-                -8.0
+                -1.0
             ],
-            "AddLaneChangeActions": true,
+            "AddLaneChangeActions": false,
             "AddGapKeeping": false,
             "BehaviorIDMClassic": {
                 "MinimumSpacing": 2.0,
@@ -142,22 +179,31 @@
                 "BrakeForLaneEndEnabledDistance": 60.0,
                 "BrakeForLaneEndDistanceOffset": 15.0,
                 "NumTrajectoryTimePoints": 11,
-                "CoolnessFactor": 0.0
+                "CoolnessFactor": 0.0,
+                "MaxLatDifferenceToBeFront": 0.0,
+                "MaxAngleDifferenceToBeFront": 2.356194490192345
             },
             "BehaviorIDMLaneTracking": {
-                "CrosstrackErrorGain": 1.0
+                "CrosstrackErrorGain": 1.0,
+                "LimitSteeringRate": true
             },
             "PrimitiveConstAccStayLane": {
                 "Acceleration": 0.0
             },
-            "MinLength": 0.0
+            "MinLength": 0.0,
+            "DynamicModel": {
+                "LatAccMax": 4.0,
+                "LatAccMin": -4.0,
+                "LonAccelerationMax": 4.0,
+                "LonAccelerationMin": -8.0
+            }
         },
         "Mcts": {
             "DiscountFactor": 0.8999999761581421,
             "RandomSeed": 1000,
-            "MaxSearchTime": 2000,
-            "MaxNumIterations": 1,
-            "MaxSearchDepth": 1,
+            "MaxSearchTime": 100,
+            "MaxNumIterations": 10,
+            "MaxSearchDepth": 10,
             "UseBoundEstimation": true,
             "RandomHeuristic": {
                 "MaxSearchTime": 10,
@@ -191,7 +237,7 @@
             },
             "CostConstrainedStatistic": {
                 "LambdaInit": [
-                    1.0
+                    1.0, 1.0
                 ],
                 "Kappa": 10.0,
                 "GradientUpdateScaling": 1.0,
@@ -209,7 +255,12 @@
                     0.10000000149011612,
                     0.0
                 ],
-                "UseLambdaPolicy": true
+                "UseLambdaPolicy": true,
+                "ExplorationReductionFactor": 0.5,
+                "ExplorationReductionOffset": 20.0,
+                "ExplorationReductionInit": 200.0,
+                "MinVisitsPolicyReady": -1,
+                "MaxSolverTime": -1
             },
             "State": {
                 "GoalReward": 100.0,
@@ -225,7 +276,7 @@
                 "PredictionK": 0.5,
                 "PredictionAlpha": 0.0,
                 "NormalizationTau": 0.20000000298023224,
-                "SplitSafeDistCollision": false,
+                "SplitSafeDistCollision": true,
                 "ChanceCosts": false,
                 "EvaluatorParams": {
                     "EvaluatorDynamicSafeDistLong": {
@@ -244,19 +295,37 @@
                     "EvaluatorSafeDistDrivableArea": {
                         "LateralSafeDist": 0.5,
                         "LongitudinalSafeDist": 0.5
+                    },
+                    "EvaluatorDynamicSafeDist": {
+                        "CheckLateralSafeDist": false,
+                        "LateralDistanceThreshold": 1.0,
+                        "UseFracParamFromWorld": true,
+                        "MaxAgentssCrossingCorridors": 4,
+                        "ConsiderCrossingCorridors": false,
+                        "MaxOtherDecceleration": 5.0,
+                        "MaxEgoDecceleration": 5.0,
+                        "ReactionTimeOthers": 0.800000011920929,
+                        "ReactionTimeEgo": 0.20000000298023224,
+                        "ToRear": true
                     }
                 },
                 "EvaluationParameters": {
                     "DynamicSafeDistIsTerminal": false,
                     "StaticSafeDistIsTerminal": false,
-                    "AddSafeDist": false
+                    "AddSafeDist": false,
+                    "OutOfDrivableIsTerminal": false
                 }
-            }
+            },
+            "MaxNumNodes": 2000,
+            "NumParallelMcts": 1,
+            "UseMultiThreading": false
         },
         "DumpTree": false,
         "ExtractEdgeInfo": true,
         "MaxExtractionDepth": 10,
-        "MaxNearestAgents": 5
+        "MaxNearestAgents": 5,
+        "ExtractStateInfo": false,
+        "ConstantActionIndex": -1
     },
     "BehaviorUctHypothesis": {
         "PredictionSettings": {
@@ -265,9 +334,9 @@
     },
     "BehaviorUctRiskConstraint": {
         "DefaultAvailableRisk": [
-            0.0
+            0.1, 0.0
         ],
         "EstimateScenarioRisk": false,
-        "UpdateScenarioRisk": true
+        "UpdateScenarioRisk": false
     }
 }

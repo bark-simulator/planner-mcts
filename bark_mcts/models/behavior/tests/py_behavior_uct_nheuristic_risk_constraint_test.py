@@ -11,48 +11,47 @@ try:
 except:
   pass
 
-
+import os
+os.environ["TORCH_AUTOGRAD_SHUTDOWN_WAIT_LIMIT"] = "0"
 import unittest
 import numpy as np
-import time
 import logging
+import torch
 import gym
+
 from bark.runtime.commons import ParameterServer
 from bark.runtime.viewer import MPViewer
-from bark.runtime.commons import XodrParser
 from bark.core.models.execution import ExecutionModelInterpolate
-from bark.core.models.dynamic import SingleTrackModel, StateDefinition
-from bark.core.world import World, MakeTestWorldHighway
-from bark.core.world.goal_definition import GoalDefinitionPolygon, GoalDefinitionStateLimitsFrenet
+from bark.core.models.dynamic import SingleTrackModel
+from bark.core.world import World
+from bark.core.world.goal_definition import GoalDefinitionStateLimitsFrenet
 from bark.core.world.agent import Agent
-from bark.core.world.map import MapInterface, Roadgraph
-from bark.core.geometry.standard_shapes import CarLimousine, CarRectangle
-from bark.core.geometry import Point2d, Polygon2d, Line2d
-from bark.core.world.evaluation import EvaluatorDrivableArea
-from bark.core.world.opendrive import OpenDriveMap, XodrRoad, PlanView, \
-    MakeXodrMapOneRoadTwoLanes, XodrLaneSection, XodrLane
+from bark.core.world.map import MapInterface
+from bark.core.geometry.standard_shapes import  CarRectangle
+from bark.core.geometry import Point2d, Line2d
+from bark.core.world.opendrive import    MakeXodrMapOneRoadTwoLanes
 from bark.runtime.viewer.video_renderer import VideoRenderer
 from bark.core.models.behavior import *
-import os
-import bark_ml.environments.gym
+from bark_ml.library_wrappers.lib_fqf_iqn_qrdqn.tests.test_imitation_agent import TestActionWrapper, \
+        TestObserver
+
 logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
 logging.info("Running on process with ID: {}".format(os.getpid()))
-
-from bark.world.tests.python_behavior_model import PythonDistanceBehavior
 
 from bark_ml.core.observers import NearestObserver
 from bark_ml.library_wrappers.lib_fqf_iqn_qrdqn.agent import ImitationAgent
 from bark_mcts.models.behavior.hypothesis.behavior_space.behavior_space import BehaviorSpace
 
-def create_nheuristic_behavior(model_file_name):
+def create_nheuristic_behavior(model_file_name, nn_to_value_converter):
     params = ParameterServer(filename="bark_mcts/models/behavior/tests/data/nheuristic_test.json")
     # Model Definitions
     space = BehaviorSpace(params)
     hypothesis_set, hypothesis_parameters = space.create_hypothesis_set()
     observer = NearestObserver(params)
     behavior_model = BehaviorUCTNHeuristicRiskConstraint(params, hypothesis_set, None,\
-                             model_file_name, observer)
+                             model_file_name, observer, nn_to_value_converter)
+    params.Save(filename="./mcts_nheuristic_default_params.json")
     return behavior_model
 
 
@@ -100,11 +99,13 @@ def create_world(nheuristic_behavior):
 
     return world
 
-num_actions = 5
-class TestActionWrapper():
-  @property
-  def action_space(self):
-    return gym.spaces.Discrete(num_actions)
+num_actions = 4
+class TestMotionPrimitiveBehavior:
+  def __init__(self, num_actions):
+    self._num_actions = num_actions
+
+  def GetMotionPrimitives(self):
+    return list(range(0,self._num_actions))
 
 def action_values_at_state(state):
     envelope_costs = []
@@ -128,53 +129,61 @@ def create_data(num):
     action_values_data = np.apply_along_axis(action_values_at_state, 1, observations)
     return action_values_data
 
+class TestActionWrapper():
+  @property
+  def action_space(self):
+    return gym.spaces.Discrete(num_actions)
 
-def train_test_model():
+class TestDemonstrationCollector:
+  def __init__(self):
+    self.data = create_data(1000)
+    params = ParameterServer(filename="bark_mcts/models/behavior/tests/data/nheuristic_test.json")
+    self._observer = NearestObserver(params)
+    self._ml_behavior =  TestActionWrapper()
+    self.motion_primitive_behavior = TestMotionPrimitiveBehavior(num_actions)
+
+  def GetDemonstrationExperiences(self):
+    return self.data
+
+  @property
+  def observer(self):
+    return self._observer
+
+  @property
+  def ml_behavior(self):
+    return self._ml_behavior
+
+  def GetDirectory(self):
+    return "./save_dir/collections"
+
+def imitation_agent(layer_dims):
     params = ParameterServer()
-    env = gym.make("highway-v1", params=params)
-    env._observer = NearestObserver(params)
-    env._ml_behavior = TestActionWrapper()
     params["ML"]["BaseAgent"]["NumSteps"] = 2
-    params["ML"]["BaseAgent"]["EvalInterval"] = 1000
-    data = create_data(10000)
-    demo_train = data[0:7000]
-    demo_test = data[7001:]
-    agent = ImitationAgent(agent_save_dir="./save_dir", demonstrations_train=demo_train,
-                        demonstrations_test=demo_test,
-                        env=env, params=params)
+    params["ML"]["BaseAgent"]["EvalInterval"] = 1
+    params["ML"]["ImitationModel"]["EmbeddingDims"] = layer_dims
+    agent = ImitationAgent(agent_save_dir="./save_dir", demonstration_collector=TestDemonstrationCollector(),
+                          params=params)
     agent.run()
     agent.save(checkpoint_type="last")
-    return agent.get_script_filename(checkpoint_load="last")
+    return agent.get_script_filename(checkpoint_load="last"), agent.nn_to_value_converter
 
-class SystemTests(unittest.TestCase):
-    """ This shall serve as a full system test, importing world, agent, and behavior models
-    """
-    #@unittest.skip
-    def test_train_and_load_model_to_plan(self):
-        model_file_name = train_test_model()
-        nheuristic_behavior = create_nheuristic_behavior(model_file_name)
+class SystemTestNHeuristic(unittest.TestCase):
+    # skip on ci since pytorch causes bazel test to hang
+    # Uncomment to regenerate script model file
+    @unittest.skip
+    def test_system_test(self):
+        model_file_name, nn_to_value_converter = imitation_agent([200, 100, 100])
+        logging.info(f"Script File: {os.path.abspath(model_file_name)}")
+        nheuristic_behavior = create_nheuristic_behavior(model_file_name, nn_to_value_converter)
         world = create_world(nheuristic_behavior)
-        
+
         params = ParameterServer()
-        # viewer
-        viewer = MPViewer(params=params, use_world_bounds=True)
-        # World Simulation
-        sim_step_time = params["simulation"]["step_time",
-                                              "Step-time in simulation", 0.2]
-        sim_real_time_factor = params["simulation"]["real_time_factor",
-                                                    "execution in real-time or faster", 1]
-        # Draw map
-        video_renderer = VideoRenderer(renderer=viewer, world_step_time=sim_step_time)
 
+        # # World Simulation
         for _ in range(0, 5):
-            world.Step(sim_step_time)
-            viewer.clear()
-            video_renderer.drawWorld(world)
-            video_renderer.drawGoalDefinition(goal_definition)
-            time.sleep(sim_step_time/sim_real_time_factor)
-
-        video_renderer.export_video(filename="./test_video_intermediate", remove_image_dir=True)
-
+            world.Step(0.2)
 
 if __name__ == '__main__':
-    unittest.main()
+  unittest.main()
+
+

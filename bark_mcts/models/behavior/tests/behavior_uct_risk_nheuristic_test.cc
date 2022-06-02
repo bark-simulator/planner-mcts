@@ -122,6 +122,7 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxSearchTime", 20000);
   params->SetInt("BehaviorUctBase::Mcts::RandomHeuristic::MaxNumIterations", 10);
   params->SetListFloat("BehaviorUctBase::Mcts::CostConstrainedStatistic::LambdaInit", {1.0f, 1.0f});
+  params->SetBool("BehaviorUctRiskConstraint::UpdateScenarioRisk", false);
 
   float ego_velocity = 2.0, rel_distance = 7.0, velocity_difference=0.0, prediction_time_span=0.5f;
   Polygon polygon(Pose(1, 1, 0), std::vector<Point2d>{Point2d(-3, 3), Point2d(-3, 3), Point2d(3, 3), Point2d(3, -3), Point2d(-3, -3)});
@@ -138,8 +139,8 @@ TEST(behavior_uct_single_agent_macro_actions, no_agent_in_front_accelerate) {
   behavior_hypothesis.push_back(
           std::make_shared<BehaviorHypothesisIDM>(params_hyp2));
 
-  std::string model_file_name= "bark_mcts/models/behavior/tests/data/online_net_script.pt";
-  const unsigned num_demonstration_actions = 5;
+  std::string model_file_name= "bark_mcts/models/behavior/tests/data/online_net_script.pt"; // < generated with py_behavior_uct_nheuristic_risk_constraint_test
+  const unsigned num_demonstration_actions = 4; // < similar to num_actions in py_behavior_uct_nheuristic_risk_constraint_test
   bark::models::behavior::BehaviorUCTNHeuristicRiskConstraint behavior_uct(params, behavior_hypothesis, nullptr,
                                           model_file_name, std::make_shared<bark_ml::observers::NearestObserver>(params),
                                           std::make_shared<NNToValueConverterSequential>(num_demonstration_actions));

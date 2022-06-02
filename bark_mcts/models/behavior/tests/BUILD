@@ -1,47 +1,3 @@
-#cc_test(
-#    name = "single_agent_test",
-#    srcs = [
-#        "single_agent_test.cc",
-#    ],
-#    copts = ["-Iexternal/gtest/include", "-O3"],
-#    deps = [
-#        "//bark_mcts/models/behavior:planner_uct_single_agent",
-#        "@bark_project//bark/world:world",
-#        "@bark_project//bark/world/tests:make_test_world",
-#        "@bark_project//bark/models/behavior:behavior",
-#        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
-#        "@bark_project//bark/models/behavior/constant_acceleration:constant_acceleration",
-#        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
-#        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
-#        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
-#        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
-#        "@bark_project//bark/world/goal_definition:goal_definition",
-#        "@gtest//:gtest_main",
-#    ],
-#)
-
-#cc_test(
-#    name = "single_agent_macro_actions_test",
-#    srcs = [
-#        "single_agent_macro_actions_test.cc"
-#    ],
-#    copts = ["-Iexternal/gtest/include"],
-#    deps = [
-#        "//bark_mcts/models/behavior:planner_uct_single_agent_macro_actions",
-#        "@bark_project//bark/world:world",
-#        "@bark_project//bark/world/tests:make_test_world",
-#        "@bark_project//bark/models/behavior:behavior",
-#        "@bark_project//bark/models/behavior/motion_primitives:motion_primitives",
-#        "@bark_project//bark/models/behavior/idm:idm_lane_tracking",
-#        "@bark_project//bark/models/behavior/constant_acceleration:constant_acceleration",
-#        "@bark_project//bark/world/evaluation:evaluator_goal_reached",
-#        "@bark_project//bark/world/evaluation:evaluator_collision_ego_agent",
-#        "@bark_project//bark/world/evaluation:evaluator_drivable_area",
-#        "@bark_project//bark/world/goal_definition:goal_definition",
-#        "@gtest//:gtest_main",
-#    ],
-#)
-
 cc_library(
     name="test_helpers",
     srcs=[
@@ -119,6 +75,7 @@ py_test(
           "@bark_ml_project//bark_ml/environments:gym",
           "//bark_mcts/models/behavior/hypothesis/behavior_space:behavior_space",
           "@bark_ml_project//bark_ml/library_wrappers/lib_fqf_iqn_qrdqn/agent/demonstrations:demonstrations",
+          "@bark_ml_project//bark_ml/library_wrappers/lib_fqf_iqn_qrdqn/tests:test_imitation_agent",
           "//util/debug:debug_settings",
         ],
   visibility = ["//visibility:public"],
