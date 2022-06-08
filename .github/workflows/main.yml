@@ -22,6 +22,8 @@ jobs:
       - name: enable su
         run: su -
       - name: install sudo
-        run: apt-get install sudo -y
+        run: apt-get update && apt-get -y install sudo
+      - name: docker to sudo
+        run: useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
