@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Setting up virtual environment
-        run: bash ./util/setup_test_venv.sh
+        run: virtualenv -p python3 ./bark_mcts/python_wrapper/venv  --system-site-packages
       - name: Entering the virtual python environment..
         run: . ./bark_mcts/python_wrapper/venv/bin/activate 
       - name: Installing Pytorch venv..
@@ -19,5 +19,5 @@ jobs:
         run: pip install torch==1.9.0+cpu torchvision -f https://download.pytorch.org/whl/torch_stable.html
       - name: Add torch environment variable
         run: export LD_LIBRARY_PATH=./bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/
-      - name: Running tests
-        run: bazel test //...
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
