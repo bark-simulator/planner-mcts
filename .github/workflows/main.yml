@@ -21,5 +21,9 @@ jobs:
         run: export LD_LIBRARY_PATH=$PWD/bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/
       - name: ls
         run: ls ./bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/
+      - name: echo
+        run: echo $LD_LIBRARY_PATH
       - name: Run tests
         run: bazel test //...
+      - name: ldd
+        run: ldd ./bazel-bin/external/bark_project/bark/core.so
