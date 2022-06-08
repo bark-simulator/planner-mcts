@@ -18,12 +18,8 @@ jobs:
       - name: Installing Pytorch global..
         run: pip install torch==1.9.0+cpu torchvision -f https://download.pytorch.org/whl/torch_stable.html
       - name: Add torch environment variable
-        run: export LD_LIBRARY_PATH=./bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/
-      - name: enable su
-        run: su -
-      - name: install sudo
-        run: apt-get update && apt-get -y install sudo
-      - name: docker to sudo
-        run: useradd -m docker && echo "docker:docker" | chpasswd && adduser docker sudo
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
+        run: export LD_LIBRARY_PATH=$PWD/bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/
+      - name: ls
+        run: ls ./bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/
+      - name: Run tests
+        run: bazel test //...
