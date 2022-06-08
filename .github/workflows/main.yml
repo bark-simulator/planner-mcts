@@ -24,6 +24,6 @@ jobs:
       - name: echo
         run: echo $LD_LIBRARY_PATH
       - name: Run tests
-        run: bazel test //...
+        run: bazel build //...
       - name: ldd
         run: ldd ./bazel-bin/external/bark_project/bark/core.so
