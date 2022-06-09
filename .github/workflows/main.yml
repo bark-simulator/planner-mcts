@@ -17,6 +17,7 @@ jobs:
         run: |
           pip install --target=./bark_mcts/python_wrapper/venv/lib/python3.7/site-packages torch==1.9.0+cpu torchvision -f https://download.pytorch.org/whl/torch_stable.html
           pip install torch==1.9.0+cpu torchvision -f https://download.pytorch.org/whl/torch_stable.html
+          pip install -r util/requirements.txt
       - name: Run tests
         run: |
           export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/
