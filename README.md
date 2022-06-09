@@ -33,8 +33,8 @@ Further details on these configurations are given in the publications mentioned 
 The repository mcts_benchmark_repo provides examples how to employ the planner variants in a benchmark.
 
 ### For Development
-1. [Clone the repository](https://git.fortiss.org/bark-simulator/planner-mcts), change to base repository directory; change the .bazelrc: build --action_env CC=/usr/bin/gcc-7 --cxxopt='-std=c++14'
-2. `virtualenv -p python3 ./python/venv`: this will create a virtual python environment (located in python/venv)
-2. `source python/venv/bin/activate`: this will activate the virtual environment (keep this in mind for the future: each time you use Bazel, even beyond this installation, be sure to have run this command beforehand)
-3. `bazel build //...`: this will build the whole library
-4. `bazel test //...`: this will run all specified tests
+1. [Clone the repository](https://git.fortiss.org/bark-simulator/planner-mcts) and change to the base repository directory
+2. `bash util/setup_test_venv.sh`: This will create a virtual python environment (located in ./bark_mcts/python_wrapper/venv)
+2. `source util/into_test_venv.sh`: This will activate the virtual environment and set environment variables(keep this in mind for the future: each time you use Bazel, even beyond this installation, be sure to have run this command beforehand)
+3. `bazel build //...`: This will build the whole library
+4. `bazel test //...`: This will run all specified tests
