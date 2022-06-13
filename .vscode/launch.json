@@ -1,0 +1,54 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/bazel-bark_hypothesis_uct/util/debug",
+                "LD_LIBRARY_PATH" : "${workspaceFolder}/bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/"
+			   }
+        },
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/bazel-bin/bark_mcts/models/behavior/tests/behavior_uct_risk_nheuristic_test",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                {
+                "name": "LD_LIBRARY_PATH",
+                "value": "${LD_LIBRARY_PATH}:${workspaceFolder}/bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/"
+                }
+            ],
+            "externalConsole": false,
+            "sourceFileMap" : {"/proc/self/cwd/": "${workspaceFolder}/bazel-bark_hypothesis_uct"},
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "(gdb) Attach",
+            "type": "cppdbg",
+            "request": "attach",
+            "program": "${workspaceFolder}/bark_mcts/python_wrapper/venv/bin/python3",
+            "cwd" : "${workspaceFolder}",
+            "additionalSOLibSearchPath":"${workspaceFolder}/bazel-bin/bark_mcts/models/behavior/tests/py_behavior_uct_nheuristic_risk_constraint_test.runfiles/bark_project/bark/",
+            "processId": "${command:pickProcess}",
+            "MIMode": "gdb",
+            "sourceFileMap" : {"/proc/self/cwd/" : "${workspaceFolder}/bazel-bark_hypothesis_uct/"}
+            }
+    ]
+}

@@ -4,15 +4,22 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     container:
-      image: docker://barksim/bark:latest
+      image: docker://barksim/bark-ml:latest
     steps:
       - uses: actions/checkout@v1
       - name: Setting up virtual environment
-        run: virtualenv -p python3 ./python/venv  --system-site-packages
-      - name: Getting into venv
-        run: . ./python/venv/bin/activate
-      - name: Runing bazel test
-        run: bazel test //...
+        run: virtualenv -p python3 ./bark_mcts/python_wrapper/venv  --system-site-packages
+      - name: Entering the virtual python environment..
+        run: . ./bark_mcts/python_wrapper/venv/bin/activate 
+      - name: Installing Pytorch ...
+        run: |
+          pip install --target=./bark_mcts/python_wrapper/venv/lib/python3.7/site-packages torch==1.9.0+cpu torchvision -f https://download.pytorch.org/whl/torch_stable.html
+          pip install torch==1.9.0+cpu torchvision -f https://download.pytorch.org/whl/torch_stable.html
+          pip install -r util/requirements.txt
+      - name: Run tests
+        run: |
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/bark_mcts/python_wrapper/venv/lib/python3.7/site-packages/torch/lib/
+          echo $LD_LIBRARY_PATH
+          bazel test //...

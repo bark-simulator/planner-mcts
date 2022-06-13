@@ -1,0 +1,342 @@
+{
+    "BehaviorSpace": {
+        "Definition": {
+            "ModelType": "BehaviorIDMStochastic",
+            "SpaceBoundaries": {
+                "BehaviorIDMClassic": {
+                    "MinimumSpacing": 2.0,
+                    "DesiredTimeHeadway": 1.5,
+                    "MaxAcceleration": 1.7000000476837158,
+                    "AccelerationLowerBound": -5.0,
+                    "AccelerationUpperBound": 8.0,
+                    "DesiredVelocity": 15.0,
+                    "ComfortableBrakingAcceleration": 1.6699999570846558,
+                    "MinVelocity": 0.0,
+                    "MaxVelocity": 50.0,
+                    "Exponent": 4,
+                    "BrakeForLaneEnd": false,
+                    "BrakeForLaneEndEnabledDistance": 60.0,
+                    "BrakeForLaneEndDistanceOffset": 15.0,
+                    "NumTrajectoryTimePoints": 11,
+                    "CoolnessFactor": 0.0,
+                    "MaxLatDifferenceToBeFront": 0.0,
+                    "MaxAngleDifferenceToBeFront": 2.356194490192345
+                },
+                "BehaviorIDMStochastic": {
+                    "HeadwayDistribution": [
+                        3.0,
+                        4.0
+                    ],
+                    "SpacingDistribution": [
+                        3.0,
+                        4.0
+                    ],
+                    "MaxAccDistribution": [
+                        3.0,
+                        4.0
+                    ],
+                    "DesiredVelDistribution": [
+                        3.0,
+                        4.0
+                    ],
+                    "ComftBrakingDistribution": [
+                        3.0,
+                        4.0
+                    ],
+                    "CoolnessFactorDistribution": [
+                        3.0,
+                        4.0
+                    ],
+                    "UseIntentionMechanism": false,
+                    "YieldingDurationDistribution": [
+                        3.0,
+                        4.0
+                    ],
+                    "NoYieldingDurationDistribution": [
+                        3.0,
+                        4.0
+                    ]
+                },
+                "DynamicModel": {
+                    "LatAccMax": 4.0,
+                    "LatAccMin": -4.0,
+                    "LonAccelerationMax": 4.0,
+                    "LonAccelerationMin": -8.0
+                }
+            },
+            "PriorKnowledgeFunction": {
+                "FunctionDefinition": "TruncatedNormalKnowledgeFunctionDefinition",
+                "TruncatedNormalKnowledgeFunctionDefinition": {
+                    "BehaviorIDMStochastic::ComftBrakingDistribution": {
+                        "Mean": 5,
+                        "Std": 1
+                    },
+                    "BehaviorIDMStochastic::DesiredVelDistribution": {
+                        "Mean": 5,
+                        "Std": 1
+                    },
+                    "BehaviorIDMStochastic::MaxAccDistribution": {
+                        "Mean": 5,
+                        "Std": 1
+                    },
+                    "BehaviorIDMStochastic::CoolnessFactorDistribution": {
+                        "Mean": 5,
+                        "Std": 1
+                    },
+                    "BehaviorIDMStochastic::HeadwayDistribution": {
+                        "Mean": 5,
+                        "Std": 1
+                    },
+                    "BehaviorIDMStochastic::SpacingDistribution": {
+                        "Mean": 5,
+                        "Std": 1
+                    },
+                    "BehaviorIDMStochastic::NoYieldingDurationDistribution": {
+                        "Mean": 5,
+                        "Std": 1
+                    },
+                    "BehaviorIDMStochastic::YieldingDurationDistribution": {
+                        "Mean": 5,
+                        "Std": 1
+                    }
+                },
+                "PriorKnowledgeFunction": {
+                    "NumPartitionsIntegration": 100
+                }
+            }
+        },
+        "Hypothesis": {
+            "RandomSeed": 1000,
+            "HypothesisModel": "BehaviorHypothesisIDM",
+            "BehaviorHypothesisIDM": {
+                "NumSamples": 10000,
+                "NumBuckets": 100,
+                "BucketsUpperBound": 10.0,
+                "BucketsLowerBound": -10.0
+            },
+            "Partitions": {
+                "BehaviorIDMStochastic": {
+                    "HeadwayDistribution": 1,
+                    "SpacingDistribution": 1,
+                    "MaxAccDistribution": 1,
+                    "DesiredVelDistribution": 1,
+                    "ComftBrakingDistribution": 1,
+                    "CoolnessFactorDistribution": 1,
+                    "YieldingDurationDistribution": 1,
+                    "NoYieldingDurationDistribution": 1
+                }
+            }
+        }
+    },
+    "ML": {
+        "NearestObserver": {
+            "NNearestAgents": 4,
+            "MinVel": 0.0,
+            "MaxVel": 50.0,
+            "MaxDist": 75.0,
+            "StateSize": 4,
+            "MinVelLon": -30.0,
+            "MaxVelLon": 30.0,
+            "MinVelLat": -10.0,
+            "MaxVelLat": 10.0,
+            "MinS": -100.0,
+            "MinAbsS": 0.0,
+            "MaxS": 100.0,
+            "MinD": -20.0,
+            "MaxD": 20.0,
+            "MinTheta": -3.141592653589793,
+            "MaxTheta": 3.141592653589793
+        }
+    },
+    "BehaviorUctBase": {
+        "EgoBehavior": {
+            "BehaviorMotionPrimitives": {
+                "IntegrationTimeDelta": 0.019999999552965164
+            },
+            "BehaviorMPMacroActions": {
+                "CheckValidityInPlan": false
+            },
+            "AccelerationInputs": [
+                0.0,
+                1.0,
+                4.0,
+                -1.0
+            ],
+            "AddLaneChangeActions": false,
+            "AddGapKeeping": false,
+            "BehaviorIDMClassic": {
+                "MinimumSpacing": 2.0,
+                "DesiredTimeHeadway": 1.5,
+                "MaxAcceleration": 1.7000000476837158,
+                "AccelerationLowerBound": -5.0,
+                "AccelerationUpperBound": 8.0,
+                "DesiredVelocity": 15.0,
+                "ComfortableBrakingAcceleration": 1.6699999570846558,
+                "MinVelocity": 0.0,
+                "MaxVelocity": 50.0,
+                "Exponent": 4,
+                "BrakeForLaneEnd": false,
+                "BrakeForLaneEndEnabledDistance": 60.0,
+                "BrakeForLaneEndDistanceOffset": 15.0,
+                "NumTrajectoryTimePoints": 11,
+                "CoolnessFactor": 0.0,
+                "MaxLatDifferenceToBeFront": 0.0,
+                "MaxAngleDifferenceToBeFront": 2.356194490192345
+            },
+            "BehaviorIDMLaneTracking": {
+                "CrosstrackErrorGain": 1.0,
+                "LimitSteeringRate": true
+            },
+            "PrimitiveConstAccStayLane": {
+                "Acceleration": 0.0
+            },
+            "MinLength": 0.0,
+            "DynamicModel": {
+                "LatAccMax": 4.0,
+                "LatAccMin": -4.0,
+                "LonAccelerationMax": 4.0,
+                "LonAccelerationMin": -8.0
+            }
+        },
+        "Mcts": {
+            "DiscountFactor": 0.8999999761581421,
+            "RandomSeed": 1000,
+            "MaxSearchTime": 100,
+            "MaxNumIterations": 10,
+            "MaxSearchDepth": 10,
+            "UseBoundEstimation": true,
+            "RandomHeuristic": {
+                "MaxSearchTime": 10,
+                "MaxNumIterations": 1000
+            },
+            "ReturnLowerBound": -1000.0,
+            "ReturnUpperBound": 100.0,
+            "UctStatistic": {
+                "ExplorationConstant": 0.699999988079071,
+                "ProgressiveWidening": {
+                    "K": 1.0,
+                    "Alpha": 0.10000000149011612
+                }
+            },
+            "HypothesisStatistic": {
+                "CostBasedActionSelection": false,
+                "ProgressiveWidening": {
+                    "HypothesisBased": true,
+                    "Alpha": 0.25,
+                    "K": 4.0
+                },
+                "ExplorationConstant": 0.699999988079071
+            },
+            "LowerCostBound": 0.0,
+            "UpperCostBound": 1.0,
+            "BeliefTracker": {
+                "RandomSeedHypSampling": 2000,
+                "HistoryLength": 10,
+                "ProbabilityDiscount": 0.699999988079071,
+                "PosteriorType": 1
+            },
+            "CostConstrainedStatistic": {
+                "LambdaInit": [
+                    1.0, 1.0
+                ],
+                "Kappa": 10.0,
+                "GradientUpdateScaling": 1.0,
+                "TauGradientClip": 1.0,
+                "ActionFilterFactor": 0.5,
+                "UseCostTresholding": [
+                    0.0,
+                    0.0
+                ],
+                "UseChanceConstrainedUpdate": [
+                    0.0,
+                    0.0
+                ],
+                "CostThresholds": [
+                    0.10000000149011612,
+                    0.0
+                ],
+                "UseLambdaPolicy": true,
+                "ExplorationReductionFactor": 0.5,
+                "ExplorationReductionOffset": 20.0,
+                "ExplorationReductionInit": 200.0,
+                "MinVisitsPolicyReady": -1,
+                "MaxSolverTime": -1
+            },
+            "State": {
+                "GoalReward": 100.0,
+                "CollisionReward": -1000.0,
+                "SafeDistViolatedReward": -0.10000000149011612,
+                "DrivableCollisionReward": 0.0,
+                "GoalCost": -100.0,
+                "CollisionCost": 1000.0,
+                "SafeDistViolatedCost": 0.10000000149011612,
+                "DrivableCollisionCost": 0.0,
+                "CooperationFactor": 0.20000000298023224,
+                "StepReward": 0.0,
+                "PredictionK": 0.5,
+                "PredictionAlpha": 0.0,
+                "NormalizationTau": 0.20000000298023224,
+                "SplitSafeDistCollision": true,
+                "ChanceCosts": false,
+                "EvaluatorParams": {
+                    "EvaluatorDynamicSafeDistLong": {
+                        "MaxAgentssCrossingCorridors": 4,
+                        "ConsiderCrossingCorridors": false,
+                        "MaxOtherDecceleration": 5.0,
+                        "MaxEgoDecceleration": 5.0,
+                        "ReactionTimeOthers": 100.0,
+                        "ReactionTimeEgo": 100.0,
+                        "ToRear": true
+                    },
+                    "EvaluatorStaticSafeDist": {
+                        "LateralSafeDist": 1.5,
+                        "LongitudinalSafeDist": 1.5
+                    },
+                    "EvaluatorSafeDistDrivableArea": {
+                        "LateralSafeDist": 0.5,
+                        "LongitudinalSafeDist": 0.5
+                    },
+                    "EvaluatorDynamicSafeDist": {
+                        "CheckLateralSafeDist": false,
+                        "LateralDistanceThreshold": 1.0,
+                        "UseFracParamFromWorld": true,
+                        "MaxAgentssCrossingCorridors": 4,
+                        "ConsiderCrossingCorridors": false,
+                        "MaxOtherDecceleration": 5.0,
+                        "MaxEgoDecceleration": 5.0,
+                        "ReactionTimeOthers": 0.800000011920929,
+                        "ReactionTimeEgo": 0.20000000298023224,
+                        "ToRear": true
+                    }
+                },
+                "EvaluationParameters": {
+                    "DynamicSafeDistIsTerminal": false,
+                    "StaticSafeDistIsTerminal": false,
+                    "AddSafeDist": false,
+                    "OutOfDrivableIsTerminal": false
+                }
+            },
+            "MaxNumNodes": 2000,
+            "NumParallelMcts": 1,
+            "UseMultiThreading": false
+        },
+        "DumpTree": false,
+        "ExtractEdgeInfo": true,
+        "MaxExtractionDepth": 10,
+        "MaxNearestAgents": 5,
+        "ExtractStateInfo": false,
+        "ConstantActionIndex": -1
+    },
+    "BehaviorUctHypothesis": {
+        "PredictionSettings": {
+            "UseTrueBehaviorsAsHypothesis": false
+        }
+    },
+    "BehaviorUctRiskConstraint": {
+        "DefaultAvailableRisk": [
+            0.1, 0.0
+        ],
+        "EstimateScenarioRisk": false,
+        "UpdateScenarioRisk": false
+    }
+}
